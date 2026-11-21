@@ -80,14 +80,14 @@ export function SalesPage() {
   const settle = async (list: Order[], on: boolean) => {
     const { error } = await supabase.from('orders').update({ settled_at: on ? new Date().toISOString() : null }).in('id', list.map((o) => o.id));
     if (error) toast.show('저장하지 못했어요: ' + error.message, true);
-    else toast.show(on ? '정산 완료로 표시했어요' : '정산 완료를 취소했어요');
+    else toast.show(on ? '프런트 확인 완료로 표시했어요' : '프런트 확인을 취소했어요');
     void load();
   };
 
   const exportOrders = () =>
     downloadCsv(`룸서비스_주문내역_${range.from}_${range.to}.csv`,
-      ['주문번호', '주문일시', '객실', '상태', '결제', '투숙객', '메뉴', '금액', '요청사항', '알레르기', '정산', '정산 방법', '담당자'],
-      orders.map((o) => [o.id, dt(o.created_at), o.room_number ?? '', ({ pending: '접수 대기', cooking: '조리 중', completed: '완료', rejected: '거절' } as Record<string, string>)[o.status ?? 'pending'], o.payment_method === 'checkout' ? '객실 합산' : '카드', o.guest_name ?? '', itemSummary(o), o.total_amount ?? 0, o.request_note ?? '', o.allergy_note ?? '', o.settled_at ? '완료' : '', o.settle_method ? ({ room: 'WINGS', card: '카드', cash: '현금' } as const)[o.settle_method] : '', o.settle_staff ?? '']));
+      ['주문번호', '주문일시', '객실', '상태', '결제', '투숙객', '메뉴', '금액', '요청사항', '알레르기', '프런트 확인', '확인 담당자', '특이사항'],
+      orders.map((o) => [o.id, dt(o.created_at), o.room_number ?? '', ({ pending: '접수 대기', cooking: '조리 중', completed: '완료', rejected: '거절' } as Record<string, string>)[o.status ?? 'pending'], o.payment_method === 'checkout' ? '객실 합산' : '카드', o.guest_name ?? '', itemSummary(o), o.total_amount ?? 0, o.request_note ?? '', o.allergy_note ?? '', o.payment_method === 'checkout' ? (o.settled_at ? '확인' : '확인 전') : '', o.settle_staff ?? '', o.settle_note ?? '']));
 
   const exportRanking = () =>
     downloadCsv(`룸서비스_메뉴순위_${range.from}_${range.to}.csv`,
@@ -208,12 +208,12 @@ export function SalesPage() {
 
       <section className="panel">
         <div className="panel-head">
-          <h2>객실 합산 정산표</h2>
-          <label className="check-inline"><input type="checkbox" checked={onlyUnsettled} onChange={(e) => setOnlyUnsettled(e.target.checked)} /> 정산 안 된 것만</label>
+          <h2>투숙객 후불 (객실 결제) 확인 현황</h2>
+          <label className="check-inline"><input type="checkbox" checked={onlyUnsettled} onChange={(e) => setOnlyUnsettled(e.target.checked)} /> 확인 전인 것만</label>
         </div>
-        <p className="meta">프런트 화면(…/front/)에서 처리하면 여기도 자동으로 '정산 완료'가 돼요. 급할 땐 여기서 직접 눌러도 돼요.</p>
+        <p className="meta">보테가에서 WINGS에 객실 결제로 넣은 주문이에요. 프런트가 확인하면 여기도 자동으로 '프런트 확인'으로 바뀌어요.</p>
         {roomGroups.length === 0 ? (
-          <p className="meta pad">{onlyUnsettled ? '정산할 객실이 없어요' : '이 기간에 객실 합산 주문이 없어요'}</p>
+          <p className="meta pad">{onlyUnsettled ? '프런트 확인을 기다리는 객실이 없어요' : '이 기간에 객실 합산 주문이 없어요'}</p>
         ) : (
           <div className="tbl-wrap">
             <table className="tbl">
@@ -225,11 +225,11 @@ export function SalesPage() {
                     <td>{g.guest || '–'}</td>
                     <td><div className="meta">{g.list.map((o) => `${pad(o.id)} ${dt(o.created_at)}`).join(' · ')}</div></td>
                     <td className="num strong">{won(g.total)}원</td>
-                    <td>{g.settled ? <span className="tag">정산 완료{g.list[0].settle_method ? ` · ${({ room: 'WINGS', card: '카드', cash: '현금' } as const)[g.list[0].settle_method]}` : ''}{g.list[0].settle_staff ? ` · ${g.list[0].settle_staff}` : ''}</span> : <span className="tag tag--amber">미정산</span>}</td>
+                    <td>{g.settled ? <span className="tag">프런트 확인{g.list[0].settle_staff ? ` · ${g.list[0].settle_staff}` : ''}</span> : <span className="tag tag--amber">확인 전</span>}</td>
                     <td className="num">
                       {g.settled
                         ? <button type="button" className="link" onClick={() => void settle(g.list, false)}>취소</button>
-                        : <button type="button" className="btn-green btn-sm" onClick={() => void settle(g.list, true)}>정산 완료</button>}
+                        : <button type="button" className="btn-green btn-sm" onClick={() => void settle(g.list, true)}>확인 처리</button>}
                     </td>
                   </tr>
                 ))}

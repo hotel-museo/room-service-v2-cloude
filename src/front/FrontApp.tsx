@@ -8,9 +8,6 @@ import { addDays, kstDayStart, kstYmd } from '../admin/sales/aggregate';
 import { printFolio } from './folio';
 
 type Tab = 'open' | 'done';
-type Method = 'room' | 'card' | 'cash';
-const METHOD: Record<Method, string> = { room: 'WINGS 객실에 올림', card: '카드로 받음', cash: '현금으로 받음' };
-const METHOD_SHORT: Record<Method, string> = { room: 'WINGS', card: '카드', cash: '현금' };
 const STAFF_KEY = 'ph-front-staff';
 const readStaff = () => { try { return localStorage.getItem(STAFF_KEY) ?? ''; } catch { return ''; } };
 const pad = (n: number) => '#' + String(n).padStart(4, '0');
@@ -90,13 +87,13 @@ export function FrontApp() {
   const openTotal = open.reduce((a, o) => a + (o.total_amount ?? 0), 0);
   const doneTotal = done.reduce((a, o) => a + (o.total_amount ?? 0), 0);
 
-  const settle = async (g: Group, method: Method, note: string, staff: string) => {
+  const settle = async (g: Group, note: string, staff: string) => {
     try { localStorage.setItem(STAFF_KEY, staff.trim()); } catch { /* 무시 */ }
     const { error } = await supabase.from('orders')
-      .update({ settled_at: new Date().toISOString(), settle_method: method, settle_note: note.trim() || null, settle_staff: staff.trim() })
+      .update({ settled_at: new Date().toISOString(), settle_method: 'room', settle_note: note.trim() || null, settle_staff: staff.trim() })
       .in('id', g.list.map((o) => o.id)).is('settled_at', null);
     if (error) toast.show('저장하지 못했어요: ' + error.message, true);
-    else toast.show(`${g.room}호 ${won(g.total)}원 처리 완료`);
+    else toast.show(`${g.room}호 ${won(g.total)}원 객실 반영 확인`);
     setSettling(null);
     void load();
   };
@@ -104,7 +101,7 @@ export function FrontApp() {
   const undo = async (g: Group) => {
     const { error } = await supabase.from('orders').update({ settled_at: null }).in('id', g.list.map((o) => o.id));
     if (error) toast.show('되돌리지 못했어요: ' + error.message, true);
-    else toast.show(`${g.room}호 처리를 되돌렸어요`);
+    else toast.show(`${g.room}호 확인을 취소했어요`);
     void load();
   };
 
@@ -118,8 +115,8 @@ export function FrontApp() {
           <div className="brand-sub">FRONT · ROOM SERVICE</div>
         </div>
         <nav className="a-nav" aria-label="프런트 메뉴">
-          <button type="button" className={`nav-btn${tab === 'open' ? ' is-active' : ''}`} onClick={() => setTab('open')}>받을 금액 {open.length > 0 ? `(${group(open).length})` : ''}</button>
-          <button type="button" className={`nav-btn${tab === 'done' ? ' is-active' : ''}`} onClick={() => setTab('done')}>처리 완료</button>
+          <button type="button" className={`nav-btn${tab === 'open' ? ' is-active' : ''}`} onClick={() => setTab('open')}>확인할 객실 {open.length > 0 ? `(${group(open).length})` : ''}</button>
+          <button type="button" className={`nav-btn${tab === 'done' ? ' is-active' : ''}`} onClick={() => setTab('done')}>확인 완료</button>
         </nav>
         <div className="grow" />
         <input className="inp inp--sm fd-search" type="search" inputMode="numeric" placeholder="객실 번호 · 성함" value={q} onChange={(e) => setQ(e.target.value)} aria-label="객실 번호 또는 성함 검색" />
@@ -137,11 +134,11 @@ export function FrontApp() {
         {tab === 'open' ? (
           <>
             <div className="fd-sum">
-              <div><span>받을 금액 합계</span><strong>{won(openTotal)}원</strong></div>
-              <p className="meta">주방에서 접수한 투숙객 후불 주문이 객실·성함별로 모여요. 손님 객실에 올렸거나 직접 받았으면 <b>처리 완료</b>를 눌러 주세요. 매출·정산에 바로 반영돼요.</p>
+              <div><span>확인할 금액 합계</span><strong>{won(openTotal)}원</strong></div>
+              <p className="meta">주방에서 접수한 투숙객 후불 주문이 객실·성함별로 모여요. WINGS에서 객실 결제로 잘 들어갔는지 확인하고 <b>객실 반영 확인</b>을 눌러 주세요. 보테가 매출·정산에도 바로 표시돼요.</p>
             </div>
             {openGroups.length === 0 ? (
-              <div className="empty-col">{q ? '검색한 객실이 없어요' : '처리할 룸서비스 금액이 없어요'}</div>
+              <div className="empty-col">{q ? '검색한 객실이 없어요' : '확인할 룸서비스 주문이 없어요'}</div>
             ) : (
               <div className="fd-grid">
                 {openGroups.map((g) => {
@@ -170,7 +167,7 @@ export function FrontApp() {
                       </ul>
                       <div className="fd-actions">
                         <button type="button" className="btn-outline btn-sm" onClick={() => print(g)}>내역서 인쇄</button>
-                        <button type="button" className="btn-green btn-sm grow" onClick={() => setSettling(g)}>처리 완료</button>
+                        <button type="button" className="btn-green btn-sm grow" onClick={() => setSettling(g)}>객실 반영 확인</button>
                       </div>
                     </article>
                   );
@@ -181,16 +178,16 @@ export function FrontApp() {
         ) : (
           <>
             <div className="filters">
-              <input className="inp inp--date" type="date" value={day} max={kstYmd(new Date())} onChange={(e) => e.target.value && setDay(e.target.value)} aria-label="처리한 날짜" />
-              <span className="meta">처리 {done.length}건 · {won(doneTotal)}원</span>
+              <input className="inp inp--date" type="date" value={day} max={kstYmd(new Date())} onChange={(e) => e.target.value && setDay(e.target.value)} aria-label="확인한 날짜" />
+              <span className="meta">확인 {done.length}건 · {won(doneTotal)}원</span>
             </div>
             {doneGroups.length === 0 ? (
-              <div className="empty-col">이 날 처리한 내역이 없어요</div>
+              <div className="empty-col">이 날 확인한 내역이 없어요</div>
             ) : (
               <div className="panel">
                 <div className="tbl-wrap">
                   <table className="tbl">
-                    <thead><tr><th>처리 시각</th><th>객실</th><th>성함</th><th>주문</th><th>방법</th><th>담당자</th><th className="num">금액</th><th /></tr></thead>
+                    <thead><tr><th>확인 시각</th><th>객실</th><th>성함</th><th>주문</th><th>담당자</th><th className="num">금액</th><th /></tr></thead>
                     <tbody>
                       {doneGroups.map((g) => {
                         const o = g.list[0];
@@ -199,13 +196,12 @@ export function FrontApp() {
                             <td>{dt(o.settled_at!)}</td>
                             <td className="strong">{g.room}호</td>
                             <td>{g.guest || '–'}</td>
-                            <td><span className="meta">{g.list.map((x) => pad(x.id)).join(' ')}</span>{o.settle_note ? <div className="meta">메모: {o.settle_note}</div> : null}</td>
-                            <td>{o.settle_method ? METHOD_SHORT[o.settle_method] : '관리자 처리'}</td>
-                            <td>{o.settle_staff || '–'}</td>
+                            <td><span className="meta">{g.list.map((x) => pad(x.id)).join(' ')}</span>{o.settle_note ? <div className="meta">특이사항: {o.settle_note}</div> : null}</td>
+                            <td>{o.settle_staff || (o.settle_method ? '–' : '보테가')}</td>
                             <td className="num strong">{won(g.total)}원</td>
                             <td className="num">
                               <button type="button" className="link" onClick={() => print(g)}>인쇄</button>{' '}
-                              <button type="button" className="link" onClick={() => void undo(g)}>되돌리기</button>
+                              <button type="button" className="link" onClick={() => void undo(g)}>확인 취소</button>
                             </td>
                           </tr>
                         );
@@ -225,8 +221,7 @@ export function FrontApp() {
   );
 }
 
-function SettleModal({ g, onClose, onSave }: { g: Group; onClose: () => void; onSave: (g: Group, m: Method, note: string, staff: string) => Promise<void> }) {
-  const [method, setMethod] = useState<Method>('room');
+function SettleModal({ g, onClose, onSave }: { g: Group; onClose: () => void; onSave: (g: Group, note: string, staff: string) => Promise<void> }) {
   const [note, setNote] = useState('');
   const [staff, setStaff] = useState(readStaff);
   const [busy, setBusy] = useState(false);
@@ -237,22 +232,14 @@ function SettleModal({ g, onClose, onSave }: { g: Group; onClose: () => void; on
       <div className="modal" role="dialog" aria-modal="true" aria-labelledby="settle-t">
         <h2 id="settle-t">{g.room}호 · {g.guest || '성함 없음'}</h2>
         <div className="fd-amt fd-amt--lg">{won(g.total)}<small>원</small></div>
-        {g.cooking > 0 && <p className="f-hint">아직 조리 중인 주문 {g.cooking}건이 함께 있어요. 금액은 확정이라 처리해도 괜찮아요.</p>}
-        <div className="fd-methods" role="radiogroup" aria-label="처리 방법">
-          {(Object.keys(METHOD) as Method[]).map((m) => (
-            <label key={m} className={`fd-method${method === m ? ' is-on' : ''}`}>
-              <input type="radio" name="method" checked={method === m} onChange={() => setMethod(m)} />
-              <span>{METHOD[m]}</span>
-              {m === 'room' && <small>체크아웃 때 객실 요금과 함께 결제</small>}
-            </label>
-          ))}
-        </div>
+        {g.cooking > 0 && <p className="f-hint">아직 조리 중인 주문 {g.cooking}건이 함께 있어요. 금액은 확정이라 지금 확인해도 괜찮아요.</p>}
+        <p className="f-hint">WINGS에서 이 객실에 위 금액이 결제로 들어가 있는지 확인한 뒤 눌러 주세요.</p>
         <label className="f-label" htmlFor="settle-staff">담당자 <span className="req">필수</span></label>
-        <input id="settle-staff" className="inp" placeholder="처리한 직원 이름" value={staff} onChange={(e) => setStaff(e.target.value)} maxLength={30} autoFocus={!staff} />
-        <input className="inp" placeholder="메모 (선택) 예: WINGS 전표 번호" value={note} onChange={(e) => setNote(e.target.value)} maxLength={200} aria-label="메모" />
+        <input id="settle-staff" className="inp" placeholder="확인한 직원 이름" value={staff} onChange={(e) => setStaff(e.target.value)} maxLength={30} autoFocus={!staff} />
+        <input className="inp" placeholder="특이사항 (있을 때만)" value={note} onChange={(e) => setNote(e.target.value)} maxLength={200} aria-label="특이사항" />
         <div className="fd-actions">
           <button type="button" className="btn-outline" onClick={onClose}>취소</button>
-          <button type="button" className="btn-green grow" disabled={busy || !ok} onClick={async () => { setBusy(true); await onSave(g, method, note, staff); }}>{busy ? '저장 중…' : '처리 완료'}</button>
+          <button type="button" className="btn-green grow" disabled={busy || !ok} onClick={async () => { setBusy(true); await onSave(g, note, staff); }}>{busy ? '저장 중…' : '객실 반영 확인'}</button>
         </div>
       </div>
     </div>
