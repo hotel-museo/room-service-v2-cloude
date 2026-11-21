@@ -20,7 +20,7 @@ export function ColumnChart({
 }) {
   const [hover, setHover] = useState<number | null>(null);
   const values = data.map((_, i) => valueOf(i));
-  const max = Math.max(1, ...values);
+  const max = Math.max(2, ...values);
   const nice = niceMax(max);
   const ticks = [0, nice / 2, nice];
   const maxIdx = values.indexOf(Math.max(...values));
