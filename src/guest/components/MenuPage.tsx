@@ -73,8 +73,10 @@ export function MenuPage({ lang, t, menus, sets, labels, service, qtyByMenu, onO
   }, [tabs.map((x) => x.id).join('|')]);
 
   useEffect(() => {
-    const btn = navRef.current?.querySelector<HTMLElement>(`[data-target="${active}"]`);
-    btn?.scrollIntoView({ inline: 'center', block: 'nearest', behavior: 'smooth' });
+    // 카테고리 줄만 가로로 움직입니다 (scrollIntoView는 페이지 전체를 움직여서 쓰지 않음)
+    const nav = navRef.current;
+    const btn = nav?.querySelector<HTMLElement>(`[data-target="${active}"]`);
+    if (nav && btn) nav.scrollTo({ left: btn.offsetLeft - nav.clientWidth / 2 + btn.offsetWidth / 2, behavior: 'smooth' });
   }, [active]);
 
   const jump = (id: string) => {
