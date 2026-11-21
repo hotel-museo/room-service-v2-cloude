@@ -17,6 +17,7 @@ interface Props {
   labels: CategoryLabels;
   service: ServiceStatus;
   hours: BusinessHours;
+  catOrder: string[];
   hoursNow: HoursState;
   isCut: (m: Menu) => boolean;
   qtyByMenu: Map<number, number>;
@@ -25,7 +26,7 @@ interface Props {
   onOpenLang: () => void;
 }
 
-export function MenuPage({ lang, t, menus, sets, labels, service, hours, hoursNow, isCut, qtyByMenu, onOpenMenu, onOpenSet, onOpenLang }: Props) {
+export function MenuPage({ lang, t, menus, sets, labels, service, hours, catOrder, hoursNow, isCut, qtyByMenu, onOpenMenu, onOpenSet, onOpenLang }: Props) {
   const list = useMemo(() => visibleMenus(menus), [menus]);
   const setList = useMemo(() => visibleSets(sets), [sets]);
 
@@ -39,8 +40,9 @@ export function MenuPage({ lang, t, menus, sets, labels, service, hours, hoursNo
       }
       map.get(m.category)!.push(m);
     }
-    return order.map((cat) => ({ cat, items: map.get(cat)! }));
-  }, [list]);
+    const rank = (c: string) => { const i = catOrder.indexOf(c); return i < 0 ? 999 + order.indexOf(c) : i; };
+    return [...order].sort((a, b) => rank(a) - rank(b)).map((cat) => ({ cat, items: map.get(cat)! }));
+  }, [list, catOrder]);
 
   const picks = useMemo(() => {
     const byId = new Map(list.map((m) => [m.id, m]));

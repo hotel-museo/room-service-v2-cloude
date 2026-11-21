@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useState } from 'react';
 import { isSoldOut, nextKstMidnightIso, won } from '../../lib/menu';
 import type { CategoryLabels, Menu } from '../../lib/types';
 import { autoTranslate, createMenu, deleteMenu, saveMenu, saveOrder, uploadImage } from './api';
@@ -6,6 +6,7 @@ import { Confirm, Drawer, Field, Toggle } from './ui';
 
 interface Props {
   menus: Menu[];
+  cats: string[];
   labels: CategoryLabels;
   reload: () => Promise<void>;
   toast: (t: string, bad?: boolean) => void;
@@ -13,15 +14,9 @@ interface Props {
 
 const catName = (labels: CategoryLabels, c: string) => labels[c]?.ko || c;
 
-export function MenuTab({ menus, labels, reload, toast }: Props) {
+export function MenuTab({ menus, cats, labels, reload, toast }: Props) {
   const [q, setQ] = useState('');
   const [editing, setEditing] = useState<Menu | 'new' | null>(null);
-
-  const cats = useMemo(() => {
-    const order: string[] = [];
-    [...menus].sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0)).forEach((m) => !order.includes(m.category) && order.push(m.category));
-    return order;
-  }, [menus]);
 
   const byCat = (c: string) =>
     menus.filter((m) => m.category === c && (!q.trim() || m.name.includes(q.trim()))).sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0) || a.id - b.id);

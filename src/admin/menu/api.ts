@@ -3,11 +3,12 @@ import { supabase } from '../../lib/supabase';
 import type { CategoryLabels, Menu, SetMenu } from '../../lib/types';
 
 export async function loadMenuAdminData() {
-  const [m, s, l, h] = await Promise.all([
+  const [m, s, l, h, co] = await Promise.all([
     supabase.from('menus').select('*').order('sort_order', { ascending: true }),
     supabase.from('set_menus').select('*').order('sort_order', { ascending: true }),
     supabase.from('site_settings').select('settings').eq('key', 'category_translations').maybeSingle(),
     supabase.from('site_settings').select('settings').eq('key', 'business_hours').maybeSingle(),
+    supabase.from('site_settings').select('settings').eq('key', 'category_order').maybeSingle(),
   ]);
   if (m.error) throw m.error;
   if (s.error) throw s.error;
@@ -16,6 +17,7 @@ export async function loadMenuAdminData() {
     sets: (s.data ?? []) as SetMenu[],
     labels: (l.data?.settings ?? {}) as CategoryLabels,
     hours: (h.data?.settings ?? { tz: 'Asia/Seoul', slots: [] }) as BusinessHours,
+    catOrder: ((co.data?.settings as { order?: string[] } | undefined)?.order ?? []) as string[],
   };
 }
 

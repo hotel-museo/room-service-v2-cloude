@@ -145,6 +145,7 @@ export function GuestApp() {
           labels={data.labels}
           service={data.service}
           hours={data.hours}
+          catOrder={data.catOrder}
           hoursNow={hours}
           isCut={isCut}
           qtyByMenu={qtyByMenu}
