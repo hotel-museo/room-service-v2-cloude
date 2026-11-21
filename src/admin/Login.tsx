@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from 'react';
-import { supabase } from '../lib/supabase';
+import { autoLoginOn, setAutoLogin, supabase } from '../lib/supabase';
 
 const SAVED_ID_KEY = 'ph-admin-saved-email';
 
@@ -15,6 +15,7 @@ export function Login() {
   const saved = readSaved();
   const [email, setEmail] = useState(saved);
   const [remember, setRemember] = useState(!!saved);
+  const [auto, setAuto] = useState(autoLoginOn);
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -23,6 +24,7 @@ export function Login() {
     e.preventDefault();
     setBusy(true);
     setError(null);
+    setAutoLogin(auto);
     const { error } = await supabase.auth.signInWithPassword({ email: email.trim(), password });
     setBusy(false);
     if (error) {
@@ -49,10 +51,17 @@ export function Login() {
         <input id="email" type="email" autoComplete="username" value={email} onChange={(e) => setEmail(e.target.value)} required />
         <label htmlFor="pw">비밀번호</label>
         <input id="pw" type="password" autoComplete="current-password" autoFocus={!!saved} value={password} onChange={(e) => setPassword(e.target.value)} required />
-        <label className="check">
-          <input type="checkbox" checked={remember} onChange={(e) => setRemember(e.target.checked)} />
-          <span>아이디 저장</span>
-        </label>
+        <div className="checks">
+          <label className="check">
+            <input type="checkbox" checked={remember} onChange={(e) => setRemember(e.target.checked)} />
+            <span>아이디 저장</span>
+          </label>
+          <label className="check">
+            <input type="checkbox" checked={auto} onChange={(e) => setAuto(e.target.checked)} />
+            <span>자동 로그인</span>
+          </label>
+        </div>
+        {auto && <p className="login-hint">로그아웃을 누르기 전까지 이 컴퓨터에서 로그인이 유지돼요.</p>}
         {error && <p className="login-error" role="alert">{error}</p>}
         <button type="submit" className="btn-green" disabled={busy}>{busy ? '확인 중…' : '로그인'}</button>
       </form>
