@@ -142,6 +142,7 @@ export interface Order {
   settle_method?: 'room' | 'card' | 'cash' | null;
   settle_note?: string | null;
   settled_by?: string | null;
+  settle_staff?: string | null;
   order_items: OrderItem[] | null;
   accepted_at: string | null;
   completed_at: string | null;

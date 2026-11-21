@@ -86,8 +86,8 @@ export function SalesPage() {
 
   const exportOrders = () =>
     downloadCsv(`룸서비스_주문내역_${range.from}_${range.to}.csv`,
-      ['주문번호', '주문일시', '객실', '상태', '결제', '투숙객', '메뉴', '금액', '요청사항', '알레르기', '정산'],
-      orders.map((o) => [o.id, dt(o.created_at), o.room_number ?? '', ({ pending: '접수 대기', cooking: '조리 중', completed: '완료', rejected: '거절' } as Record<string, string>)[o.status ?? 'pending'], o.payment_method === 'checkout' ? '객실 합산' : '카드', o.guest_name ?? '', itemSummary(o), o.total_amount ?? 0, o.request_note ?? '', o.allergy_note ?? '', o.settled_at ? '완료' : '']));
+      ['주문번호', '주문일시', '객실', '상태', '결제', '투숙객', '메뉴', '금액', '요청사항', '알레르기', '정산', '정산 방법', '담당자'],
+      orders.map((o) => [o.id, dt(o.created_at), o.room_number ?? '', ({ pending: '접수 대기', cooking: '조리 중', completed: '완료', rejected: '거절' } as Record<string, string>)[o.status ?? 'pending'], o.payment_method === 'checkout' ? '객실 합산' : '카드', o.guest_name ?? '', itemSummary(o), o.total_amount ?? 0, o.request_note ?? '', o.allergy_note ?? '', o.settled_at ? '완료' : '', o.settle_method ? ({ room: 'WINGS', card: '카드', cash: '현금' } as const)[o.settle_method] : '', o.settle_staff ?? '']));
 
   const exportRanking = () =>
     downloadCsv(`룸서비스_메뉴순위_${range.from}_${range.to}.csv`,
@@ -225,7 +225,7 @@ export function SalesPage() {
                     <td>{g.guest || '–'}</td>
                     <td><div className="meta">{g.list.map((o) => `${pad(o.id)} ${dt(o.created_at)}`).join(' · ')}</div></td>
                     <td className="num strong">{won(g.total)}원</td>
-                    <td>{g.settled ? <span className="tag">정산 완료{g.list[0].settle_method ? ` · ${({ room: 'WINGS', card: '카드', cash: '현금' } as const)[g.list[0].settle_method]}` : ''}</span> : <span className="tag tag--amber">미정산</span>}</td>
+                    <td>{g.settled ? <span className="tag">정산 완료{g.list[0].settle_method ? ` · ${({ room: 'WINGS', card: '카드', cash: '현금' } as const)[g.list[0].settle_method]}` : ''}{g.list[0].settle_staff ? ` · ${g.list[0].settle_staff}` : ''}</span> : <span className="tag tag--amber">미정산</span>}</td>
                     <td className="num">
                       {g.settled
                         ? <button type="button" className="link" onClick={() => void settle(g.list, false)}>취소</button>

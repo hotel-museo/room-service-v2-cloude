@@ -11,6 +11,8 @@ type Tab = 'open' | 'done';
 type Method = 'room' | 'card' | 'cash';
 const METHOD: Record<Method, string> = { room: 'WINGS 객실에 올림', card: '카드로 받음', cash: '현금으로 받음' };
 const METHOD_SHORT: Record<Method, string> = { room: 'WINGS', card: '카드', cash: '현금' };
+const STAFF_KEY = 'ph-front-staff';
+const readStaff = () => { try { return localStorage.getItem(STAFF_KEY) ?? ''; } catch { return ''; } };
 const pad = (n: number) => '#' + String(n).padStart(4, '0');
 const dt = (iso: string) => new Date(iso).toLocaleString('ko-KR', { timeZone: 'Asia/Seoul', month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit', hour12: false });
 const summary = (o: Order) => (o.order_items ?? []).map((it) => `${it.name}${it.quantity > 1 ? ` ×${it.quantity}` : ''}`).join(', ');
@@ -88,9 +90,10 @@ export function FrontApp() {
   const openTotal = open.reduce((a, o) => a + (o.total_amount ?? 0), 0);
   const doneTotal = done.reduce((a, o) => a + (o.total_amount ?? 0), 0);
 
-  const settle = async (g: Group, method: Method, note: string) => {
+  const settle = async (g: Group, method: Method, note: string, staff: string) => {
+    try { localStorage.setItem(STAFF_KEY, staff.trim()); } catch { /* 무시 */ }
     const { error } = await supabase.from('orders')
-      .update({ settled_at: new Date().toISOString(), settle_method: method, settle_note: note.trim() || null })
+      .update({ settled_at: new Date().toISOString(), settle_method: method, settle_note: note.trim() || null, settle_staff: staff.trim() })
       .in('id', g.list.map((o) => o.id)).is('settled_at', null);
     if (error) toast.show('저장하지 못했어요: ' + error.message, true);
     else toast.show(`${g.room}호 ${won(g.total)}원 처리 완료`);
@@ -187,7 +190,7 @@ export function FrontApp() {
               <div className="panel">
                 <div className="tbl-wrap">
                   <table className="tbl">
-                    <thead><tr><th>처리 시각</th><th>객실</th><th>성함</th><th>주문</th><th>방법</th><th className="num">금액</th><th /></tr></thead>
+                    <thead><tr><th>처리 시각</th><th>객실</th><th>성함</th><th>주문</th><th>방법</th><th>담당자</th><th className="num">금액</th><th /></tr></thead>
                     <tbody>
                       {doneGroups.map((g) => {
                         const o = g.list[0];
@@ -198,6 +201,7 @@ export function FrontApp() {
                             <td>{g.guest || '–'}</td>
                             <td><span className="meta">{g.list.map((x) => pad(x.id)).join(' ')}</span>{o.settle_note ? <div className="meta">메모: {o.settle_note}</div> : null}</td>
                             <td>{o.settle_method ? METHOD_SHORT[o.settle_method] : '관리자 처리'}</td>
+                            <td>{o.settle_staff || '–'}</td>
                             <td className="num strong">{won(g.total)}원</td>
                             <td className="num">
                               <button type="button" className="link" onClick={() => print(g)}>인쇄</button>{' '}
@@ -221,10 +225,12 @@ export function FrontApp() {
   );
 }
 
-function SettleModal({ g, onClose, onSave }: { g: Group; onClose: () => void; onSave: (g: Group, m: Method, note: string) => Promise<void> }) {
+function SettleModal({ g, onClose, onSave }: { g: Group; onClose: () => void; onSave: (g: Group, m: Method, note: string, staff: string) => Promise<void> }) {
   const [method, setMethod] = useState<Method>('room');
   const [note, setNote] = useState('');
+  const [staff, setStaff] = useState(readStaff);
   const [busy, setBusy] = useState(false);
+  const ok = staff.trim().length > 0;
   return (
     <div className="modal-layer">
       <button type="button" className="modal-backdrop" aria-label="닫기" onClick={onClose} />
@@ -241,10 +247,12 @@ function SettleModal({ g, onClose, onSave }: { g: Group; onClose: () => void; on
             </label>
           ))}
         </div>
-        <input className="inp" placeholder="메모 (선택) 예: 영수증 번호, 담당자" value={note} onChange={(e) => setNote(e.target.value)} maxLength={200} />
+        <label className="f-label" htmlFor="settle-staff">담당자 <span className="req">필수</span></label>
+        <input id="settle-staff" className="inp" placeholder="처리한 직원 이름" value={staff} onChange={(e) => setStaff(e.target.value)} maxLength={30} autoFocus={!staff} />
+        <input className="inp" placeholder="메모 (선택) 예: WINGS 전표 번호" value={note} onChange={(e) => setNote(e.target.value)} maxLength={200} aria-label="메모" />
         <div className="fd-actions">
           <button type="button" className="btn-outline" onClick={onClose}>취소</button>
-          <button type="button" className="btn-green grow" disabled={busy} onClick={async () => { setBusy(true); await onSave(g, method, note); }}>{busy ? '저장 중…' : '처리 완료'}</button>
+          <button type="button" className="btn-green grow" disabled={busy || !ok} onClick={async () => { setBusy(true); await onSave(g, method, note, staff); }}>{busy ? '저장 중…' : '처리 완료'}</button>
         </div>
       </div>
     </div>
