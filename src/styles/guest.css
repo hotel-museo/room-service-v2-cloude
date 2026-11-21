@@ -258,3 +258,7 @@ img { display: block; }
 .notice--soft { background: var(--terracotta-soft); color: var(--terracotta-ink); }
 .hours-line { margin: 10px 22px 0; font-size: 12px; color: var(--muted); }
 .cline-bad { font-size: 12px; font-weight: 700; color: var(--danger); }
+.reject-box { border-color: #e9c9bd; background: var(--terracotta-soft); gap: 6px; }
+.reject-label { font-size: 12px; font-weight: 700; letter-spacing: 0.04em; color: var(--terracotta-ink); }
+.reject-text { margin: 0; font-size: 17px; font-weight: 700; color: var(--ink); line-height: 1.45; }
+.reject-note { margin: 0; font-size: 13px; }

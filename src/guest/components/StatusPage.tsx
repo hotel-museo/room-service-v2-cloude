@@ -1,3 +1,4 @@
+import { translateReason } from '../../lib/rejectReasons';
 import { useEffect, useState } from 'react';
 import { won } from '../../lib/menu';
 import type { Lang } from '../../lib/types';
@@ -48,7 +49,7 @@ export function StatusPage({ lang, t, order, onMenu, onNewOrder }: Props) {
     desc = t('st_completed_d');
   } else if (status === 'rejected') {
     title = t('st_rejected_t');
-    desc = row?.rejection_reason || t('st_rejected_d');
+    desc = t('st_rejected_d');
   }
 
   const steps = [
@@ -72,6 +73,14 @@ export function StatusPage({ lang, t, order, onMenu, onNewOrder }: Props) {
           <h1 className="status-title">{title}</h1>
           <p className="status-desc">{desc}</p>
         </section>
+
+        {status === 'rejected' && (
+          <section className="card reject-box" aria-label={t('st_reject_reason')}>
+            <div className="reject-label">{t('st_reject_reason')}</div>
+            <p className="reject-text">{row?.rejection_reason ? translateReason(row.rejection_reason, lang) ?? row.rejection_reason : t('st_rejected_d')}</p>
+            <p className="muted reject-note">{t('st_reject_nocharge')}</p>
+          </section>
+        )}
 
         {status !== 'rejected' && (
           <section className="card steps" aria-label="progress">

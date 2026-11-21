@@ -7,8 +7,9 @@ import { MenuAdmin } from './menu/MenuAdmin';
 import { SalesPage } from './sales/SalesPage';
 import { printTicket } from './print';
 import { useBoard } from './useBoard';
+import { REJECT_REASONS as REJECT_PRESETS } from '../lib/rejectReasons';
 
-const REJECT_REASONS = ['재료가 모두 소진됐어요', '주방 마감 시간이에요', '주문이 많아 지금은 어려워요', '객실 번호를 확인할 수 없어요'];
+const REJECT_REASONS = REJECT_PRESETS.map((r) => r.ko);
 const SERVICE: [ServiceStatus, string][] = [['open', '영업 중'], ['busy', '바쁨'], ['preparing', '준비 중'], ['closed', '마감']];
 
 const pad = (n: number) => '#' + String(n).padStart(4, '0');
@@ -55,7 +56,7 @@ export function Board() {
   const [now, setNow] = useState(Date.now());
   const [sound, setSound] = useState(false);
   const [rejecting, setRejecting] = useState<Order | null>(null);
-  const [reason, setReason] = useState(REJECT_REASONS[0]);
+  const [reason, setReason] = useState('');
   const [query, setQuery] = useState('');
   const [autoPrint, setAutoPrint] = useState(() => localStorage.getItem('ph-auto-print') === '1');
   const toggleAutoPrint = () => {
@@ -178,7 +179,7 @@ export function Board() {
                       <button type="button" key={m} className="btn-green" onClick={() => { void b.accept(o.id, m); if (autoPrint) printTicket({ ...o, estimated_minutes: m, accepted_at: new Date().toISOString() }); }}>{m}분</button>
                     ))}
                   </div>
-                  <button type="button" className="btn-outline danger" onClick={() => { setReason(REJECT_REASONS[0]); setRejecting(o); }}>거절하기</button>
+                  <button type="button" className="btn-outline danger" onClick={() => { setReason(''); setRejecting(o); }}>거절하기</button>
                 </article>
               );
             })}
@@ -280,16 +281,18 @@ export function Board() {
           <button type="button" className="modal-backdrop" aria-label="닫기" onClick={() => setRejecting(null)} />
           <div className="modal" role="dialog" aria-modal="true" aria-label="주문 거절">
             <h2>{rejecting.room_number}호 주문을 거절할까요?</h2>
-            <p className="meta">손님 화면에 아래 사유가 보여요.</p>
+            <p className="meta">고른 사유가 손님 화면에 보여요. 아래 버튼 사유는 손님 언어(영어·일본어·중국어)로 자동 번역돼요.</p>
             <div className="reasons">
               {REJECT_REASONS.map((r) => (
                 <button type="button" key={r} className={reason === r ? 'is-on' : ''} aria-pressed={reason === r} onClick={() => setReason(r)}>{r}</button>
               ))}
             </div>
-            <input className="search" value={reason} onChange={(e) => setReason(e.target.value)} aria-label="거절 사유 직접 입력" />
+            <label className="f-label" htmlFor="reject-custom">직접 입력</label>
+            <input id="reject-custom" className="search" placeholder="예: 트러플 크림 재료가 떨어졌어요" value={reason} onChange={(e) => setReason(e.target.value)} maxLength={120} />
+            {reason.trim() && !REJECT_REASONS.includes(reason.trim()) && <p className="f-hint">직접 쓴 사유는 번역되지 않고 그대로 보여요. 외국인 손님이면 버튼 사유를 고르는 게 좋아요.</p>}
             <div className="row-btns">
               <button type="button" className="btn-outline" onClick={() => setRejecting(null)}>취소</button>
-              <button type="button" className="btn-danger wide" disabled={!reason.trim()} onClick={() => { void b.reject(rejecting.id, reason.trim()); setRejecting(null); }}>거절하기</button>
+              <button type="button" className="btn-danger wide" disabled={!reason.trim()} title={reason.trim() ? '' : '거절 사유를 골라 주세요'} onClick={() => { void b.reject(rejecting.id, reason.trim()); setRejecting(null); }}>거절하기</button>
             </div>
           </div>
         </div>
