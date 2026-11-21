@@ -3,6 +3,7 @@ import { isSoldOut, visibleMenus, won } from '../lib/menu';
 import { supabase } from '../lib/supabase';
 import type { Order, ServiceStatus } from '../lib/types';
 import { audioReady, chime, unlockAudio } from './alarm';
+import { MenuAdmin } from './menu/MenuAdmin';
 import { printTicket } from './print';
 import { useBoard } from './useBoard';
 
@@ -36,8 +37,20 @@ function Opts({ list }: { list: string[] }) {
   );
 }
 
+function usePage(): 'orders' | 'menu' {
+  const get = () => (location.hash === '#menu' ? 'menu' : 'orders');
+  const [page, setPage] = useState<'orders' | 'menu'>(get);
+  useEffect(() => {
+    const on = () => setPage(get());
+    window.addEventListener('hashchange', on);
+    return () => window.removeEventListener('hashchange', on);
+  }, []);
+  return page;
+}
+
 export function Board() {
   const b = useBoard();
+  const page = usePage();
   const [now, setNow] = useState(Date.now());
   const [sound, setSound] = useState(false);
   const [rejecting, setRejecting] = useState<Order | null>(null);
@@ -94,8 +107,8 @@ export function Board() {
           <div className="brand-sub">ROOM SERVICE ADMIN</div>
         </div>
         <nav className="a-nav" aria-label="관리 메뉴">
-          <a className="is-active" href="./">주문판</a>
-          <a href={OLD_SITE + 'menu-admin.html'} target="_blank" rel="noreferrer">메뉴 관리</a>
+          <a className={page === 'orders' ? 'is-active' : ''} href="#orders">주문판{page !== 'orders' && pending.length > 0 ? ` (${pending.length})` : ''}</a>
+          <a className={page === 'menu' ? 'is-active' : ''} href="#menu">메뉴 관리</a>
           <a href={OLD_SITE + 'sales-admin.html'} target="_blank" rel="noreferrer">매출 · 정산</a>
         </nav>
         <div className="grow" />
@@ -124,10 +137,13 @@ export function Board() {
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9" /><path d="M10.3 21a1.9 1.9 0 0 0 3.4 0" /></svg>
           새 주문 {pending.length}건이 접수를 기다리고 있어요
           {!sound && <button type="button" className="banner-btn" onClick={enableSound}>알림음 켜기</button>}
+          {page !== 'orders' && <a className="banner-btn" href="#orders">주문판 보기</a>}
         </div>
       )}
 
-      <main className="a-main">
+      {page === 'menu' && <MenuAdmin />}
+
+      <main className="a-main" hidden={page !== 'orders'}>
         <section className="cols" aria-label="주문 현황">
           <div className="col">
             <div className="col-head"><h2>신규 주문</h2><span className="count count--green">{pending.length}</span></div>
