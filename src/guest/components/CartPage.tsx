@@ -3,7 +3,7 @@ import { won } from '../../lib/menu';
 import type { Lang, PaymentMethod } from '../../lib/types';
 import type { StringKey } from '../../i18n/strings';
 import type { ResolvedLine } from '../cart';
-import { Back, Plus } from './Icons';
+import { Back, Check, Plus } from './Icons';
 import { Stepper } from './Stepper';
 
 export interface CheckoutForm {
@@ -11,6 +11,8 @@ export interface CheckoutForm {
   guestName: string;
   phone: string;
   note: string;
+  hasAllergy: boolean;
+  allergy: string;
   cutlery: number;
   payment: PaymentMethod;
 }
@@ -35,10 +37,11 @@ export function CartPage({ t, lines, form, setForm, canOrder, submitting, error,
   const roomMissing = !form.room.trim();
   const nameMissing = form.payment === 'checkout' && !form.guestName.trim();
   const invalid = lines.some((l) => !l.valid);
+  const allergyMissing = form.hasAllergy && !form.allergy.trim();
 
   const submit = () => {
     setTouched(true);
-    if (roomMissing || nameMissing || !lines.length || invalid) return;
+    if (roomMissing || nameMissing || allergyMissing || !lines.length || invalid) return;
     onSubmit();
   };
 
@@ -120,6 +123,31 @@ export function CartPage({ t, lines, form, setForm, canOrder, submitting, error,
             </div>
             <Stepper value={form.cutlery} min={0} max={10} onChange={(v) => set('cutlery', v)} />
           </div>
+          <button
+            type="button"
+            role="checkbox"
+            aria-checked={form.hasAllergy}
+            className={`allergy-toggle${form.hasAllergy ? ' is-on' : ''}`}
+            onClick={() => setForm({ ...form, hasAllergy: !form.hasAllergy, allergy: form.hasAllergy ? '' : form.allergy })}
+          >
+            <span className="box">{form.hasAllergy && <Check />}</span>
+            <span className="row-title">{t('hasAllergy')}</span>
+          </button>
+          {form.hasAllergy && (
+            <div className="field">
+              <label htmlFor="allergy" className="label">{t('allergyLabel')}</label>
+              <textarea
+                id="allergy"
+                className={`input${touched && allergyMissing ? ' is-error' : ''}`}
+                rows={2}
+                autoFocus
+                placeholder={t('allergyPlaceholder')}
+                value={form.allergy}
+                onChange={(e) => set('allergy', e.target.value)}
+              />
+              <p className={`help${touched && allergyMissing ? ' is-error' : ''}`}>{touched && allergyMissing ? t('errAllergy') : t('allergyHelp')}</p>
+            </div>
+          )}
           <div className="field">
             <label htmlFor="note" className="label">{t('request')}</label>
             <textarea id="note" className="input" rows={3} placeholder={t('requestPlaceholder')} value={form.note} onChange={(e) => set('note', e.target.value)} />

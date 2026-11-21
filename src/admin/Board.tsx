@@ -148,6 +148,7 @@ export function Board() {
                       <li key={i}><strong>{it.q}×</strong><span>{it.n}{it.sub && <small>{it.sub}</small>}<Opts list={it.opts} /></span></li>
                     ))}
                   </ul>
+                  {o.allergy_note && <div className="allergy">⚠ 알레르기: {o.allergy_note}</div>}
                   {o.request_note && <div className="note">{o.request_note}</div>}
                   <div className="ocard-foot">
                     <span>수저 {o.disposable_cutlery_qty ?? 0} · {o.payment_method === 'checkout' ? `객실 합산${o.guest_name ? ` (${o.guest_name})` : ''}` : '카드 결제'}{o.phone ? ` · ${o.phone}` : ''}</span>
@@ -193,6 +194,7 @@ export function Board() {
                       <li key={i}><strong>{it.q}×</strong><span>{it.n}{it.sub && <small>{it.sub}</small>}<Opts list={it.opts} /></span></li>
                     ))}
                   </ul>
+                  {o.allergy_note && <div className="allergy allergy--sm">⚠ 알레르기: {o.allergy_note}</div>}
                   {o.request_note && <div className="note note--sm">{o.request_note}</div>}
                   <div className="row-btns">
                     <button type="button" className="btn-outline" onClick={() => printTicket(o)}>인쇄</button>

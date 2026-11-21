@@ -1,6 +1,11 @@
 import type { Lang } from '../lib/types';
 
 const ko = {
+  hasAllergy: '알레르기가 있어요',
+  allergyLabel: '어떤 재료에 알레르기가 있나요?',
+  allergyPlaceholder: '예: 새우, 땅콩, 우유',
+  allergyHelp: '주방에 꼭 전달할게요',
+  errAllergy: '알레르기가 있는 재료를 적어 주세요',
   required: '필수',
   optional: '선택',
   upTo: '최대 {n}개',
@@ -25,7 +30,7 @@ const ko = {
   close: '닫기',
   viewOrder: '주문서',
   items: '{n}개',
-  allergyNote: '알레르기가 있으시면 주문서 요청사항에 적어 주세요',
+  allergyNote: '알레르기가 있으시면 주문서에서 체크해 주세요',
   setChoose: '{label} {n}개 선택',
   setChosen: '{done}/{n}',
   setIncomplete: '구성을 모두 골라 주세요',
@@ -46,7 +51,7 @@ const ko = {
   cutlery: '일회용 수저·포크',
   cutlerySub: '필요한 개수를 골라 주세요',
   request: '요청사항',
-  requestPlaceholder: '알레르기, 맵기 조절, 도착 전 연락 등',
+  requestPlaceholder: '맵기 조절, 도착 전 연락 등',
   subtotal: '주문 금액',
   delivery: '객실 배달',
   free: '무료',
@@ -80,6 +85,11 @@ const ko = {
 type Dict = typeof ko;
 
 const en: Dict = {
+  hasAllergy: 'I have a food allergy',
+  allergyLabel: 'What are you allergic to?',
+  allergyPlaceholder: 'e.g. shrimp, peanuts, milk',
+  allergyHelp: 'We will make sure the kitchen knows',
+  errAllergy: 'Please tell us what you are allergic to',
   required: 'Required',
   optional: 'Optional',
   upTo: 'Up to {n}',
@@ -104,7 +114,7 @@ const en: Dict = {
   close: 'Close',
   viewOrder: 'Order',
   items: '{n} items',
-  allergyNote: 'Please note any allergies in the order request',
+  allergyNote: 'Have an allergy? You can tell us on the order page',
   setChoose: 'Choose {n} · {label}',
   setChosen: '{done}/{n}',
   setIncomplete: 'Please complete your choices',
@@ -125,7 +135,7 @@ const en: Dict = {
   cutlery: 'Disposable cutlery',
   cutlerySub: 'How many sets do you need?',
   request: 'Requests',
-  requestPlaceholder: 'Allergies, spice level, call before arrival…',
+  requestPlaceholder: 'Spice level, call before arrival…',
   subtotal: 'Subtotal',
   delivery: 'Room delivery',
   free: 'Free',
@@ -157,6 +167,11 @@ const en: Dict = {
 };
 
 const ja: Dict = {
+  hasAllergy: 'アレルギーがあります',
+  allergyLabel: 'どの食材にアレルギーがありますか？',
+  allergyPlaceholder: '例：エビ、ピーナッツ、牛乳',
+  allergyHelp: '必ず厨房にお伝えします',
+  errAllergy: 'アレルギーのある食材をご記入ください',
   required: '必須',
   optional: '任意',
   upTo: '最大{n}つ',
@@ -181,7 +196,7 @@ const ja: Dict = {
   close: '閉じる',
   viewOrder: '注文内容',
   items: '{n}点',
-  allergyNote: 'アレルギーがある場合はご要望欄にご記入ください',
+  allergyNote: 'アレルギーがある場合はご注文画面でお知らせください',
   setChoose: '{label}を{n}つお選びください',
   setChosen: '{done}/{n}',
   setIncomplete: 'すべてお選びください',
@@ -202,7 +217,7 @@ const ja: Dict = {
   cutlery: '使い捨てカトラリー',
   cutlerySub: '必要な数をお選びください',
   request: 'ご要望',
-  requestPlaceholder: 'アレルギー、辛さの調整、到着前の連絡など',
+  requestPlaceholder: '辛さの調整、到着前の連絡など',
   subtotal: 'ご注文金額',
   delivery: 'お部屋へのお届け',
   free: '無料',
@@ -234,6 +249,11 @@ const ja: Dict = {
 };
 
 const zh: Dict = {
+  hasAllergy: '我有食物过敏',
+  allergyLabel: '您对哪些食材过敏？',
+  allergyPlaceholder: '例如：虾、花生、牛奶',
+  allergyHelp: '我们一定会转告厨房',
+  errAllergy: '请填写过敏食材',
   required: '必选',
   optional: '可选',
   upTo: '最多{n}项',
@@ -258,7 +278,7 @@ const zh: Dict = {
   close: '关闭',
   viewOrder: '订单',
   items: '{n}件',
-  allergyNote: '如有过敏，请在备注中注明',
+  allergyNote: '如有过敏，请在订单页面告知我们',
   setChoose: '请选择{n}份{label}',
   setChosen: '{done}/{n}',
   setIncomplete: '请完成所有选择',
@@ -279,7 +299,7 @@ const zh: Dict = {
   cutlery: '一次性餐具',
   cutlerySub: '请选择所需数量',
   request: '备注',
-  requestPlaceholder: '过敏、辣度、送达前联系等',
+  requestPlaceholder: '辣度、送达前联系等',
   subtotal: '订单金额',
   delivery: '送餐到房',
   free: '免费',

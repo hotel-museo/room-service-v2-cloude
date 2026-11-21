@@ -6,6 +6,7 @@ export interface PlaceOrderInput {
   guestName: string;
   phone: string;
   note: string;
+  allergy: string;
   cutlery: number;
   payment: PaymentMethod;
   items: OrderItem[];
@@ -39,6 +40,7 @@ export async function placeOrder(input: PlaceOrderInput): Promise<PlaceResult> {
     status: 'pending',
     total_amount: total,
     request_note: input.note.trim(),
+    allergy_note: input.allergy.trim() || null,
     disposable_cutlery_qty: input.cutlery,
     order_items: input.items,
     ordered_at: new Date().toISOString(),

@@ -41,7 +41,7 @@ export function GuestApp() {
   const [langOpen, setLangOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [form, setForm] = useState<CheckoutForm>({ room: initialRoom(), guestName: '', phone: '', note: '', cutlery: 1, payment: 'checkout' });
+  const [form, setForm] = useState<CheckoutForm>({ room: initialRoom(), guestName: '', phone: '', note: '', hasAllergy: false, allergy: '', cutlery: 1, payment: 'checkout' });
 
   const t = useCallback((k: StringKey, v?: Record<string, string | number>) => translate(lang, k, v), [lang]);
 
@@ -67,7 +67,7 @@ export function GuestApp() {
     setSubmitting(true);
     setError(null);
     const items = toOrderItems(cart.lines, data.menus, data.sets, data.options);
-    const res = await placeOrder({ ...form, items });
+    const res = await placeOrder({ ...form, allergy: form.hasAllergy ? form.allergy : '', items });
     setSubmitting(false);
     if (!res.ok) {
       setError(res.reason === 'price' ? t('errPrice') : t('errGeneric'));

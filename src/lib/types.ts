@@ -137,6 +137,7 @@ export interface Order {
   status: OrderStatus | null;
   total_amount: number | null;
   request_note: string | null;
+  allergy_note: string | null;
   order_items: OrderItem[] | null;
   accepted_at: string | null;
   completed_at: string | null;
