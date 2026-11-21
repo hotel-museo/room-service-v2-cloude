@@ -211,7 +211,7 @@ export function SalesPage() {
           <h2>객실 합산 정산표</h2>
           <label className="check-inline"><input type="checkbox" checked={onlyUnsettled} onChange={(e) => setOnlyUnsettled(e.target.checked)} /> 정산 안 된 것만</label>
         </div>
-        <p className="meta">프런트에 넘길 객실별 룸서비스 금액이에요. 프런트에서 체크아웃 때 받으면 '정산 완료'를 눌러 주세요.</p>
+        <p className="meta">프런트 화면(…/front/)에서 처리하면 여기도 자동으로 '정산 완료'가 돼요. 급할 땐 여기서 직접 눌러도 돼요.</p>
         {roomGroups.length === 0 ? (
           <p className="meta pad">{onlyUnsettled ? '정산할 객실이 없어요' : '이 기간에 객실 합산 주문이 없어요'}</p>
         ) : (
@@ -225,7 +225,7 @@ export function SalesPage() {
                     <td>{g.guest || '–'}</td>
                     <td><div className="meta">{g.list.map((o) => `${pad(o.id)} ${dt(o.created_at)}`).join(' · ')}</div></td>
                     <td className="num strong">{won(g.total)}원</td>
-                    <td>{g.settled ? <span className="tag">정산 완료</span> : <span className="tag tag--amber">미정산</span>}</td>
+                    <td>{g.settled ? <span className="tag">정산 완료{g.list[0].settle_method ? ` · ${({ room: 'WINGS', card: '카드', cash: '현금' } as const)[g.list[0].settle_method]}` : ''}</span> : <span className="tag tag--amber">미정산</span>}</td>
                     <td className="num">
                       {g.settled
                         ? <button type="button" className="link" onClick={() => void settle(g.list, false)}>취소</button>

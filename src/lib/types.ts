@@ -139,6 +139,9 @@ export interface Order {
   request_note: string | null;
   allergy_note: string | null;
   settled_at?: string | null;
+  settle_method?: 'room' | 'card' | 'cash' | null;
+  settle_note?: string | null;
+  settled_by?: string | null;
   order_items: OrderItem[] | null;
   accepted_at: string | null;
   completed_at: string | null;

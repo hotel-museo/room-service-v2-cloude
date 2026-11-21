@@ -11,6 +11,7 @@ export default defineConfig({
       input: {
         guest: resolve(__dirname, 'index.html'),
         admin: resolve(__dirname, 'admin/index.html'),
+        front: resolve(__dirname, 'front/index.html'),
       },
     },
   },

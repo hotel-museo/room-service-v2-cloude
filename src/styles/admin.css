@@ -304,3 +304,34 @@ td.bar-col { display: flex; align-items: center; gap: 8px; }
 .cchart-x-labels { flex: 1; display: flex; gap: 2px; }
 .cchart-x-labels span { flex: 1; text-align: center; font-size: 11px; color: var(--muted); white-space: nowrap; overflow: hidden; }
 @media (max-width: 900px) { .cchart-x-labels .hide-sm { visibility: hidden; } }
+
+/* ── 프런트 (GL) ── */
+.nav-btn { height: 40px; padding: 0 16px; border-radius: 10px; color: #4b5563; border: 0; background: transparent; font: inherit; font-size: 14px; }
+.nav-btn.is-active { background: var(--green); color: #fff; font-weight: 700; }
+.fd-search { width: 200px; }
+.fd { padding: 20px 28px 48px; max-width: 1400px; display: flex; flex-direction: column; gap: 16px; }
+.fd-sum { display: flex; align-items: center; gap: 24px; flex-wrap: wrap; background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 16px 20px; }
+.fd-sum > div { display: flex; flex-direction: column; }
+.fd-sum span { font-size: 13px; color: var(--muted); font-weight: 700; }
+.fd-sum strong { font-size: 28px; font-weight: 900; color: var(--green); font-variant-numeric: tabular-nums; }
+.fd-sum p { flex: 1 1 320px; margin: 0; }
+.fd-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 14px; }
+.fd-card { background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 18px; display: flex; flex-direction: column; gap: 12px; }
+.fd-card.is-new { border: 2px solid var(--green); box-shadow: 0 0 0 4px var(--green-soft); }
+.fd-card .tag { align-self: flex-start; }
+.fd-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
+.fd-room { font-size: 30px; font-weight: 900; line-height: 1.1; letter-spacing: -0.02em; }
+.fd-guest { font-size: 16px; font-weight: 700; color: var(--ink-2); margin-top: 2px; }
+.fd-amt { font-size: 26px; font-weight: 900; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.fd-amt small { font-size: 15px; margin-left: 2px; }
+.fd-amt--lg { font-size: 34px; color: var(--green); }
+.fd-orders { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.fd-orders li { background: var(--row); border-radius: 10px; padding: 10px 12px; display: flex; flex-direction: column; gap: 4px; }
+.fd-ol { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+.fd-ol .chip { height: 26px; font-size: 12px; }
+.fd-items { font-size: 14px; color: var(--ink-2); }
+.fd-actions { display: flex; gap: 8px; }
+.fd-methods { display: flex; flex-direction: column; gap: 8px; }
+.fd-method { display: grid; grid-template-columns: auto 1fr; align-items: center; column-gap: 10px; border: 1px solid var(--line-2); border-radius: 12px; padding: 12px 14px; font-weight: 700; cursor: pointer; }
+.fd-method small { grid-column: 2; font-weight: 400; color: var(--muted); font-size: 12px; }
+.fd-method.is-on { border-color: var(--green); background: var(--green-soft); }

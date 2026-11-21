@@ -15,7 +15,17 @@ function AdminApp() {
     return () => data.subscription.unsubscribe();
   }, []);
 
-  if (session === undefined) return <div className="boot">PASTA HOUSE</div>;
+  const [role, setRole] = useState<string | null>(null);
+  useEffect(() => {
+    if (!session) { setRole(null); return; }
+    void supabase.rpc('my_role').then(({ data }) => {
+      const r = (data as string) ?? 'admin';
+      if (r === 'front') location.replace('../front/');
+      else setRole(r);
+    });
+  }, [session]);
+
+  if (session === undefined || (session && role === null)) return <div className="boot">PASTA HOUSE</div>;
   return session ? <Board /> : <Login />;
 }
 

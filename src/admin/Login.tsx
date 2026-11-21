@@ -11,7 +11,7 @@ function readSaved(): string {
   }
 }
 
-export function Login() {
+export function Login({ sub = 'ROOM SERVICE ADMIN', title = '관리자 로그인' }: { sub?: string; title?: string } = {}) {
   const saved = readSaved();
   const [email, setEmail] = useState(saved);
   const [remember, setRemember] = useState(!!saved);
@@ -44,9 +44,9 @@ export function Login() {
       <form className="login-card" onSubmit={submit}>
         <div className="brand">
           <div className="brand-name">PASTA HOUSE</div>
-          <div className="brand-sub">ROOM SERVICE ADMIN</div>
+          <div className="brand-sub">{sub}</div>
         </div>
-        <h1>관리자 로그인</h1>
+        <h1>{title}</h1>
         <label htmlFor="email">이메일</label>
         <input id="email" type="email" autoComplete="username" value={email} onChange={(e) => setEmail(e.target.value)} required />
         <label htmlFor="pw">비밀번호</label>
