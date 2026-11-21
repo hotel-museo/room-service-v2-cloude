@@ -81,6 +81,7 @@ export function CartPage({ t, lines, form, setForm, canOrder, submitting, error,
               <div className="cline-text">
                 <div className="cline-name">{l.name}</div>
                 {l.detail && <div className="cline-detail">{l.detail}</div>}
+                {!l.valid && <div className="cline-bad">{t('invalidLine')}</div>}
                 <div className="cline-price">{won(l.total)}</div>
               </div>
               <Stepper value={l.line.qty} min={0} onChange={(v) => onQty(l.line.key, v)} />

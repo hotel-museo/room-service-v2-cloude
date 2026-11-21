@@ -70,7 +70,7 @@ function optionText(links: OptionLinks, ids: number[] | undefined, lang: Lang): 
 }
 
 /** 장바구니 줄을 현재 메뉴 데이터 기준으로 풀어냅니다. 사라진 메뉴는 valid=false */
-export function resolveLines(lines: CartLine[], menus: Menu[], sets: SetMenu[], links: OptionLinks, lang: Lang): ResolvedLine[] {
+export function resolveLines(lines: CartLine[], menus: Menu[], sets: SetMenu[], links: OptionLinks, lang: Lang, isCut: (m: Menu) => boolean = () => false): ResolvedLine[] {
   const byId = new Map(menus.map((m) => [m.id, m]));
   const setById = new Map(sets.map((s) => [s.id, s]));
   return lines.map((line) => {
@@ -79,7 +79,7 @@ export function resolveLines(lines: CartLine[], menus: Menu[], sets: SetMenu[], 
     if (line.kind === 'menu') {
       const m = byId.get(line.id);
       const unit = (m?.price ?? 0) + optPrice;
-      return { line, name: m ? nameOf(m, lang) : '—', detail: opts, image: m?.image_url ?? null, unitPrice: unit, total: unit * line.qty, valid: !!m && !m.is_hidden };
+      return { line, name: m ? nameOf(m, lang) : '—', detail: opts, image: m?.image_url ?? null, unitPrice: unit, total: unit * line.qty, valid: !!m && !m.is_hidden && !isCut(m) };
     }
     const s = setById.get(line.id);
     const picked = (line.choices ?? []).flatMap((c) => c.ids.map((id) => byId.get(id)).filter(Boolean) as Menu[]);
@@ -91,7 +91,7 @@ export function resolveLines(lines: CartLine[], menus: Menu[], sets: SetMenu[], 
       image: s?.image_url ?? null,
       unitPrice: unit,
       total: unit * line.qty,
-      valid: !!s && s.is_active && !s.is_hidden,
+      valid: !!s && s.is_active && !s.is_hidden && !picked.some(isCut),
     };
   });
 }

@@ -1,5 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { descOf, isSoldOut, nameOf, subNameOf, visibleMenus, visibleSets, won } from '../../lib/menu';
+import { cutoffFor, hoursText, type BusinessHours, type HoursState } from '../../lib/hours';
+import { setComponents } from '../../lib/menu';
 import type { CategoryLabels, Lang, Menu, ServiceStatus, SetMenu } from '../../lib/types';
 import type { StringKey } from '../../i18n/strings';
 import { Globe } from './Icons';
@@ -14,13 +16,16 @@ interface Props {
   sets: SetMenu[];
   labels: CategoryLabels;
   service: ServiceStatus;
+  hours: BusinessHours;
+  hoursNow: HoursState;
+  isCut: (m: Menu) => boolean;
   qtyByMenu: Map<number, number>;
   onOpenMenu: (id: number) => void;
   onOpenSet: (id: number) => void;
   onOpenLang: () => void;
 }
 
-export function MenuPage({ lang, t, menus, sets, labels, service, qtyByMenu, onOpenMenu, onOpenSet, onOpenLang }: Props) {
+export function MenuPage({ lang, t, menus, sets, labels, service, hours, hoursNow, isCut, qtyByMenu, onOpenMenu, onOpenSet, onOpenLang }: Props) {
   const list = useMemo(() => visibleMenus(menus), [menus]);
   const setList = useMemo(() => visibleSets(sets), [sets]);
 
@@ -86,7 +91,19 @@ export function MenuPage({ lang, t, menus, sets, labels, service, qtyByMenu, onO
     window.scrollTo({ top: y, behavior: 'smooth' });
   };
 
-  const canOrder = service === 'open' || service === 'busy';
+  const serviceOk = service === 'open' || service === 'busy';
+  const canOrder = serviceOk && hoursNow.open;
+  const statusText = !serviceOk ? t(`status_${service}` as StringKey) : !hoursNow.open ? t('closedNow') : t(`status_${service}` as StringKey);
+  const byId = new Map(menus.map((m) => [m.id, m]));
+  /** 구성 중 하나라도 '모든 후보가 마감'이면 세트도 마감 */
+  const setCutAt = (s: SetMenu): string | null => {
+    for (const c of setComponents(s)) {
+      const ms = c.menuIds.map((id) => byId.get(id)).filter((m): m is Menu => !!m && !m.is_hidden);
+      if (ms.length && ms.every(isCut)) return cutoffFor(hours, ms[0].category);
+    }
+    return null;
+  };
+  const cutLabel = (m: Menu) => { const at = cutoffFor(hours, m.category); return at ? t('cutoffLabel', { time: at }) : ''; };
   let secNo = 0;
 
   return (
@@ -102,7 +119,7 @@ export function MenuPage({ lang, t, menus, sets, labels, service, qtyByMenu, onO
         <div className="hero-top">
           <div className={`pill pill--${canOrder ? 'on' : 'off'}`}>
             <span className="dot" />
-            {t(`status_${service}` as StringKey)}
+            {statusText}
           </div>
           <button type="button" className="pill pill--btn" onClick={onOpenLang} aria-label="Language">
             <Globe /> {t('langName')}
@@ -119,7 +136,17 @@ export function MenuPage({ lang, t, menus, sets, labels, service, qtyByMenu, onO
         </div>
       </section>
 
-      {!canOrder && <div className="notice">{t('closedNotice')}</div>}
+      {!canOrder && (
+        <div className="notice">
+          {serviceOk && hoursNow.nextOpen ? t('nextOpen', { time: hoursNow.nextOpen }) : t('closedNotice')}
+        </div>
+      )}
+      {canOrder && hoursNow.warn && hoursNow.minutesToClose !== null && (
+        <div className="notice notice--soft">{t('lastOrder', { n: hoursNow.minutesToClose })}</div>
+      )}
+      {hours.slots.length > 0 && (
+        <p className="hours-line">{t('hoursLabel')} {hoursText(hours)}</p>
+      )}
 
       {picks.length > 0 && (
         <section className="picks" aria-label={t('chefsPicks')}>
@@ -160,18 +187,18 @@ export function MenuPage({ lang, t, menus, sets, labels, service, qtyByMenu, onO
             <h2>{t('sets')}</h2>
             <span className="serif-it">Set Menu</span>
           </div>
-          {setList.map((s) => (
-            <button type="button" key={s.id} className="mrow" onClick={() => onOpenSet(s.id)}>
+          {setList.map((s) => { const cut = setCutAt(s); return (
+            <button type="button" key={s.id} className={`mrow${cut ? ' is-soldout' : ''}`} onClick={() => onOpenSet(s.id)}>
               {s.image_url && <img className="mrow-img" src={s.image_url} alt="" loading="lazy" />}
               <span className="mrow-text">
                 <span className="mrow-name">{nameOf(s, lang)}</span>
                 <span className="mrow-desc">{descOf(s, lang) || s.description}</span>
               </span>
               <span className="mrow-side">
-                <span className="mrow-price">{won(s.price)}</span>
+                {cut ? <span className="soldout-tag">{t('cutoffLabel', { time: cut })}</span> : <span className="mrow-price">{won(s.price)}</span>}
               </span>
             </button>
-          ))}
+          ); })}
         </section>
       )}
 
@@ -183,7 +210,8 @@ export function MenuPage({ lang, t, menus, sets, labels, service, qtyByMenu, onO
             {lang === 'ko' && <span className="serif-it">{catLabel(sec.cat, 'en')}</span>}
           </div>
           {sec.items.map((m) => {
-            const so = isSoldOut(m);
+            const cl = cutLabel(m);
+            const so = isSoldOut(m) || !!cl;
             const q = qtyByMenu.get(m.id) ?? 0;
             const desc = descOf(m, lang);
             const sub = subNameOf(m, lang);
@@ -196,7 +224,7 @@ export function MenuPage({ lang, t, menus, sets, labels, service, qtyByMenu, onO
                   {desc && <span className="mrow-desc">{desc}</span>}
                 </span>
                 <span className="mrow-side">
-                  {so ? <span className="soldout-tag">{t('soldOut')}</span> : <span className="mrow-price">{won(m.price)}</span>}
+                  {so ? <span className="soldout-tag">{cl || t('soldOut')}</span> : <span className="mrow-price">{won(m.price)}</span>}
                   {q > 0 && <span className="qty-badge">{q}</span>}
                 </span>
               </button>

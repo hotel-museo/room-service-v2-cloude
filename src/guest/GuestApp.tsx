@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { LANGS, translate, type StringKey } from '../i18n/strings';
+import { cutoffFor, hoursState } from '../lib/hours';
 import { won } from '../lib/menu';
-import type { Lang } from '../lib/types';
+import type { Lang, Menu } from '../lib/types';
 import { resolveLines, toOrderItems, useCart } from './cart';
 import { CartPage, type CheckoutForm } from './components/CartPage';
 import { Chevron } from './components/Icons';
@@ -43,6 +44,14 @@ export function GuestApp() {
   const [error, setError] = useState<string | null>(null);
   const [form, setForm] = useState<CheckoutForm>({ room: initialRoom(), guestName: '', phone: '', note: '', hasAllergy: false, allergy: '', cutlery: 1, payment: 'checkout' });
 
+  const [clock, setClock] = useState(Date.now());
+  useEffect(() => {
+    const id = window.setInterval(() => setClock(Date.now()), 30_000);
+    return () => window.clearInterval(id);
+  }, []);
+  const hours = useMemo(() => hoursState(data.hours, new Date(clock)), [data.hours, clock]);
+  const isCut = useCallback((m: Menu) => !!cutoffFor(data.hours, m.category, new Date(clock)), [data.hours, clock]);
+
   const t = useCallback((k: StringKey, v?: Record<string, string | number>) => translate(lang, k, v), [lang]);
 
   const setLang = (l: Lang) => {
@@ -53,7 +62,7 @@ export function GuestApp() {
   useEffect(() => { document.documentElement.lang = lang; }, [lang]);
   useEffect(() => { window.scrollTo(0, 0); }, [view]);
 
-  const lines = useMemo(() => resolveLines(cart.lines, data.menus, data.sets, data.options, lang), [cart.lines, data.menus, data.sets, data.options, lang]);
+  const lines = useMemo(() => resolveLines(cart.lines, data.menus, data.sets, data.options, lang, isCut), [cart.lines, data.menus, data.sets, data.options, lang, isCut]);
   const count = cart.lines.reduce((a, l) => a + l.qty, 0);
   const total = lines.reduce((a, l) => a + l.total, 0);
   const qtyByMenu = useMemo(() => {
@@ -61,7 +70,7 @@ export function GuestApp() {
     cart.lines.forEach((l) => l.kind === 'menu' && m.set(l.id, (m.get(l.id) ?? 0) + l.qty));
     return m;
   }, [cart.lines]);
-  const canOrder = data.service === 'open' || data.service === 'busy';
+  const canOrder = (data.service === 'open' || data.service === 'busy') && hours.open;
 
   const submit = async () => {
     setSubmitting(true);
@@ -70,8 +79,9 @@ export function GuestApp() {
     const res = await placeOrder({ ...form, allergy: form.hasAllergy ? form.allergy : '', items });
     setSubmitting(false);
     if (!res.ok) {
-      setError(res.reason === 'price' ? t('errPrice') : t('errGeneric'));
-      if (res.reason === 'price') void data.reload();
+      const key = res.reason === 'price' ? 'errPrice' : res.reason === 'closed' ? 'errClosed' : res.reason === 'cutoff' ? 'errCutoff' : 'errGeneric';
+      setError(t(key));
+      void data.reload();
       return;
     }
     const tr: TrackedOrder = {
@@ -134,6 +144,9 @@ export function GuestApp() {
           sets={data.sets}
           labels={data.labels}
           service={data.service}
+          hours={data.hours}
+          hoursNow={hours}
+          isCut={isCut}
           qtyByMenu={qtyByMenu}
           onOpenMenu={setMenuId}
           onOpenSet={setSetId}
@@ -155,8 +168,8 @@ export function GuestApp() {
         </button>
       )}
 
-      <MenuSheet menu={menu} links={data.options} lang={lang} canOrder={canOrder} t={t} onClose={() => setMenuId(null)} onAdd={cart.addMenu} />
-      <SetSheet set={set} menus={data.menus} links={data.options} labels={data.labels} lang={lang} canOrder={canOrder} t={t} onClose={() => setSetId(null)} onAdd={cart.addSet} />
+      <MenuSheet menu={menu} links={data.options} lang={lang} canOrder={canOrder} cutAt={menu ? cutoffFor(data.hours, menu.category, new Date(clock)) : null} t={t} onClose={() => setMenuId(null)} onAdd={cart.addMenu} />
+      <SetSheet set={set} menus={data.menus} links={data.options} labels={data.labels} lang={lang} canOrder={canOrder} isCut={isCut} t={t} onClose={() => setSetId(null)} onAdd={cart.addSet} />
 
       <Sheet open={langOpen} onClose={() => setLangOpen(false)} label="Language" closeLabel={t('close')}>
         <div className="sheet-body">

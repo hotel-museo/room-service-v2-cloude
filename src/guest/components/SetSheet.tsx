@@ -14,13 +14,14 @@ interface Props {
   labels: CategoryLabels;
   lang: Lang;
   canOrder: boolean;
+  isCut: (m: Menu) => boolean;
   t: (k: StringKey, v?: Record<string, string | number>) => string;
   onClose: () => void;
   onAdd: (setId: number, choices: { category: string; ids: number[] }[], options: number[]) => void;
 }
 
 /** 세트 구성 선택. 같은 메뉴를 여러 번 고를 수 있도록 개수로 관리합니다 (예: 짬뽕 택 2). */
-export function SetSheet({ set, menus, links, labels, lang, canOrder, t, onClose, onAdd }: Props) {
+export function SetSheet({ set, menus, links, labels, lang, canOrder, isCut, t, onClose, onAdd }: Props) {
   const comps = useMemo(() => (set ? setComponents(set) : []), [set]);
   const groups = useMemo(() => (set ? groupsFor(links, 'set', set.id) : []), [set, links]);
   const [picked, setPicked] = useState<number[][]>([]);
@@ -78,7 +79,7 @@ export function SetSheet({ set, menus, links, labels, lang, canOrder, t, onClose
               <div className="setopts">
                 {options.map((m) => {
                   const n = mine.filter((x) => x === m.id).length;
-                  const so = isSoldOut(m);
+                  const so = isSoldOut(m) || isCut(m);
                   return (
                     <div key={m.id} className={`setopt${n ? ' is-on' : ''}${so ? ' is-soldout' : ''}`}>
                       <button type="button" disabled={so} onClick={() => toggle(ci, m.id)} aria-pressed={n > 0}>

@@ -1,6 +1,14 @@
 import type { Lang } from '../lib/types';
 
 const ko = {
+  hoursLabel: '주문 가능 시간',
+  closedNow: '지금은 주문 시간이 아니에요',
+  nextOpen: '{time}부터 주문할 수 있어요',
+  lastOrder: '주문 마감까지 {n}분 남았어요',
+  cutoffLabel: '{time} 마감',
+  errClosed: '지금은 주문 시간이 아니에요. 주문 가능 시간에 다시 주문해 주세요.',
+  errCutoff: '주문 마감 시간이 지난 메뉴가 있어요. 장바구니에서 빼고 다시 주문해 주세요.',
+  invalidLine: '지금 주문할 수 없는 메뉴예요',
   hasAllergy: '알레르기가 있어요',
   allergyLabel: '어떤 재료에 알레르기가 있나요?',
   allergyPlaceholder: '예: 새우, 땅콩, 우유',
@@ -85,6 +93,14 @@ const ko = {
 type Dict = typeof ko;
 
 const en: Dict = {
+  hoursLabel: 'Ordering hours',
+  closedNow: 'We are not taking orders right now',
+  nextOpen: 'Ordering opens at {time}',
+  lastOrder: 'Last orders in {n} min',
+  cutoffLabel: 'Ends {time}',
+  errClosed: 'We are not taking orders right now. Please order during ordering hours.',
+  errCutoff: 'Some items are no longer available tonight. Please remove them and try again.',
+  invalidLine: 'Not available right now',
   hasAllergy: 'I have a food allergy',
   allergyLabel: 'What are you allergic to?',
   allergyPlaceholder: 'e.g. shrimp, peanuts, milk',
@@ -167,6 +183,14 @@ const en: Dict = {
 };
 
 const ja: Dict = {
+  hoursLabel: 'ご注文受付時間',
+  closedNow: 'ただいまご注文受付時間外です',
+  nextOpen: '{time}からご注文いただけます',
+  lastOrder: 'ラストオーダーまで{n}分',
+  cutoffLabel: '{time}終了',
+  errClosed: 'ただいま受付時間外です。受付時間内にご注文ください。',
+  errCutoff: '受付が終了したメニューがあります。カートから外して再度ご注文ください。',
+  invalidLine: 'ただいまご注文いただけません',
   hasAllergy: 'アレルギーがあります',
   allergyLabel: 'どの食材にアレルギーがありますか？',
   allergyPlaceholder: '例：エビ、ピーナッツ、牛乳',
@@ -249,6 +273,14 @@ const ja: Dict = {
 };
 
 const zh: Dict = {
+  hoursLabel: '点餐时间',
+  closedNow: '现在不是点餐时间',
+  nextOpen: '{time}开始可以点餐',
+  lastOrder: '距离截单还有{n}分钟',
+  cutoffLabel: '{time}截止',
+  errClosed: '现在不是点餐时间，请在点餐时间内下单。',
+  errCutoff: '部分菜品已过截单时间，请移除后重新下单。',
+  invalidLine: '现在无法点这道菜',
   hasAllergy: '我有食物过敏',
   allergyLabel: '您对哪些食材过敏？',
   allergyPlaceholder: '例如：虾、花生、牛奶',

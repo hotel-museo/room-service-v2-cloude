@@ -12,12 +12,13 @@ interface Props {
   links: OptionLinks;
   lang: Lang;
   canOrder: boolean;
+  cutAt: string | null;
   t: (k: StringKey, v?: Record<string, string | number>) => string;
   onClose: () => void;
   onAdd: (id: number, qty: number, options: number[]) => void;
 }
 
-export function MenuSheet({ menu, links, lang, canOrder, t, onClose, onAdd }: Props) {
+export function MenuSheet({ menu, links, lang, canOrder, cutAt, t, onClose, onAdd }: Props) {
   const groups = useMemo(() => (menu ? groupsFor(links, 'menu', menu.id) : []), [menu, links]);
   const [qty, setQty] = useState(1);
   const [opts, setOpts] = useState<number[]>([]);
@@ -27,13 +28,14 @@ export function MenuSheet({ menu, links, lang, canOrder, t, onClose, onAdd }: Pr
   }, [menu?.id, groups]);
   if (!menu) return null;
 
-  const so = isSoldOut(menu);
+  const so = isSoldOut(menu) || !!cutAt;
   const desc = descOf(menu, lang);
   const valid = isSelectionValid(groups, opts);
   const unit = menu.price + optionsPrice(links, opts);
 
   let label = t('addWithPrice', { price: won(unit * qty) });
-  if (so) label = t('soldOut');
+  if (cutAt) label = t('cutoffLabel', { time: cutAt });
+  else if (so) label = t('soldOut');
   else if (!valid) label = t('chooseRequired');
 
   return (
