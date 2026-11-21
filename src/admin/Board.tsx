@@ -4,10 +4,10 @@ import { supabase } from '../lib/supabase';
 import type { Order, ServiceStatus } from '../lib/types';
 import { audioReady, chime, unlockAudio } from './alarm';
 import { MenuAdmin } from './menu/MenuAdmin';
+import { SalesPage } from './sales/SalesPage';
 import { printTicket } from './print';
 import { useBoard } from './useBoard';
 
-const OLD_SITE = 'https://hotel-museo.github.io/bottega-room-service/';
 const REJECT_REASONS = ['재료가 모두 소진됐어요', '주방 마감 시간이에요', '주문이 많아 지금은 어려워요', '객실 번호를 확인할 수 없어요'];
 const SERVICE: [ServiceStatus, string][] = [['open', '영업 중'], ['busy', '바쁨'], ['preparing', '준비 중'], ['closed', '마감']];
 
@@ -37,9 +37,10 @@ function Opts({ list }: { list: string[] }) {
   );
 }
 
-function usePage(): 'orders' | 'menu' {
-  const get = () => (location.hash === '#menu' ? 'menu' : 'orders');
-  const [page, setPage] = useState<'orders' | 'menu'>(get);
+type Page = 'orders' | 'menu' | 'sales';
+function usePage(): Page {
+  const get = (): Page => (location.hash === '#menu' ? 'menu' : location.hash === '#sales' ? 'sales' : 'orders');
+  const [page, setPage] = useState<Page>(get);
   useEffect(() => {
     const on = () => setPage(get());
     window.addEventListener('hashchange', on);
@@ -109,7 +110,7 @@ export function Board() {
         <nav className="a-nav" aria-label="관리 메뉴">
           <a className={page === 'orders' ? 'is-active' : ''} href="#orders">주문판{page !== 'orders' && pending.length > 0 ? ` (${pending.length})` : ''}</a>
           <a className={page === 'menu' ? 'is-active' : ''} href="#menu">메뉴 관리</a>
-          <a href={OLD_SITE + 'sales-admin.html'} target="_blank" rel="noreferrer">매출 · 정산</a>
+          <a className={page === 'sales' ? 'is-active' : ''} href="#sales">매출 · 정산</a>
         </nav>
         <div className="grow" />
         <div className="seg" role="group" aria-label="영업 상태">
@@ -142,6 +143,7 @@ export function Board() {
       )}
 
       {page === 'menu' && <MenuAdmin />}
+      {page === 'sales' && <SalesPage />}
 
       <main className="a-main" hidden={page !== 'orders'}>
         <section className="cols" aria-label="주문 현황">

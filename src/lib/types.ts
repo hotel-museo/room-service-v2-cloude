@@ -138,6 +138,7 @@ export interface Order {
   total_amount: number | null;
   request_note: string | null;
   allergy_note: string | null;
+  settled_at?: string | null;
   order_items: OrderItem[] | null;
   accepted_at: string | null;
   completed_at: string | null;

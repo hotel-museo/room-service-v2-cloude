@@ -250,3 +250,57 @@ textarea.inp { height: auto; padding: 10px 12px; resize: vertical; }
 .cat-count { width: 70px; }
 .cat-langs { display: flex; gap: 10px; flex-wrap: wrap; align-items: flex-end; padding: 0 16px 14px 60px; }
 .cat-langs .f { flex: 1 1 160px; }
+
+/* ── 매출 · 정산 ── */
+.sales { padding: 16px 28px 48px; max-width: 1200px; display: flex; flex-direction: column; gap: 16px; }
+.filters { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.seg--light { background: #fff; border: 1px solid var(--line); }
+.seg--light button.is-on { background: var(--green); }
+.inp--date { height: 40px; width: 160px; }
+.tiles { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+.tile { background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 16px 18px; display: flex; flex-direction: column; gap: 4px; }
+.tile span { font-size: 13px; color: var(--muted); font-weight: 700; }
+.tile strong { font-size: 24px; font-weight: 900; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
+.tile small { font-size: 12px; color: var(--muted); }
+.tile--main { background: var(--green); border-color: var(--green); }
+.tile--main span, .tile--main small { color: #cfe0d6; }
+.tile--main strong { color: #fff; font-size: 28px; }
+@media (max-width: 900px) { .tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.rank-filters { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+.tbl-wrap { overflow-x: auto; }
+.tbl { width: 100%; border-collapse: collapse; font-size: 14px; }
+.tbl th { text-align: left; font-size: 12px; color: var(--muted); font-weight: 700; padding: 8px 10px; border-bottom: 1px solid var(--line); white-space: nowrap; }
+.tbl td { padding: 10px; border-bottom: 1px solid var(--row); vertical-align: middle; }
+.tbl tr:hover td { background: #fafbfc; }
+.tbl .num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.tbl .strong { font-weight: 900; }
+.tbl tr.is-dim td { color: var(--muted); }
+.rank { width: 44px; font-weight: 900; color: var(--muted); font-variant-numeric: tabular-nums; }
+.rank--top { color: var(--green); }
+.rname { font-weight: 700; }
+.bar-col { width: 200px; }
+td.bar-col { display: flex; align-items: center; gap: 8px; }
+.hbar { flex: 1; height: 10px; background: var(--row); border-radius: 4px; overflow: hidden; }
+.hbar-fill { display: block; height: 100%; background: var(--green); border-radius: 0 4px 4px 0; }
+.hbar-val { width: 48px; text-align: right; font-variant-numeric: tabular-nums; }
+.pad { padding: 12px 0; margin: 0; }
+.two-col { display: grid; grid-template-columns: repeat(auto-fit, minmax(420px, 1fr)); gap: 16px; }
+.check-inline { display: flex; align-items: center; gap: 6px; font-size: 13px; color: var(--ink-2); }
+.tag--amber { background: var(--amber-bg); color: var(--amber); }
+
+.cchart { margin: 8px 0 0; }
+.cchart-plot { display: flex; gap: 8px; }
+.cchart-ticks { display: flex; flex-direction: column; justify-content: space-between; height: 160px; font-size: 11px; color: var(--muted); text-align: right; min-width: 36px; margin-top: -6px; margin-bottom: -6px; }
+.cchart-area { position: relative; flex: 1; border-bottom: 1px solid var(--line-2); }
+.cchart-grid { position: absolute; left: 0; right: 0; height: 1px; background: var(--line); }
+.cchart-cols { position: absolute; inset: 0; display: flex; align-items: flex-end; gap: 2px; }
+.cchart-col { position: relative; flex: 1; height: 100%; display: flex; align-items: flex-end; justify-content: center; outline: none; cursor: default; }
+.cchart-bar { width: 100%; max-width: 24px; background: var(--green); border-radius: 4px 4px 0 0; }
+.cchart-col.is-hover .cchart-bar, .cchart-col:focus-visible .cchart-bar { background: #2b5c45; }
+.cchart-cap { position: absolute; font-size: 11px; font-weight: 700; color: var(--ink-2); white-space: nowrap; }
+.cchart-tip { position: absolute; z-index: 5; background: var(--ink); color: #fff; font-size: 12px; font-weight: 700; padding: 6px 10px; border-radius: 8px; white-space: nowrap; pointer-events: none; }
+.cchart-x { display: flex; gap: 8px; margin-top: 6px; }
+.cchart-x-pad { min-width: 36px; }
+.cchart-x-labels { flex: 1; display: flex; gap: 2px; }
+.cchart-x-labels span { flex: 1; text-align: center; font-size: 11px; color: var(--muted); white-space: nowrap; overflow: hidden; }
+@media (max-width: 900px) { .cchart-x-labels .hide-sm { visibility: hidden; } }
