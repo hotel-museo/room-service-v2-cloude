@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useState } from 'react';
 import { descOf, isSoldOut, nameOf, setComponents, won } from '../../lib/menu';
-import type { CategoryLabels, Lang, Menu, SetMenu } from '../../lib/types';
+import { defaultSelection, groupsFor, isSelectionValid, optionsPrice, setExtras } from '../../lib/options';
+import type { CategoryLabels, Lang, Menu, OptionLinks, SetMenu } from '../../lib/types';
+import { OptionGroups } from './OptionGroups';
 import type { StringKey } from '../../i18n/strings';
 import { Check } from './Icons';
 import { Sheet } from './Sheet';
@@ -8,24 +10,32 @@ import { Sheet } from './Sheet';
 interface Props {
   set: SetMenu | null;
   menus: Menu[];
+  links: OptionLinks;
   labels: CategoryLabels;
   lang: Lang;
   canOrder: boolean;
   t: (k: StringKey, v?: Record<string, string | number>) => string;
   onClose: () => void;
-  onAdd: (setId: number, choices: { category: string; ids: number[] }[]) => void;
+  onAdd: (setId: number, choices: { category: string; ids: number[] }[], options: number[]) => void;
 }
 
 /** 세트 구성 선택. 같은 메뉴를 여러 번 고를 수 있도록 개수로 관리합니다 (예: 짬뽕 택 2). */
-export function SetSheet({ set, menus, labels, lang, canOrder, t, onClose, onAdd }: Props) {
+export function SetSheet({ set, menus, links, labels, lang, canOrder, t, onClose, onAdd }: Props) {
   const comps = useMemo(() => (set ? setComponents(set) : []), [set]);
+  const groups = useMemo(() => (set ? groupsFor(links, 'set', set.id) : []), [set, links]);
   const [picked, setPicked] = useState<number[][]>([]);
-  useEffect(() => setPicked(comps.map(() => [])), [set?.id, comps]);
+  const [opts, setOpts] = useState<number[]>([]);
+  useEffect(() => {
+    setPicked(comps.map(() => []));
+    setOpts(defaultSelection(groups));
+  }, [set?.id, comps, groups]);
   if (!set) return null;
 
   const byId = new Map(menus.map((m) => [m.id, m]));
   const label = (cat: string) => labels[cat]?.[lang] || labels[cat]?.ko || cat;
   const complete = comps.every((c, i) => (picked[i]?.length ?? 0) === c.count);
+  const optsValid = isSelectionValid(groups, opts);
+  const unit = set.price + setExtras(set, picked.map((ids) => ({ ids }))) + optionsPrice(links, opts);
 
   const toggle = (ci: number, id: number) =>
     setPicked((prev) => {
@@ -74,6 +84,7 @@ export function SetSheet({ set, menus, labels, lang, canOrder, t, onClose, onAdd
                       <button type="button" disabled={so} onClick={() => toggle(ci, m.id)} aria-pressed={n > 0}>
                         {m.image_url ? <img src={m.image_url} alt="" loading="lazy" /> : <span className="setopt-noimg" />}
                         <span className="setopt-name">{nameOf(m, lang)}</span>
+                        {c.extras[String(m.id)] ? <span className="setopt-extra">+{won(c.extras[String(m.id)])}</span> : null}
                         {so && <span className="soldout-tag">{t('soldOut')}</span>}
                         {n > 0 && <span className="setopt-check">{c.count > 1 ? n : <Check />}</span>}
                       </button>
@@ -88,14 +99,16 @@ export function SetSheet({ set, menus, labels, lang, canOrder, t, onClose, onAdd
           );
         })}
 
+        {groups.length > 0 && <OptionGroups groups={groups} selected={opts} onChange={setOpts} lang={lang} t={t} />}
+
         <div className="sheet-actions sheet-actions--sticky">
           <button
             type="button"
             className="btn-primary grow"
-            disabled={!complete || !canOrder}
-            onClick={() => { onAdd(set.id, comps.map((c, i) => ({ category: c.category, ids: picked[i] ?? [] }))); onClose(); }}
+            disabled={!complete || !optsValid || !canOrder}
+            onClick={() => { onAdd(set.id, comps.map((c, i) => ({ category: c.category, ids: picked[i] ?? [] })), opts); onClose(); }}
           >
-            {complete ? t('addWithPrice', { price: won(set.price) }) : t('setIncomplete')}
+            {!complete ? t('setIncomplete') : !optsValid ? t('chooseRequired') : t('addWithPrice', { price: won(unit) })}
           </button>
         </div>
       </div>

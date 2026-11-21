@@ -57,6 +57,7 @@ export function setComponents(set: SetMenu) {
     category: c.category,
     count: Math.max(1, Number(c.count ?? c.quantity ?? 1)),
     menuIds: (c.menu_ids ?? []).map(Number),
+    extras: c.extras ?? {},
   }));
 }
 

@@ -233,3 +233,22 @@ img { display: block; }
 @media (min-width: 561px) {
   #root { box-shadow: 0 0 0 1px rgba(31, 27, 23, 0.06); }
 }
+
+/* ---------- Options ---------- */
+.sheet-price { font-size: 16px; font-weight: 700; font-variant-numeric: tabular-nums; }
+.optgroup { border: 0; padding: 0; margin: 18px 0 0; }
+.optgroup legend { width: 100%; display: flex; justify-content: space-between; align-items: center; font-size: 15px; font-weight: 700; padding: 0 0 8px; }
+.opt-req { font-size: 12px; font-weight: 700; color: var(--terracotta-ink); background: var(--terracotta-soft); padding: 3px 8px; border-radius: 8px; }
+.opt-free { font-size: 12px; font-weight: 500; color: var(--muted); }
+.optdesc { margin: -2px 0 8px; font-size: 12px; color: var(--muted); line-height: 1.5; }
+.optlist { display: flex; flex-direction: column; border-top: 1px solid #f0ebe3; }
+.optrow { display: flex; align-items: center; gap: 12px; min-height: 52px; padding: 0 2px; border: 0; border-bottom: 1px solid #f0ebe3; background: transparent; cursor: pointer; text-align: left; }
+.optrow:disabled { opacity: 0.4; cursor: default; }
+.optrow-name { flex: 1; font-size: 15px; }
+.optrow-price { font-size: 14px; color: var(--ink-2); font-variant-numeric: tabular-nums; }
+.optrow .radio { width: 22px; height: 22px; border-radius: 11px; }
+.optrow.is-on .radio { border: 7px solid var(--terracotta); }
+.box { flex: none; width: 22px; height: 22px; border-radius: 6px; border: 1.5px solid #b8afa3; display: flex; align-items: center; justify-content: center; color: #fff; }
+.optrow.is-on .box { background: var(--terracotta); border-color: var(--terracotta); }
+.optrow.is-on .optrow-name { font-weight: 700; }
+.setopt-extra { font-size: 12px; font-weight: 700; color: var(--terracotta-ink); padding: 0 2px 4px; }

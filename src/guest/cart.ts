@@ -1,17 +1,21 @@
 import { useEffect, useState } from 'react';
 import { nameOf } from '../lib/menu';
-import type { Lang, Menu, OrderItem, SetMenu } from '../lib/types';
+import { optName, optionsPrice, setExtras, toChosen } from '../lib/options';
+import type { Lang, Menu, OptionLinks, OrderItem, SetMenu } from '../lib/types';
 
 export interface CartLine {
   key: string;
   kind: 'menu' | 'set';
   id: number; // menu id 또는 set id
   qty: number;
+  /** 고른 옵션 항목 id */
+  options?: number[];
   /** 세트 구성: 컴포넌트 순서대로 고른 메뉴 id 목록 */
   choices?: { category: string; ids: number[] }[];
 }
 
-const STORAGE_KEY = 'ph-cart-v1';
+const STORAGE_KEY = 'ph-cart-v2';
+const sameOpts = (a: number[] = [], b: number[] = []) => a.length === b.length && [...a].sort().join() === [...b].sort().join();
 
 export function useCart() {
   const [lines, setLines] = useState<CartLine[]>(() => {
@@ -31,15 +35,15 @@ export function useCart() {
     }
   }, [lines]);
 
-  const addMenu = (id: number, qty: number) =>
+  const addMenu = (id: number, qty: number, options: number[] = []) =>
     setLines((prev) => {
-      const found = prev.find((l) => l.kind === 'menu' && l.id === id);
+      const found = prev.find((l) => l.kind === 'menu' && l.id === id && sameOpts(l.options, options));
       if (found) return prev.map((l) => (l === found ? { ...l, qty: Math.min(99, l.qty + qty) } : l));
-      return [...prev, { key: `m${id}-${Date.now()}`, kind: 'menu', id, qty }];
+      return [...prev, { key: `m${id}-${Date.now()}`, kind: 'menu', id, qty, options }];
     });
 
-  const addSet = (id: number, choices: { category: string; ids: number[] }[]) =>
-    setLines((prev) => [...prev, { key: `s${id}-${Date.now()}`, kind: 'set', id, qty: 1, choices }]);
+  const addSet = (id: number, choices: { category: string; ids: number[] }[], options: number[] = []) =>
+    setLines((prev) => [...prev, { key: `s${id}-${Date.now()}`, kind: 'set', id, qty: 1, choices, options }]);
 
   const setQty = (key: string, qty: number) =>
     setLines((prev) => (qty <= 0 ? prev.filter((l) => l.key !== key) : prev.map((l) => (l.key === key ? { ...l, qty: Math.min(99, qty) } : l))));
@@ -59,23 +63,31 @@ export interface ResolvedLine {
   valid: boolean;
 }
 
+function optionText(links: OptionLinks, ids: number[] | undefined, lang: Lang): string {
+  if (!ids?.length) return '';
+  const byId = new Map(links.groups.flatMap((g) => g.option_items).map((i) => [i.id, i]));
+  return ids.map((id) => byId.get(id)).filter(Boolean).map((i) => optName(i!, lang)).join(', ');
+}
+
 /** 장바구니 줄을 현재 메뉴 데이터 기준으로 풀어냅니다. 사라진 메뉴는 valid=false */
-export function resolveLines(lines: CartLine[], menus: Menu[], sets: SetMenu[], lang: Lang): ResolvedLine[] {
+export function resolveLines(lines: CartLine[], menus: Menu[], sets: SetMenu[], links: OptionLinks, lang: Lang): ResolvedLine[] {
   const byId = new Map(menus.map((m) => [m.id, m]));
   const setById = new Map(sets.map((s) => [s.id, s]));
   return lines.map((line) => {
+    const opts = optionText(links, line.options, lang);
+    const optPrice = optionsPrice(links, line.options ?? []);
     if (line.kind === 'menu') {
       const m = byId.get(line.id);
-      const unit = m?.price ?? 0;
-      return { line, name: m ? nameOf(m, lang) : '—', detail: '', image: m?.image_url ?? null, unitPrice: unit, total: unit * line.qty, valid: !!m && !m.is_hidden };
+      const unit = (m?.price ?? 0) + optPrice;
+      return { line, name: m ? nameOf(m, lang) : '—', detail: opts, image: m?.image_url ?? null, unitPrice: unit, total: unit * line.qty, valid: !!m && !m.is_hidden };
     }
     const s = setById.get(line.id);
     const picked = (line.choices ?? []).flatMap((c) => c.ids.map((id) => byId.get(id)).filter(Boolean) as Menu[]);
-    const unit = s?.price ?? 0;
+    const unit = s ? s.price + setExtras(s, line.choices ?? []) + optPrice : 0;
     return {
       line,
       name: s ? nameOf(s, lang) : '—',
-      detail: picked.map((m) => nameOf(m, lang)).join(' · '),
+      detail: [picked.map((m) => nameOf(m, lang)).join(' · '), opts].filter(Boolean).join(' / '),
       image: s?.image_url ?? null,
       unitPrice: unit,
       total: unit * line.qty,
@@ -84,17 +96,20 @@ export function resolveLines(lines: CartLine[], menus: Menu[], sets: SetMenu[], 
   });
 }
 
-/** 주문 저장 형식 (기존 사이트·관리자 화면과 호환) */
-export function toOrderItems(lines: CartLine[], menus: Menu[], sets: SetMenu[]): OrderItem[] {
+/** 주문 저장 형식 (기존 사이트·관리자 화면과 호환 + 옵션) */
+export function toOrderItems(lines: CartLine[], menus: Menu[], sets: SetMenu[], links: OptionLinks): OrderItem[] {
   const byId = new Map(menus.map((m) => [m.id, m]));
   const setById = new Map(sets.map((s) => [s.id, s]));
   return lines.flatMap<OrderItem>((line) => {
+    const options = toChosen(links, line.options ?? []);
+    const optPrice = options.reduce((a, o) => a + o.price, 0);
     if (line.kind === 'menu') {
       const m = byId.get(line.id);
       if (!m) return [];
+      const unit = m.price + optPrice;
       return [{
         id: m.id, menu_id: m.id, name: m.name, name_en: m.name_en || m.name, name_ja: m.name_ja || m.name, name_zh: m.name_zh || m.name,
-        price: m.price, quantity: line.qty, subtotal: m.price * line.qty,
+        price: unit, base_price: m.price, quantity: line.qty, subtotal: unit * line.qty, options,
         is_set: false, set_menu_id: null, set_components: null, set_component_text: '',
       }];
     }
@@ -108,9 +123,10 @@ export function toOrderItems(lines: CartLine[], menus: Menu[], sets: SetMenu[]):
         return { id, name: m?.name ?? '', name_en: m?.name_en ?? '', name_ja: m?.name_ja ?? '', name_zh: m?.name_zh ?? '' };
       }),
     }));
+    const unit = s.price + setExtras(s, line.choices ?? []) + optPrice;
     return [{
       id: -s.id, name: s.name, name_en: s.name_en || s.name, name_ja: s.name_ja || s.name, name_zh: s.name_zh || s.name,
-      price: s.price, quantity: line.qty, subtotal: s.price * line.qty,
+      price: unit, base_price: s.price, quantity: line.qty, subtotal: unit * line.qty, options,
       is_set: true, set_menu_id: s.id, set_components: components,
       set_component_text: components.flatMap((c) => c.items.map((i) => i.name)).join(', '),
     }];

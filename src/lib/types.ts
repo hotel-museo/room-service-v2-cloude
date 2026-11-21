@@ -24,6 +24,54 @@ export interface SetComponentConfig {
   quantity?: number;
   category: string;
   menu_ids: number[];
+  /** 고급 메뉴 추가금 { menu_id: 원 } */
+  extras?: Record<string, number>;
+}
+
+export interface OptionItem {
+  id: number;
+  group_id: number;
+  name: string;
+  name_en: string | null;
+  name_ja: string | null;
+  name_zh: string | null;
+  price: number;
+  sort_order: number;
+  is_available: boolean;
+}
+
+export interface OptionGroup {
+  id: number;
+  name: string;
+  name_en: string | null;
+  name_ja: string | null;
+  name_zh: string | null;
+  description: string | null;
+  description_en: string | null;
+  description_ja: string | null;
+  description_zh: string | null;
+  min_select: number;
+  max_select: number;
+  sort_order: number;
+  is_active: boolean;
+  option_items: OptionItem[];
+}
+
+export interface OptionLinks {
+  groups: OptionGroup[];
+  byMenu: Record<number, number[]>;
+  bySet: Record<number, number[]>;
+}
+
+/** 주문서에 저장되는 선택 옵션 */
+export interface ChosenOption {
+  group_id: number;
+  item_id: number;
+  name: string;
+  name_en: string;
+  name_ja: string;
+  name_zh: string;
+  price: number;
 }
 
 export interface SetMenu {
@@ -60,9 +108,13 @@ export interface OrderItem {
   name_en: string;
   name_ja: string;
   name_zh: string;
+  /** 옵션·추가금이 포함된 1개 가격 */
   price: number;
+  /** 옵션을 빼고 메뉴(세트) 원래 가격 */
+  base_price?: number;
   quantity: number;
   subtotal: number;
+  options?: ChosenOption[];
   is_set: boolean;
   set_menu_id: number | null;
   set_components: SetComponentChoice[] | null;

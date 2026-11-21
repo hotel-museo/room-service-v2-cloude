@@ -1,6 +1,10 @@
 import type { Lang } from '../lib/types';
 
 const ko = {
+  required: '필수',
+  optional: '선택',
+  upTo: '최대 {n}개',
+  chooseRequired: '필수 옵션을 골라 주세요',
   langName: '한국어',
   inRoomDining: 'IN-ROOM DINING',
   tagline1: 'End the day',
@@ -76,6 +80,10 @@ const ko = {
 type Dict = typeof ko;
 
 const en: Dict = {
+  required: 'Required',
+  optional: 'Optional',
+  upTo: 'Up to {n}',
+  chooseRequired: 'Please choose the required options',
   langName: 'English',
   inRoomDining: 'IN-ROOM DINING',
   tagline1: 'End the day',
@@ -149,6 +157,10 @@ const en: Dict = {
 };
 
 const ja: Dict = {
+  required: '必須',
+  optional: '任意',
+  upTo: '最大{n}つ',
+  chooseRequired: '必須項目をお選びください',
   langName: '日本語',
   inRoomDining: 'IN-ROOM DINING',
   tagline1: 'End the day',
@@ -222,6 +234,10 @@ const ja: Dict = {
 };
 
 const zh: Dict = {
+  required: '必选',
+  optional: '可选',
+  upTo: '最多{n}项',
+  chooseRequired: '请选择必选项',
   langName: '中文',
   inRoomDining: 'IN-ROOM DINING',
   tagline1: 'End the day',

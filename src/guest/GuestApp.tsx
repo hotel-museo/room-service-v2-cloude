@@ -53,7 +53,7 @@ export function GuestApp() {
   useEffect(() => { document.documentElement.lang = lang; }, [lang]);
   useEffect(() => { window.scrollTo(0, 0); }, [view]);
 
-  const lines = useMemo(() => resolveLines(cart.lines, data.menus, data.sets, lang), [cart.lines, data.menus, data.sets, lang]);
+  const lines = useMemo(() => resolveLines(cart.lines, data.menus, data.sets, data.options, lang), [cart.lines, data.menus, data.sets, data.options, lang]);
   const count = cart.lines.reduce((a, l) => a + l.qty, 0);
   const total = lines.reduce((a, l) => a + l.total, 0);
   const qtyByMenu = useMemo(() => {
@@ -66,7 +66,7 @@ export function GuestApp() {
   const submit = async () => {
     setSubmitting(true);
     setError(null);
-    const items = toOrderItems(cart.lines, data.menus, data.sets);
+    const items = toOrderItems(cart.lines, data.menus, data.sets, data.options);
     const res = await placeOrder({ ...form, items });
     setSubmitting(false);
     if (!res.ok) {
@@ -155,8 +155,8 @@ export function GuestApp() {
         </button>
       )}
 
-      <MenuSheet menu={menu} lang={lang} canOrder={canOrder} t={t} onClose={() => setMenuId(null)} onAdd={cart.addMenu} />
-      <SetSheet set={set} menus={data.menus} labels={data.labels} lang={lang} canOrder={canOrder} t={t} onClose={() => setSetId(null)} onAdd={cart.addSet} />
+      <MenuSheet menu={menu} links={data.options} lang={lang} canOrder={canOrder} t={t} onClose={() => setMenuId(null)} onAdd={cart.addMenu} />
+      <SetSheet set={set} menus={data.menus} links={data.options} labels={data.labels} lang={lang} canOrder={canOrder} t={t} onClose={() => setSetId(null)} onAdd={cart.addSet} />
 
       <Sheet open={langOpen} onClose={() => setLangOpen(false)} label="Language" closeLabel={t('close')}>
         <div className="sheet-body">

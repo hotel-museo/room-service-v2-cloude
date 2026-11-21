@@ -20,7 +20,20 @@ function itemLines(o: Order) {
     q: it.quantity,
     n: it.name,
     sub: it.is_set ? (it.set_components ?? []).flatMap((c) => c.items.map((i) => i.name)).join(' · ') || it.set_component_text : '',
+    opts: (it.options ?? []).map((op) => op.name),
   }));
+}
+
+/** 옵션 표시: "더 맵게"와 "빼주세요"류는 강조 */
+function Opts({ list }: { list: string[] }) {
+  if (!list.length) return null;
+  return (
+    <span className="opts">
+      {list.map((n, i) => (
+        <span key={i} className={/맵게|빼주세요|중화면/.test(n) ? 'opt opt--hot' : 'opt'}>{n}</span>
+      ))}
+    </span>
+  );
 }
 
 export function Board() {
@@ -132,7 +145,7 @@ export function Board() {
                   </div>
                   <ul className="items">
                     {itemLines(o).map((it, i) => (
-                      <li key={i}><strong>{it.q}×</strong><span>{it.n}{it.sub && <small>{it.sub}</small>}</span></li>
+                      <li key={i}><strong>{it.q}×</strong><span>{it.n}{it.sub && <small>{it.sub}</small>}<Opts list={it.opts} /></span></li>
                     ))}
                   </ul>
                   {o.request_note && <div className="note">{o.request_note}</div>}
@@ -177,7 +190,7 @@ export function Board() {
                   </div>
                   <ul className="items items--sm">
                     {itemLines(o).map((it, i) => (
-                      <li key={i}><strong>{it.q}×</strong><span>{it.n}{it.sub && <small>{it.sub}</small>}</span></li>
+                      <li key={i}><strong>{it.q}×</strong><span>{it.n}{it.sub && <small>{it.sub}</small>}<Opts list={it.opts} /></span></li>
                     ))}
                   </ul>
                   {o.request_note && <div className="note note--sm">{o.request_note}</div>}

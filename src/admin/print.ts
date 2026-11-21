@@ -14,7 +14,8 @@ export function printTicket(o: Order) {
   const items = (o.order_items ?? [])
     .map((it) => {
       const sub = it.is_set ? (it.set_components ?? []).flatMap((c) => c.items.map((i) => i.name)) : [];
-      return `<div class="it"><b>${it.quantity}×</b> ${esc(it.name)}</div>${sub.map((n) => `<div class="sub">- ${esc(n)}</div>`).join('')}`;
+      const opts = (it.options ?? []).map((op) => op.name);
+      return `<div class="it"><b>${it.quantity}×</b> ${esc(it.name)}</div>${sub.map((n) => `<div class="sub">- ${esc(n)}</div>`).join('')}${opts.map((n) => `<div class="sub opt">+ ${esc(n)}</div>`).join('')}`;
     })
     .join('');
   const html = `<!doctype html><html lang="ko"><head><meta charset="utf-8"><title>주방 영수증 ${o.id}</title>
@@ -26,6 +27,7 @@ body { font-family: 'Noto Sans KR', sans-serif; width: 72mm; margin: 0; color: #
 hr { border: 0; border-top: 1px dashed #000; margin: 8px 0; }
 .it { font-size: 18px; font-weight: 700; margin: 6px 0 2px; }
 .sub { font-size: 14px; margin-left: 18px; }
+.opt { font-weight: 700; }
 .note { background: #000; color: #fff; padding: 6px 8px; font-size: 16px; font-weight: 700; margin: 8px 0; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
 .row { display: flex; justify-content: space-between; font-size: 14px; }
 </style></head><body>

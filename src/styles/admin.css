@@ -159,3 +159,6 @@ button:focus-visible, input:focus-visible, a:focus-visible { outline: 2px solid 
 .reasons { display: flex; flex-direction: column; gap: 8px; }
 .reasons button { min-height: 48px; text-align: left; padding: 0 14px; border-radius: 12px; border: 1px solid var(--line-2); background: #fff; font-size: 15px; }
 .reasons button.is-on { border: 2px solid var(--red); background: var(--red-bg); color: var(--red); font-weight: 700; }
+.opts { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 4px; }
+.opt { font-size: 13px; font-weight: 500; padding: 2px 8px; border-radius: 8px; background: var(--row); color: var(--ink-2); }
+.opt--hot { background: var(--red-bg); color: var(--red); font-weight: 700; }
