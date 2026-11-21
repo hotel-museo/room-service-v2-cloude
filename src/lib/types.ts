@@ -143,6 +143,10 @@ export interface Order {
   settle_note?: string | null;
   settled_by?: string | null;
   settle_staff?: string | null;
+  wings_posted_at?: string | null;
+  checkout_paid_at?: string | null;
+  checkout_staff?: string | null;
+  checkout_note?: string | null;
   order_items: OrderItem[] | null;
   accepted_at: string | null;
   completed_at: string | null;

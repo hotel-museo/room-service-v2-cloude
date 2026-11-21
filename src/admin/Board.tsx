@@ -214,6 +214,7 @@ export function Board() {
                   </ul>
                   {o.allergy_note && <div className="allergy allergy--sm">⚠ 알레르기: {o.allergy_note}</div>}
                   {o.request_note && <div className="note note--sm">{o.request_note}</div>}
+                  {o.payment_method === 'checkout' && !(o.wings_posted_at || b.wings.find((w) => w.id === o.id)?.wings_posted_at) && <div className="wings-flag">투숙객 후불 · WINGS 입력 전{o.guest_name ? ` (${o.guest_name})` : ''}</div>}
                   <div className="row-btns">
                     <button type="button" className="btn-outline" onClick={() => printTicket(o)}>인쇄</button>
                     <button type="button" className="btn-green wide" onClick={() => void b.complete(o.id)}>배달 완료</button>
@@ -239,6 +240,7 @@ export function Board() {
         </section>
 
         <aside className="side">
+          <WingsPanel list={b.wings} onPost={b.setWingsPosted} />
           <section className="panel">
             <h2>오늘</h2>
             <div className="kpis">
@@ -296,3 +298,44 @@ export function Board() {
   );
 }
 
+
+function WingsPanel({ list, onPost }: { list: Order[]; onPost: (id: number, on: boolean) => Promise<void> }) {
+  const todo = list.filter((o) => !o.wings_posted_at);
+  const posted = list.filter((o) => o.wings_posted_at);
+  const md = (iso: string) => new Date(iso).toLocaleString('ko-KR', { timeZone: 'Asia/Seoul', month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit', hour12: false });
+  return (
+    <section className={`panel${todo.length ? ' panel--alert' : ''}`}>
+      <div className="panel-head"><h2>WINGS 입력 대기</h2><span className="meta">투숙객 후불 · {todo.length}건</span></div>
+      {todo.length === 0 ? (
+        <p className="meta" style={{ margin: 0 }}>WINGS에 넣을 주문이 없어요</p>
+      ) : (
+        <ul className="wings-list">
+          {todo.map((o) => (
+            <li key={o.id}>
+              <div>
+                <strong>{o.room_number}호</strong> <span>{o.guest_name || '성함 없음'}</span>
+                <div className="meta">{pad(o.id)} · {md(o.created_at)}</div>
+              </div>
+              <b>{won(o.total_amount ?? 0)}원</b>
+              <button type="button" className="btn-green btn-sm" onClick={() => void onPost(o.id, true)}>입력 완료</button>
+            </li>
+          ))}
+        </ul>
+      )}
+      {posted.length > 0 && (
+        <details className="wings-posted">
+          <summary>입력함 · 프런트 확인 기다리는 중 {posted.length}건</summary>
+          <ul className="wings-list">
+            {posted.map((o) => (
+              <li key={o.id}>
+                <div><strong>{o.room_number}호</strong> <span className="meta">{pad(o.id)}</span></div>
+                <b>{won(o.total_amount ?? 0)}원</b>
+                <button type="button" className="link" onClick={() => void onPost(o.id, false)}>입력 취소</button>
+              </li>
+            ))}
+          </ul>
+        </details>
+      )}
+    </section>
+  );
+}

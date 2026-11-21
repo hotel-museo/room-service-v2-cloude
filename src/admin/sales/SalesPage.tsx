@@ -66,28 +66,22 @@ export function SalesPage() {
   const multiDay = range.from !== range.to;
 
   // 객실 합산 정산표
-  const roomOrders = s.completed.filter((o) => o.payment_method === 'checkout' && (!onlyUnsettled || !o.settled_at));
+  const stageOf = (o: Order) => (o.checkout_paid_at ? 3 : o.settled_at ? 2 : o.wings_posted_at ? 1 : 0);
+  const roomOrders = s.completed.filter((o) => o.payment_method === 'checkout' && (!onlyUnsettled || !o.checkout_paid_at));
   const roomGroups = useMemo(() => {
     const g = new Map<string, Order[]>();
     roomOrders.forEach((o) => {
-      const k = `${o.room_number}|${(o.guest_name ?? '').trim()}`;
+      const k = `${o.room_number}|${(o.guest_name ?? '').trim()}|${stageOf(o)}`;
       g.set(k, [...(g.get(k) ?? []), o]);
     });
-    return [...g.entries()].map(([k, list]) => ({ k, room: list[0].room_number ?? '', guest: list[0].guest_name ?? '', list, total: list.reduce((a, o) => a + (o.total_amount ?? 0), 0), settled: list.every((o) => o.settled_at) }))
-      .sort((a, b) => Number(a.settled) - Number(b.settled) || a.room.localeCompare(b.room, 'ko', { numeric: true }));
-  }, [roomOrders]);
-
-  const settle = async (list: Order[], on: boolean) => {
-    const { error } = await supabase.from('orders').update({ settled_at: on ? new Date().toISOString() : null }).in('id', list.map((o) => o.id));
-    if (error) toast.show('저장하지 못했어요: ' + error.message, true);
-    else toast.show(on ? '프런트 확인 완료로 표시했어요' : '프런트 확인을 취소했어요');
-    void load();
-  };
+    return [...g.entries()].map(([k, list]) => ({ k, room: list[0].room_number ?? '', guest: list[0].guest_name ?? '', list, total: list.reduce((a, o) => a + (o.total_amount ?? 0), 0), stage: stageOf(list[0]) }))
+      .sort((a, b) => a.stage - b.stage || a.room.localeCompare(b.room, 'ko', { numeric: true }));
+  }, [roomOrders]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const exportOrders = () =>
     downloadCsv(`룸서비스_주문내역_${range.from}_${range.to}.csv`,
-      ['주문번호', '주문일시', '객실', '상태', '결제', '투숙객', '메뉴', '금액', '요청사항', '알레르기', '프런트 확인', '확인 담당자', '특이사항'],
-      orders.map((o) => [o.id, dt(o.created_at), o.room_number ?? '', ({ pending: '접수 대기', cooking: '조리 중', completed: '완료', rejected: '거절' } as Record<string, string>)[o.status ?? 'pending'], o.payment_method === 'checkout' ? '객실 합산' : '카드', o.guest_name ?? '', itemSummary(o), o.total_amount ?? 0, o.request_note ?? '', o.allergy_note ?? '', o.payment_method === 'checkout' ? (o.settled_at ? '확인' : '확인 전') : '', o.settle_staff ?? '', o.settle_note ?? '']));
+      ['주문번호', '주문일시', '객실', '상태', '결제', '투숙객', '메뉴', '금액', '요청사항', '알레르기', '후불 단계', '확인 담당', '결제 담당', '특이사항'],
+      orders.map((o) => [o.id, dt(o.created_at), o.room_number ?? '', ({ pending: '접수 대기', cooking: '조리 중', completed: '완료', rejected: '거절' } as Record<string, string>)[o.status ?? 'pending'], o.payment_method === 'checkout' ? '객실 합산' : '카드', o.guest_name ?? '', itemSummary(o), o.total_amount ?? 0, o.request_note ?? '', o.allergy_note ?? '', o.payment_method === 'checkout' ? ['WINGS 입력 전', '프런트 확인 전', '퇴실 결제 대기', '결제 완료'][stageOf(o)] : '', o.settle_staff ?? '', o.checkout_staff ?? '', [o.settle_note, o.checkout_note].filter(Boolean).join(' / ')]));
 
   const exportRanking = () =>
     downloadCsv(`룸서비스_메뉴순위_${range.from}_${range.to}.csv`,
@@ -208,31 +202,30 @@ export function SalesPage() {
 
       <section className="panel">
         <div className="panel-head">
-          <h2>투숙객 후불 (객실 결제) 확인 현황</h2>
-          <label className="check-inline"><input type="checkbox" checked={onlyUnsettled} onChange={(e) => setOnlyUnsettled(e.target.checked)} /> 확인 전인 것만</label>
+          <h2>투숙객 후불 진행 현황</h2>
+          <label className="check-inline"><input type="checkbox" checked={onlyUnsettled} onChange={(e) => setOnlyUnsettled(e.target.checked)} /> 퇴실 결제 끝난 건 숨기기</label>
         </div>
-        <p className="meta">보테가에서 WINGS에 객실 결제로 넣은 주문이에요. 프런트가 확인하면 여기도 자동으로 '프런트 확인'으로 바뀌어요.</p>
+        <p className="meta">보테가 WINGS 입력 → 프런트 객실 반영 확인 → 프런트 퇴실 결제 완료 순서로 진행돼요. WINGS 입력은 주문판 오른쪽 'WINGS 입력 대기'에서 해요.</p>
         {roomGroups.length === 0 ? (
-          <p className="meta pad">{onlyUnsettled ? '프런트 확인을 기다리는 객실이 없어요' : '이 기간에 객실 합산 주문이 없어요'}</p>
+          <p className="meta pad">{onlyUnsettled ? '진행 중인 투숙객 후불 주문이 없어요' : '이 기간에 투숙객 후불 주문이 없어요'}</p>
         ) : (
           <div className="tbl-wrap">
             <table className="tbl">
-              <thead><tr><th>객실</th><th>투숙객</th><th>주문</th><th className="num">금액</th><th>상태</th><th /></tr></thead>
+              <thead><tr><th>객실</th><th>투숙객</th><th>주문</th><th className="num">금액</th><th>단계</th><th>담당</th></tr></thead>
               <tbody>
-                {roomGroups.map((g) => (
-                  <tr key={g.k} className={g.settled ? 'is-dim' : ''}>
-                    <td className="strong">{g.room}호</td>
-                    <td>{g.guest || '–'}</td>
-                    <td><div className="meta">{g.list.map((o) => `${pad(o.id)} ${dt(o.created_at)}`).join(' · ')}</div></td>
-                    <td className="num strong">{won(g.total)}원</td>
-                    <td>{g.settled ? <span className="tag">프런트 확인{g.list[0].settle_staff ? ` · ${g.list[0].settle_staff}` : ''}</span> : <span className="tag tag--amber">확인 전</span>}</td>
-                    <td className="num">
-                      {g.settled
-                        ? <button type="button" className="link" onClick={() => void settle(g.list, false)}>취소</button>
-                        : <button type="button" className="btn-green btn-sm" onClick={() => void settle(g.list, true)}>확인 처리</button>}
-                    </td>
-                  </tr>
-                ))}
+                {roomGroups.map((g) => {
+                  const o = g.list[0];
+                  return (
+                    <tr key={g.k} className={g.stage === 3 ? 'is-dim' : ''}>
+                      <td className="strong">{g.room}호</td>
+                      <td>{g.guest || '–'}</td>
+                      <td><div className="meta">{g.list.map((x) => `${pad(x.id)} ${dt(x.created_at)}`).join(' · ')}</div></td>
+                      <td className="num strong">{won(g.total)}원</td>
+                      <td>{[<span key={0} className="tag tag--red">WINGS 입력 전</span>, <span key={1} className="tag tag--amber">프런트 확인 전</span>, <span key={2} className="tag tag--amber">퇴실 결제 대기</span>, <span key={3} className="tag">결제 완료</span>][g.stage]}</td>
+                      <td className="meta">{g.stage === 3 ? o.checkout_staff : g.stage === 2 ? o.settle_staff : ''}{(g.stage === 3 ? o.checkout_note : o.settle_note) ? ` · ${g.stage === 3 ? o.checkout_note : o.settle_note}` : ''}</td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>
