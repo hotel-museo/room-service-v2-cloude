@@ -344,3 +344,29 @@ td.bar-col { display: flex; align-items: center; gap: 8px; }
 .wings-posted summary { cursor: pointer; font-size: 13px; color: var(--muted); margin-bottom: 8px; }
 .wings-flag { background: var(--amber-bg); color: var(--amber); font-weight: 700; font-size: 13px; padding: 6px 10px; border-radius: 8px; }
 .fd-days { font-size: 12px; font-weight: 700; color: var(--amber); }
+
+/* ── 상단 바 정리 ── */
+.a-head { gap: 10px 14px; padding: 10px 24px; min-height: 64px; }
+.a-head .brand { margin-right: 8px; }
+.a-nav a { height: 38px; padding: 0 14px; font-size: 14px; font-weight: 500; }
+.seg--svc button { height: 34px; padding: 0 12px; }
+.tools { display: flex; gap: 6px; }
+.tool { height: 38px; display: inline-flex; align-items: center; gap: 6px; padding: 0 12px; border: 1px solid var(--line); border-radius: 10px; background: #fff; color: var(--muted); font-size: 12px; font-weight: 700; white-space: nowrap; cursor: pointer; }
+.tool svg { width: 17px; height: 17px; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
+.tool.is-on { color: var(--green); border-color: #bfd3c7; background: var(--green-soft); cursor: default; }
+.tool.is-on[aria-pressed] { cursor: pointer; }
+.tool.is-warn { color: var(--amber); border-color: #f0d9a8; background: var(--amber-bg); }
+.clockbox { display: inline-flex; align-items: center; gap: 8px; padding: 0 4px; }
+.clockbox .clock { font-size: 22px; letter-spacing: 0.01em; }
+.offline { font-size: 12px; font-weight: 700; color: var(--red-2); }
+.logout { width: 38px; height: 38px; display: grid; place-items: center; border: 0; border-radius: 10px; background: transparent; color: var(--muted); cursor: pointer; }
+.logout:hover { background: var(--row); color: var(--ink); }
+.logout svg { width: 19px; height: 19px; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
+@media (max-width: 1180px) {
+  .tool span { display: none; }
+  .tool { width: 38px; padding: 0; justify-content: center; }
+}
+@media (max-width: 860px) {
+  .a-head { padding: 10px 16px; }
+  .a-head .grow { display: none; }
+}

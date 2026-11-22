@@ -114,24 +114,31 @@ export function Board() {
           <a className={page === 'sales' ? 'is-active' : ''} href="#sales">매출 · 정산</a>
         </nav>
         <div className="grow" />
-        <div className="seg" role="group" aria-label="영업 상태">
+        <div className="seg seg--svc" role="group" aria-label="영업 상태">
           {SERVICE.map(([k, label]) => (
             <button type="button" key={k} className={b.service === k ? `is-on is-${k}` : ''} aria-pressed={b.service === k} onClick={() => void b.changeService(k)}>
               {label}
             </button>
           ))}
         </div>
-        {sound ? (
-          <span className="status-txt"><span className="dot dot--ok" />알림음 켜짐</span>
-        ) : (
-          <button type="button" className="btn-outline btn-sound" onClick={enableSound}>알림음 켜기</button>
-        )}
-        <span className="status-txt"><span className={`dot ${b.online ? 'dot--ok' : 'dot--bad'}`} />{b.online ? `동기화 ${hhmm(b.lastSync?.toISOString() ?? null)}` : '연결 끊김'}</span>
-        <button type="button" className={`btn-outline btn-sound${autoPrint ? ' is-on' : ''}`} aria-pressed={autoPrint} onClick={toggleAutoPrint}>
-          접수 시 자동 인쇄 {autoPrint ? '켜짐' : '꺼짐'}
+        <div className="tools">
+          <button type="button" className={`tool${sound ? ' is-on' : ' is-warn'}`} onClick={sound ? undefined : enableSound} aria-pressed={sound} title={sound ? '새 주문 알림음이 켜져 있어요' : '눌러서 알림음 켜기'}>
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 16V11a6 6 0 0 1 12 0v5l1.5 2h-15zM10 20.5a2 2 0 0 0 4 0" /></svg>
+            <span>{sound ? '알림 켜짐' : '알림 켜기'}</span>
+          </button>
+          <button type="button" className={`tool${autoPrint ? ' is-on' : ''}`} onClick={toggleAutoPrint} aria-pressed={autoPrint} title="주문을 접수하면 주방 영수증을 자동으로 인쇄해요">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 9V4h10v5M7 17H5a1 1 0 0 1-1-1v-5a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v5a1 1 0 0 1-1 1h-2M7 14h10v6H7z" /></svg>
+            <span>자동 인쇄 {autoPrint ? '켜짐' : '꺼짐'}</span>
+          </button>
+        </div>
+        <div className="clockbox" title={b.online ? `마지막 동기화 ${hhmm(b.lastSync?.toISOString() ?? null)}` : '인터넷 연결을 확인해 주세요'}>
+          <span className={`dot ${b.online ? 'dot--ok' : 'dot--bad'}`} />
+          <span className="clock">{hhmm(new Date(now).toISOString())}</span>
+          {!b.online && <span className="offline">연결 끊김</span>}
+        </div>
+        <button type="button" className="logout" onClick={() => void supabase.auth.signOut()} title="로그아웃" aria-label="로그아웃">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 4h4a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-4M10 16l4-4-4-4M14 12H4" /></svg>
         </button>
-        <div className="clock">{hhmm(new Date(now).toISOString())}</div>
-        <button type="button" className="link" onClick={() => void supabase.auth.signOut()}>로그아웃</button>
       </header>
 
       {pending.length > 0 && (
