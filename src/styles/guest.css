@@ -355,3 +355,19 @@ img { display: block; }
 @media (min-height: 860px) { .home-row { min-height: 62px; } }
 @media (prefers-reduced-motion: reduce) { .home-hero, .home-list { animation: none; } .home-slide img { transition: none; } .home-cap-bar i { animation: none; transform: none; } }
 .home-hero, .home-top, .home-caption { text-shadow: 0 1px 12px rgba(0,0,0,0.45); }
+/* 첫 화면 하단 목록: 더 작고 가볍게 */
+.home-list { padding-bottom: calc(18px + env(safe-area-inset-bottom)); }
+.home-caption { margin-bottom: 16px; }
+.home-row { min-height: 44px; grid-template-columns: 28px 1fr auto; border-top-color: rgba(244,239,230,0.12); }
+.home-row:last-child { border-bottom-color: rgba(244,239,230,0.12); }
+.home-no { font-size: 10px; color: rgba(244,239,230,0.4); }
+.home-lbl { gap: 8px; }
+.home-lbl-main { font-size: 13px; font-weight: 500; letter-spacing: 0.02em; }
+.home-lbl-en { font-size: 8px; letter-spacing: 0.22em; color: rgba(244,239,230,0.38); }
+.home-soon { border: 0; padding: 0; font-size: 8px; letter-spacing: 0.24em; color: rgba(244,239,230,0.38); }
+.home-row--main { min-height: 64px; margin-bottom: 8px; padding: 0 12px 0 14px; grid-template-columns: 26px 1fr auto; border-radius: 14px; }
+.home-row--main .home-lbl-main { font-size: 16px; font-weight: 700; }
+.home-row--main .home-lbl-sub { font-size: 11px; }
+.home-arrow { width: 34px; height: 34px; border-radius: 17px; }
+.home-arrow svg { width: 15px; height: 15px; }
+@media (min-height: 860px) { .home-row { min-height: 48px; } }
