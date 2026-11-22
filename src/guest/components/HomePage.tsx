@@ -8,7 +8,7 @@ import { supabase } from '../../lib/supabase';
  * 사진이 천천히 넘어가고, 그 위에 에디토리얼 스타일 서비스 목록이 있어요.
  * 사진은 site_settings 'hotel_portal' { photos: [{ url, caption }] } 에서 읽고, 없으면 임시 화면.
  */
-interface Photo { url?: string; caption: string; tone: string }
+interface Photo { url?: string; caption: string; tone: string; pos?: string }
 
 const PLACEHOLDER: Photo[] = [
   { caption: 'Lobby', tone: 'radial-gradient(120% 80% at 70% 20%, #2c5a45 0%, #143a2a 45%, #08190f 100%)' },
@@ -16,6 +16,13 @@ const PLACEHOLDER: Photo[] = [
   { caption: 'Bottega', tone: 'radial-gradient(120% 80% at 60% 20%, #9a4a2c 0%, #5c2814 50%, #1d0c05 100%)' },
 ];
 const SLIDE_MS = 6000;
+const B = import.meta.env.BASE_URL;
+// 호텔에서 받은 사진 (관리자에서 바꾸기 전 기본값)
+const HOTEL_PHOTOS: Photo[] = [
+  { url: `${B}hotel/entrance.jpg`, caption: 'Entrance', tone: PLACEHOLDER[1].tone, pos: '62% 50%' },
+  { url: `${B}hotel/garden.jpg`, caption: 'Garden', tone: PLACEHOLDER[0].tone, pos: '52% 50%' },
+  { url: `${B}hotel/passage.jpg`, caption: 'Passage', tone: PLACEHOLDER[0].tone, pos: '50% 50%' },
+];
 const LANG_SHORT: Record<Lang, string> = { ko: 'KO', en: 'EN', ja: 'JA', zh: 'ZH' };
 
 function greetingKey(): StringKey {
@@ -32,7 +39,7 @@ export function HomePage({ lang, t, room, hasOrder, onRoomService, onMyOrder, on
   onMyOrder: () => void;
   onOpenLang: () => void;
 }) {
-  const [photos, setPhotos] = useState<Photo[]>(PLACEHOLDER);
+  const [photos, setPhotos] = useState<Photo[]>(HOTEL_PHOTOS);
   const [idx, setIdx] = useState(0);
   const [toast, setToast] = useState('');
 
@@ -68,7 +75,7 @@ export function HomePage({ lang, t, room, hasOrder, onRoomService, onMyOrder, on
       <div className="home-slides" aria-hidden="true">
         {photos.map((p, i) => (
           <div key={i} className={`home-slide${i === idx ? ' is-on' : ''}`} style={{ background: p.tone }}>
-            {p.url && <img src={p.url} alt="" />}
+            {p.url && <img src={p.url} alt="" style={p.pos ? { objectPosition: p.pos } : undefined} decoding="async" fetchPriority={i === 0 ? 'high' : 'low'} />}
           </div>
         ))}
       </div>
