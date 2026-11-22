@@ -4,7 +4,7 @@ import { cutoffFor, hoursText, type BusinessHours, type HoursState } from '../..
 import { setComponents } from '../../lib/menu';
 import type { CategoryLabels, Lang, Menu, ServiceStatus, SetMenu } from '../../lib/types';
 import type { StringKey } from '../../i18n/strings';
-import { Globe } from './Icons';
+import { Back, Globe } from './Icons';
 
 /** 셰프 추천에 띄울 메뉴 (없거나 숨김이면 사진 있는 메뉴로 채움) */
 const PICK_IDS = [117, 102, 124, 107, 114, 109];
@@ -24,9 +24,10 @@ interface Props {
   onOpenMenu: (id: number) => void;
   onOpenSet: (id: number) => void;
   onOpenLang: () => void;
+  onHome: () => void;
 }
 
-export function MenuPage({ lang, t, menus, sets, labels, service, hours, catOrder, hoursNow, isCut, qtyByMenu, onOpenMenu, onOpenSet, onOpenLang }: Props) {
+export function MenuPage({ lang, t, menus, sets, labels, service, hours, catOrder, hoursNow, isCut, qtyByMenu, onOpenMenu, onOpenSet, onOpenLang, onHome }: Props) {
   const list = useMemo(() => visibleMenus(menus), [menus]);
   const setList = useMemo(() => visibleSets(sets), [sets]);
 
@@ -160,9 +161,12 @@ export function MenuPage({ lang, t, menus, sets, labels, service, hours, catOrde
           </button>
         </div>
         <div className="hero-top">
+          <div className="hero-top-l">
+          <button type="button" className="pill pill--btn pill--icon" onClick={onHome} aria-label={t('home_back')}><Back size={18} /></button>
           <div className={`pill pill--${canOrder ? 'on' : 'off'}`}>
             <span className="dot" />
             {statusText}
+          </div>
           </div>
           <button type="button" className="pill pill--btn" onClick={onOpenLang} aria-label="Language">
             <Globe /> {t('langName')}

@@ -7,6 +7,7 @@ import { resolveLines, toOrderItems, useCart } from './cart';
 import { CartPage, type CheckoutForm } from './components/CartPage';
 import { Chevron } from './components/Icons';
 import { MenuPage } from './components/MenuPage';
+import { HomePage } from './components/HomePage';
 import { MenuSheet } from './components/MenuSheet';
 import { SetSheet } from './components/SetSheet';
 import { Sheet } from './components/Sheet';
@@ -14,7 +15,7 @@ import { StatusPage } from './components/StatusPage';
 import { loadTracked, placeOrder, saveTracked, type TrackedOrder } from './orders';
 import { useGuestData } from './useGuestData';
 
-type View = 'menu' | 'cart' | 'status';
+type View = 'home' | 'menu' | 'cart' | 'status';
 
 function initialLang(): Lang {
   const q = new URLSearchParams(location.search).get('lang');
@@ -36,7 +37,7 @@ export function GuestApp() {
   const cart = useCart();
   const [lang, setLangState] = useState<Lang>(initialLang);
   const [tracked, setTracked] = useState<TrackedOrder | null>(loadTracked);
-  const [view, setView] = useState<View>(() => (loadTracked() ? 'status' : 'menu'));
+  const [view, setView] = useState<View>(() => (new URLSearchParams(location.search).get('view') === 'menu' ? 'menu' : 'home'));
   const [menuId, setMenuId] = useState<number | null>(null);
   const [setId, setSetId] = useState<number | null>(null);
   const [langOpen, setLangOpen] = useState(false);
@@ -99,6 +100,29 @@ export function GuestApp() {
     setView('status');
   };
 
+  const langSheet = (
+    <Sheet open={langOpen} onClose={() => setLangOpen(false)} label="Language" closeLabel={t('close')}>
+      <div className="sheet-body">
+        <div className="langlist">
+          {LANGS.map((l) => (
+            <button type="button" key={l} className={`langopt${l === lang ? ' is-on' : ''}`} aria-pressed={l === lang} onClick={() => { setLang(l); setLangOpen(false); }}>
+              {translate(l, 'langName')}
+            </button>
+          ))}
+        </div>
+      </div>
+    </Sheet>
+  );
+
+  if (view === 'home') {
+    return (
+      <>
+        <HomePage t={t} room={form.room} hasOrder={!!tracked} onRoomService={() => setView('menu')} onMyOrder={() => setView('status')} onOpenLang={() => setLangOpen(true)} />
+        {langSheet}
+      </>
+    );
+  }
+
   if (view === 'status' && tracked) {
     return (
       <StatusPage
@@ -152,6 +176,7 @@ export function GuestApp() {
           onOpenMenu={setMenuId}
           onOpenSet={setSetId}
           onOpenLang={() => setLangOpen(true)}
+          onHome={() => setView('home')}
         />
       )}
 
@@ -172,17 +197,7 @@ export function GuestApp() {
       <MenuSheet menu={menu} links={data.options} lang={lang} canOrder={canOrder} cutAt={menu ? cutoffFor(data.hours, menu.category, new Date(clock)) : null} t={t} onClose={() => setMenuId(null)} onAdd={cart.addMenu} />
       <SetSheet set={set} menus={data.menus} links={data.options} labels={data.labels} lang={lang} canOrder={canOrder} isCut={isCut} t={t} onClose={() => setSetId(null)} onAdd={cart.addSet} />
 
-      <Sheet open={langOpen} onClose={() => setLangOpen(false)} label="Language" closeLabel={t('close')}>
-        <div className="sheet-body">
-          <div className="langlist">
-            {LANGS.map((l) => (
-              <button type="button" key={l} className={`langopt${l === lang ? ' is-on' : ''}`} aria-pressed={l === lang} onClick={() => { setLang(l); setLangOpen(false); }}>
-                {translate(l, 'langName')}
-              </button>
-            ))}
-          </div>
-        </div>
-      </Sheet>
+      {langSheet}
     </>
   );
 }
