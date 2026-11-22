@@ -85,9 +85,10 @@ export function HomePage({ lang, t, room, hasOrder, onRoomService, onMyOrder, on
       <section className="home-hero">
         <p className="home-greet">{t(greetingKey())}</p>
         <h1 className="home-title">
-          <span>Hotel</span>
-          <span><em>Museo</em></span>
+          <span>HOTEL</span>
+          <span>MUSEO</span>
         </h1>
+        <div className="home-rule" />
         <p className="home-tag">{t('home_tag')}</p>
       </section>
 
