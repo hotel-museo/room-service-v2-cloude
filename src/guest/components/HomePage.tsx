@@ -32,11 +32,6 @@ const ICON = {
   house: <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12.5l8-6.5 8 6.5M6 11v8.5h12V11M10 19.5v-4.5h4v4.5" /></svg>,
 };
 
-function greetingKey(): StringKey {
-  const h = Number(new Date().toLocaleString('en-US', { timeZone: 'Asia/Seoul', hour: 'numeric', hour12: false })) % 24;
-  return h >= 5 && h < 12 ? 'home_gm' : h >= 12 && h < 18 ? 'home_ga' : 'home_ge';
-}
-
 export function HomePage({ lang, t, room, hasOrder, onRoomService, onMyOrder, onOpenLang }: {
   lang: Lang;
   t: (k: StringKey, v?: Record<string, string | number>) => string;
@@ -97,7 +92,6 @@ export function HomePage({ lang, t, room, hasOrder, onRoomService, onMyOrder, on
       </header>
 
       <section className="home-hero">
-        <p className="home-greet">{t(greetingKey())}</p>
         <h1 className="home-title">
           <span>HOTEL</span>
           <span>MUSEO</span>
