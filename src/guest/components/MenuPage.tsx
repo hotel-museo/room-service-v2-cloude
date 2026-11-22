@@ -174,12 +174,6 @@ export function MenuPage({ lang, t, menus, sets, labels, service, hours, catOrde
         </div>
         <div className="hero-copy">
           <div className="eyebrow">{t('inRoomDining')}</div>
-          <h1 className="tagline">
-            {t('tagline1')}
-            <br />
-            <em>{t('tagline2')}</em>
-          </h1>
-          <p className="subline">{t('subline')}</p>
         </div>
       </section>
 
