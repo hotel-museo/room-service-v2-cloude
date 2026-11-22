@@ -57,14 +57,14 @@ export function MenuTab({ menus, cats, labels, reload, toast }: Props) {
               {list.map((m, i) => {
                 const sold = isSoldOut(m);
                 return (
-                  <div className={`mitem${m.is_hidden ? ' is-hidden' : ''}`} key={m.id}>
+                  <div className={`mitem mitem--menu${m.is_hidden ? ' is-hidden' : ''}`} key={m.id}>
                     <div className="order-btns">
                       <button type="button" aria-label="위로" disabled={i === 0} onClick={() => move(c, i, -1)}>▲</button>
                       <button type="button" aria-label="아래로" disabled={i === list.length - 1} onClick={() => move(c, i, 1)}>▼</button>
                     </div>
                     {m.image_url ? <img src={m.image_url} alt="" /> : <span className="noimg">사진 없음</span>}
                     <button type="button" className="mitem-main" onClick={() => setEditing(m)}>
-                      <strong>{m.name}</strong>
+                      <strong>{m.name}{sold && <em className="flag flag--red">품절</em>}{m.is_hidden && <em className="flag">숨김</em>}</strong>
                       <span className="meta">{m.name_en || '영어 이름 없음'}</span>
                     </button>
                     <span className="mitem-price">{won(m.price)}원</span>
@@ -82,7 +82,9 @@ export function MenuTab({ menus, cats, labels, reload, toast }: Props) {
                       offText="숨김"
                       onChange={() => void run(() => saveMenu(m.id, { is_hidden: !m.is_hidden }), m.is_hidden ? '손님 화면에 다시 보여요' : '손님 화면에서 숨겼어요')}
                     />
-                    <button type="button" className="btn-outline btn-sm" onClick={() => setEditing(m)}>수정</button>
+                    <button type="button" className="edit-btn" onClick={() => setEditing(m)} aria-label={`${m.name} 수정`} title="수정">
+                      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20h4L19 9a2.1 2.1 0 0 0-3-3L5 17v3zM14 7l3 3" /></svg>
+                    </button>
                   </div>
                 );
               })}

@@ -39,7 +39,7 @@ export function SetTab({ sets, menus, labels, reload, toast }: Props) {
         {list.map((s) => {
           const on = s.is_active && !s.is_hidden;
           return (
-            <div className={`mitem${on ? '' : ' is-hidden'}`} key={s.id}>
+            <div className={`mitem mitem--set${on ? '' : ' is-hidden'}`} key={s.id}>
               {s.image_url ? <img src={s.image_url} alt="" /> : <span className="noimg">사진 없음</span>}
               <button type="button" className="mitem-main" onClick={() => setEditing(s)}>
                 <strong>{s.name}</strong>
@@ -47,7 +47,9 @@ export function SetTab({ sets, menus, labels, reload, toast }: Props) {
               </button>
               <span className="mitem-price">{won(s.price)}원</span>
               <Toggle on={on} label={`${s.name} 노출`} onText="보임" offText="숨김" onChange={() => void run(() => saveSet(s.id, { is_hidden: on, is_active: true }), on ? '세트를 숨겼어요' : '세트를 다시 보여요')} />
-              <button type="button" className="btn-outline btn-sm" onClick={() => setEditing(s)}>수정</button>
+              <button type="button" className="edit-btn" onClick={() => setEditing(s)} aria-label={`${s.name} 수정`} title="수정">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20h4L19 9a2.1 2.1 0 0 0-3-3L5 17v3zM14 7l3 3" /></svg>
+              </button>
             </div>
           );
         })}

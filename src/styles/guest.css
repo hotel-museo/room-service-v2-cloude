@@ -391,7 +391,7 @@ img { display: block; }
 .hero-light i:nth-child(2) { width: 65%; height: 50%; right: 0; bottom: 5%; background: radial-gradient(closest-side, rgba(60, 18, 6, 0.7), rgba(60, 18, 6, 0)); animation: light-b 20s ease-in-out infinite alternate; }
 /* 비스듬히 지나가는 빛줄기 */
 .hero-light b { position: absolute; top: -10%; bottom: -10%; width: 38%; left: -40%; transform: skewX(-18deg); background: linear-gradient(90deg, rgba(255, 236, 210, 0) 0%, rgba(255, 236, 210, 0.13) 45%, rgba(255, 236, 210, 0.18) 50%, rgba(255, 236, 210, 0.13) 55%, rgba(255, 236, 210, 0) 100%); filter: blur(6px); animation: light-sweep 14s cubic-bezier(.45,.05,.55,.95) 1.8s infinite; }
-@keyframes light-a { 0% { transform: translate(0, 0) scale(1); opacity: 0.55; } 100% { transform: translate(18%, 14%) scale(1.15); opacity: 0.9; } }
+@keyframes light-a { 0% { transform: translate(0, 0) scale(1); opacity: 0.45; } 100% { transform: translate(18%, 14%) scale(1.15); opacity: 0.7; } }
 @keyframes light-b { 0% { transform: translate(0, 0) scale(1.1); opacity: 0.6; } 100% { transform: translate(-16%, -10%) scale(0.95); opacity: 0.9; } }
 @keyframes light-sweep { 0% { left: -45%; } 55%, 100% { left: 120%; } }
 .hero-brand .hero-logo, .hero-brand .hero-cue { z-index: 2; }
