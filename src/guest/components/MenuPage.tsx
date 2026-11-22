@@ -148,6 +148,7 @@ export function MenuPage({ lang, t, menus, sets, labels, service, hours, catOrde
     <main>
       <section className="hero">
         <div className={`hero-brand${introSeen ? ' is-seen' : ''}`} ref={brandRef}>
+          <div className="hero-light" aria-hidden="true"><i /><i /><b /></div>
           <div className="hero-logo" ref={logoRef} role="img" aria-label="PASTA HOUSE by BOTTEGA">
             <div className="hero-rule" />
             <div className="hero-word" aria-hidden="true">{letters('PASTA', 250)}</div>
