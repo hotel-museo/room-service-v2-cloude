@@ -63,6 +63,41 @@ export function MenuPage({ lang, t, menus, sets, labels, service, hours, catOrde
 
   const [active, setActive] = useState(tabs[0]?.id ?? '');
   const navRef = useRef<HTMLDivElement>(null);
+  const brandRef = useRef<HTMLDivElement>(null);
+  const logoRef = useRef<HTMLDivElement>(null);
+  // 처음 들어왔을 때만 로고 인트로를 보여주고, 장바구니 등에서 돌아오면 바로 메뉴 위치로
+  const [introSeen] = useState(() => { try { return sessionStorage.getItem('ph-intro') === '1'; } catch { return false; } });
+
+  useEffect(() => {
+    try { sessionStorage.setItem('ph-intro', '1'); } catch { /* 무시 */ }
+    if (introSeen && brandRef.current) {
+      const h = brandRef.current.offsetHeight;
+      requestAnimationFrame(() => window.scrollTo(0, h));
+    }
+    // 스크롤하면 로고가 천천히 올라가며 흐려지는 효과
+    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    let raf = 0;
+    const onScroll = () => {
+      cancelAnimationFrame(raf);
+      raf = requestAnimationFrame(() => {
+        const el = logoRef.current, box = brandRef.current;
+        if (!el || !box) return;
+        const h = box.offsetHeight || 1;
+        const y = Math.min(window.scrollY, h);
+        const p = y / h;
+        box.style.setProperty('--intro-p', String(p));
+        if (!reduce) el.style.transform = `translate3d(0, ${y * 0.45}px, 0) scale(${1 - p * 0.06})`;
+        el.style.opacity = String(Math.max(0, 1 - p * 1.4));
+      });
+    };
+    onScroll();
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => { window.removeEventListener('scroll', onScroll); cancelAnimationFrame(raf); };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const skipIntro = () => { const h = brandRef.current?.offsetHeight ?? 0; window.scrollTo({ top: h, behavior: 'smooth' }); };
+  const letters = (w: string, start: number) => [...w].map((ch, i) => <span key={i} style={{ animationDelay: `${start + i * 70}ms` }}>{ch}</span>);
 
   useEffect(() => {
     const els = tabs.map((tb) => document.getElementById(tb.id)).filter(Boolean) as HTMLElement[];
@@ -111,12 +146,18 @@ export function MenuPage({ lang, t, menus, sets, labels, service, hours, catOrde
   return (
     <main>
       <section className="hero">
-        <div className="hero-brand" role="img" aria-label="PASTA HOUSE by BOTTEGA">
-          <div className="hero-rule" />
-          <div className="hero-word">PASTA</div>
-          <div className="hero-word">HOUSE</div>
-          <div className="hero-by">BY BOTTEGA</div>
-          <div className="hero-rule" />
+        <div className={`hero-brand${introSeen ? ' is-seen' : ''}`} ref={brandRef}>
+          <div className="hero-logo" ref={logoRef} role="img" aria-label="PASTA HOUSE by BOTTEGA">
+            <div className="hero-rule" />
+            <div className="hero-word" aria-hidden="true">{letters('PASTA', 250)}</div>
+            <div className="hero-word" aria-hidden="true">{letters('HOUSE', 600)}</div>
+            <div className="hero-by" aria-hidden="true">BY BOTTEGA</div>
+            <div className="hero-rule" />
+          </div>
+          <button type="button" className="hero-cue" onClick={skipIntro} aria-label="Menu">
+            <span>MENU</span>
+            <i />
+          </button>
         </div>
         <div className="hero-top">
           <div className={`pill pill--${canOrder ? 'on' : 'off'}`}>

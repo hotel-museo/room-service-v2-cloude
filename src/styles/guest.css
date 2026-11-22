@@ -42,12 +42,45 @@ img { display: block; }
 /* ---------- Hero ---------- */
 .hero { position: relative; padding-bottom: 8px; }
 .hero-brand {
-  height: 340px; background: var(--terracotta); color: var(--cream);
-  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px; padding-top: 24px;
+  position: relative; overflow: hidden;
+  height: 100vh; height: 100svh; min-height: 520px; max-height: 1000px;
+  background: var(--terracotta); color: var(--cream);
+  display: flex; align-items: center; justify-content: center;
 }
-.hero-rule { width: 48px; height: 1px; background: rgba(251, 240, 228, 0.6); }
-.hero-word { font-family: var(--serif); font-size: 50px; font-weight: 600; letter-spacing: 0.16em; padding-left: 0.16em; line-height: 1; }
-.hero-by { font-size: 11px; letter-spacing: 0.42em; padding-left: 0.42em; }
+/* 테라코타 위에 모래알 질감을 아주 옅게 */
+.hero-brand::before {
+  content: ''; position: absolute; inset: 0; pointer-events: none;
+  background-image: url('/sand-grain.png'); background-size: 200px 200px;
+  mix-blend-mode: multiply; opacity: 0.22;
+}
+/* 아래쪽이 살짝 어두워지며 메뉴로 이어지는 느낌 */
+.hero-brand::after {
+  content: ''; position: absolute; left: 0; right: 0; bottom: 0; height: 28%; pointer-events: none;
+  background: linear-gradient(to bottom, rgba(120, 40, 15, 0), rgba(120, 40, 15, 0.28));
+}
+.hero-logo { position: relative; z-index: 1; display: flex; flex-direction: column; align-items: center; gap: 16px; will-change: transform, opacity; }
+.hero-rule { width: 56px; height: 1px; background: rgba(251, 240, 228, 0.65); transform-origin: center; animation: rule-in 900ms cubic-bezier(.2,.7,.2,1) both; }
+.hero-logo .hero-rule:last-child { animation-delay: 150ms; }
+.hero-word { font-family: var(--serif); font-size: clamp(54px, 17vw, 76px); font-weight: 600; letter-spacing: 0.16em; padding-left: 0.16em; line-height: 0.98; display: flex; }
+.hero-word span { display: inline-block; animation: letter-in 900ms cubic-bezier(.2,.7,.2,1) both; }
+.hero-by { font-size: 11px; letter-spacing: 0.46em; padding-left: 0.46em; margin-top: 4px; animation: fade-in 900ms ease 1250ms both; }
+.hero-cue {
+  position: absolute; z-index: 1; left: 50%; bottom: calc(28px + env(safe-area-inset-bottom)); transform: translateX(-50%);
+  display: flex; flex-direction: column; align-items: center; gap: 10px; border: 0; background: transparent; color: rgba(251, 240, 228, 0.85);
+  font-size: 10px; letter-spacing: 0.4em; padding: 8px 8px 0 calc(8px + 0.4em); cursor: pointer;
+  opacity: calc(1 - var(--intro-p, 0) * 3);
+}
+.hero-cue span, .hero-cue i { animation: fade-in 800ms ease 1700ms both; }
+.hero-cue i { position: relative; width: 1px; height: 44px; background: rgba(251, 240, 228, 0.3); overflow: hidden; }
+.hero-cue i::after { content: ''; position: absolute; left: 0; top: -40%; width: 1px; height: 40%; background: var(--cream); animation: cue-drop 1.8s ease-in-out 2s infinite; }
+.hero-brand.is-seen .hero-rule, .hero-brand.is-seen .hero-word span, .hero-brand.is-seen .hero-by, .hero-brand.is-seen .hero-cue span, .hero-brand.is-seen .hero-cue i { animation: none; }
+@keyframes letter-in { from { opacity: 0; transform: translateY(18px); filter: blur(6px); } to { opacity: 1; transform: none; filter: none; } }
+@keyframes rule-in { from { transform: scaleX(0); opacity: 0; } to { transform: scaleX(1); opacity: 1; } }
+@keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
+@keyframes cue-drop { 0% { top: -40%; } 70%, 100% { top: 100%; } }
+@media (prefers-reduced-motion: reduce) {
+  .hero-rule, .hero-word span, .hero-by, .hero-cue span, .hero-cue i, .hero-cue i::after { animation: none !important; }
+}
 .hero-top { position: absolute; top: 16px; left: 16px; right: 16px; display: flex; justify-content: space-between; gap: 8px; }
 .pill {
   height: 40px; padding: 0 14px; border-radius: 20px; border: 0;
