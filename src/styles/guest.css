@@ -371,3 +371,15 @@ img { display: block; }
 .home-arrow { width: 34px; height: 34px; border-radius: 17px; }
 .home-arrow svg { width: 15px; height: 15px; }
 @media (min-height: 860px) { .home-row { min-height: 48px; } }
+
+/* 첫 화면 서비스 도크 */
+.home-dock { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 4px; padding: 14px 6px 12px; border-radius: 22px; background: rgba(18, 16, 13, 0.32); border: 1px solid rgba(244, 239, 230, 0.14); -webkit-backdrop-filter: blur(22px) saturate(140%); backdrop-filter: blur(22px) saturate(140%); }
+.home-tile { display: flex; flex-direction: column; align-items: center; gap: 9px; padding: 2px 0; border: 0; background: transparent; color: #f4efe6; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+.home-tile-ico { width: 48px; height: 48px; border-radius: 24px; display: grid; place-items: center; border: 1px solid rgba(244, 239, 230, 0.32); transition: transform .25s ease, background .25s ease; }
+.home-tile-ico svg { width: 21px; height: 21px; fill: none; stroke: currentColor; stroke-width: 1.3; stroke-linecap: round; stroke-linejoin: round; }
+.home-tile-lbl { font-size: 11px; font-weight: 500; letter-spacing: 0.02em; text-align: center; line-height: 1.25; word-break: keep-all; color: rgba(244, 239, 230, 0.88); }
+.home-tile:active .home-tile-ico { transform: scale(0.94); }
+.home-tile--main .home-tile-ico { background: #f4efe6; border-color: #f4efe6; color: var(--terracotta); }
+.home-tile--main .home-tile-lbl { font-weight: 700; color: #f4efe6; }
+.home-tile:not(.home-tile--main) { opacity: 0.82; }
+.home-order { margin: 12px 0 0; align-self: center; }

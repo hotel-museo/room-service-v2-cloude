@@ -25,6 +25,13 @@ const HOTEL_PHOTOS: Photo[] = [
 ];
 const LANG_SHORT: Record<Lang, string> = { ko: 'KO', en: 'EN', ja: 'JA', zh: 'ZH' };
 
+const ICON = {
+  dine: <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3.5 17.5h17M5.5 17.5a6.5 6.5 0 0 1 13 0M12 11V9.2M10.6 9.2h2.8M4 20.5h16" /></svg>,
+  eat: <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7.5 3.5v6.2a1.8 1.8 0 0 0 1.8 1.8v9M11.1 3.5v6.2a1.8 1.8 0 0 1-1.8 1.8M9.3 3.5v5M16.5 20.5v-17c-1.9 1.2-2.9 3.6-2.9 6.6v3h2.9" /></svg>,
+  play: <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5" /><path d="M15.2 8.8l-1.9 4.5-4.5 1.9 1.9-4.5 4.5-1.9z" /></svg>,
+  house: <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12.5l8-6.5 8 6.5M6 11v8.5h12V11M10 19.5v-4.5h4v4.5" /></svg>,
+};
+
 function greetingKey(): StringKey {
   const h = Number(new Date().toLocaleString('en-US', { timeZone: 'Asia/Seoul', hour: 'numeric', hour12: false })) % 24;
   return h >= 5 && h < 12 ? 'home_gm' : h >= 12 && h < 18 ? 'home_ga' : 'home_ge';
@@ -63,10 +70,10 @@ export function HomePage({ lang, t, room, hasOrder, onRoomService, onMyOrder, on
   }, [toast]);
 
   const soon = (label: string) => setToast(`${label} · ${t('home_soon')}`);
-  const items: { no: string; label: string; en: string; onClick: () => void; soon?: boolean }[] = [
-    { no: '02', label: t('home_eat'), en: 'Dining Nearby', onClick: () => soon(t('home_eat')), soon: true },
-    { no: '03', label: t('home_play'), en: 'Things to Do', onClick: () => soon(t('home_play')), soon: true },
-    { no: '04', label: t('home_house'), en: 'Housekeeping', onClick: () => soon(t('home_house')), soon: true },
+  const items: { no: string; label: string; icon: JSX.Element; onClick: () => void }[] = [
+    { no: '02', label: t('home_eat'), icon: ICON.eat, onClick: () => soon(t('home_eat')) },
+    { no: '03', label: t('home_play'), icon: ICON.play, onClick: () => soon(t('home_play')) },
+    { no: '04', label: t('home_house'), icon: ICON.house, onClick: () => soon(t('home_house')) },
   ];
   const pad2 = (n: number) => String(n).padStart(2, '0');
 
@@ -107,31 +114,23 @@ export function HomePage({ lang, t, room, hasOrder, onRoomService, onMyOrder, on
           <span className="home-cap-no home-cap-no--dim">{pad2(photos.length)}</span>
           <span className="home-cap-txt">{photos[idx]?.caption}</span>
         </div>
-        <button type="button" className="home-row home-row--main" onClick={onRoomService}>
-          <span className="home-no">01</span>
-          <span className="home-lbl">
-            <span className="home-lbl-main">{t('home_rs')}</span>
-            <span className="home-lbl-sub">{t('home_rs_sub')}</span>
-          </span>
-          <span className="home-arrow" aria-hidden="true">
-            <svg viewBox="0 0 24 24"><path d="M4 12h15M14 7l5 5-5 5" /></svg>
-          </span>
-        </button>
+        <div className="home-dock">
+          <button type="button" className="home-tile home-tile--main" onClick={onRoomService}>
+            <span className="home-tile-ico">{ICON.dine}</span>
+            <span className="home-tile-lbl">{t('home_rs')}</span>
+          </button>
+          {items.map((it) => (
+            <button type="button" key={it.no} className="home-tile" onClick={it.onClick}>
+              <span className="home-tile-ico">{it.icon}</span>
+              <span className="home-tile-lbl">{it.label}</span>
+            </button>
+          ))}
+        </div>
         {hasOrder && (
           <button type="button" className="home-order" onClick={onMyOrder}>
             <span className="home-dot" />{t('myOrder')}
           </button>
         )}
-        {items.map((it) => (
-          <button type="button" key={it.no} className="home-row" onClick={it.onClick}>
-            <span className="home-no">{it.no}</span>
-            <span className="home-lbl">
-              <span className="home-lbl-main">{it.label}</span>
-              {lang !== 'en' && <span className="home-lbl-en">{it.en}</span>}
-            </span>
-            <span className="home-soon">{t('home_soon')}</span>
-          </button>
-        ))}
       </nav>
 
       {toast && <div className="home-toast" role="status">{toast}</div>}
