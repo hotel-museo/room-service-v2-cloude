@@ -21,6 +21,7 @@ export function SalesPage() {
   const [sets, setSets] = useState<SetMenu[]>([]);
   const [labels, setLabels] = useState<CategoryLabels>({});
   const [loading, setLoading] = useState(true);
+  const [prev, setPrev] = useState<{ revenue: number; count: number } | null>(null);
   const [sort, setSort] = useState<Sort>('revenue');
   const [kind, setKind] = useState<Kind>('all');
   const [cat, setCat] = useState('ALL');
@@ -31,12 +32,16 @@ export function SalesPage() {
     setLoading(true);
     const from = kstDayStart(range.from).toISOString();
     const to = kstDayStart(addDays(range.to, 1)).toISOString();
-    const [o, m, s, l] = await Promise.all([
+    const days = Math.round((kstDayStart(addDays(range.to, 1)).getTime() - kstDayStart(range.from).getTime()) / 864e5);
+    const pFrom = kstDayStart(addDays(range.from, -days)).toISOString();
+    const [o, m, s, l, p] = await Promise.all([
       supabase.from('orders').select('*').gte('created_at', from).lt('created_at', to).order('created_at', { ascending: false }).limit(5000),
       supabase.from('menus').select('*'),
       supabase.from('set_menus').select('*'),
       supabase.from('site_settings').select('settings').eq('key', 'category_translations').maybeSingle(),
+      supabase.from('orders').select('total_amount').eq('status', 'completed').gte('created_at', pFrom).lt('created_at', from).limit(5000),
     ]);
+    setPrev(p.error ? null : { revenue: (p.data ?? []).reduce((a, r) => a + ((r as { total_amount: number | null }).total_amount ?? 0), 0), count: (p.data ?? []).length });
     if (o.error) toast.show('불러오지 못했어요: ' + o.error.message, true);
     setOrders((o.data ?? []) as Order[]);
     setMenus((m.data ?? []) as Menu[]);
@@ -88,6 +93,16 @@ export function SalesPage() {
       ['순위', '메뉴', '구분', '카테고리', '단품 수량', '세트로 선택', '총 수량', '매출', '매출 비중(%)', '주문 건수'],
       ranking.map((r, i) => [i + 1, r.name, r.kind === 'set' ? '세트' : '단품', catLabel(r.category), r.soloQty, r.inSetQty, r.soloQty + r.inSetQty, r.revenue, s.revenue ? ((r.revenue / s.revenue) * 100).toFixed(1) : 0, r.orders]));
 
+  const prevLabel = preset === 'today' ? '어제' : preset === 'yesterday' ? '그저께' : preset === 'week' ? '그 전 7일' : preset === 'month' || preset === 'lastMonth' ? '그 전 기간' : '그 전 같은 기간';
+  const delta = (now: number, before: number | undefined) => {
+    if (before === undefined) return null;
+    if (before === 0) return now === 0 ? `${prevLabel} 대비 변화 없음` : `${prevLabel}에는 없었어요`;
+    const pct = Math.round(((now - before) / before) * 100);
+    return pct === 0 ? `${prevLabel} 대비 변화 없음` : `${prevLabel} 대비 ${pct > 0 ? '▲' : '▼'} ${Math.abs(pct)}%`;
+  };
+  const hasHourly = s.byHour.some((h) => h.orders > 0);
+  const hasDaily = s.byDay.some((d) => d.revenue > 0);
+
   return (
     <div className="sales">
       <div className="filters">
@@ -107,8 +122,8 @@ export function SalesPage() {
       </div>
 
       <section className="tiles">
-        <div className="tile tile--main"><span>매출</span><strong>{won(s.revenue)}원</strong><small>완료된 주문 기준</small></div>
-        <div className="tile"><span>완료 주문</span><strong>{s.completed.length}건</strong><small>객단가 {won(s.avg)}원</small></div>
+        <div className="tile tile--main"><span>매출</span><strong>{won(s.revenue)}원</strong><small>{delta(s.revenue, prev?.revenue) ?? '완료된 주문 기준'}</small></div>
+        <div className="tile"><span>완료 주문</span><strong>{s.completed.length}건</strong><small>객단가 {won(s.avg)}원{prev ? ` · ${delta(s.completed.length, prev.count)}` : ''}</small></div>
         <div className="tile"><span>객실 합산</span><strong>{won(s.roomRevenue)}원</strong><small>카드 {won(s.cardRevenue)}원</small></div>
         <div className="tile"><span>거절</span><strong>{s.rejected.length}건</strong><small>{s.inProgress.length ? `진행 중 ${s.inProgress.length}건은 매출에서 빠져요` : '진행 중인 주문 없음'}</small></div>
       </section>
@@ -177,25 +192,25 @@ export function SalesPage() {
         <section className="panel">
           <h2>시간대별 주문</h2>
           <p className="meta">완료된 주문 수 · 막대에 마우스를 올리면 매출도 보여요</p>
-          <ColumnChart
+          {!hasHourly ? <div className="chart-empty">이 기간에 완료된 주문이 없어요</div> : <ColumnChart
             label="시간대별 주문 수"
             data={s.byHour.map((h) => ({ key: String(h.hour), label: `${h.hour}시` }))}
             valueOf={(i) => s.byHour[i].orders}
             format={(v) => `${Math.round(v)}`}
             tooltip={(i) => `${s.byHour[i].hour}시 · ${s.byHour[i].orders}건 · ${won(s.byHour[i].revenue)}원`}
-          />
+          />}
         </section>
         {multiDay && (
           <section className="panel">
             <h2>일별 매출</h2>
             <p className="meta">완료된 주문 기준</p>
-            <ColumnChart
+            {!hasDaily ? <div className="chart-empty">이 기간에 매출이 없어요</div> : <ColumnChart
               label="일별 매출"
               data={s.byDay.map((d) => ({ key: d.day, label: d.day.slice(5).replace('-', '/') }))}
               valueOf={(i) => s.byDay[i].revenue}
               format={compactWon}
               tooltip={(i) => `${s.byDay[i].day} · ${s.byDay[i].orders}건 · ${won(s.byDay[i].revenue)}원`}
-            />
+            />}
           </section>
         )}
       </div>

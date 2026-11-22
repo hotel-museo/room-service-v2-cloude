@@ -402,3 +402,19 @@ td.bar-col { display: flex; align-items: center; gap: 8px; }
   .mitem--menu .toggle { grid-column: 3 / span 2; justify-self: start; min-height: 32px; }
   .mitem--menu .toggle .lbl-on, .mitem--menu .toggle .lbl-off { width: auto; }
 }
+
+/* ── 매출·정산 다듬기 ── */
+.sales { gap: 18px; padding-top: 20px; }
+.filters .seg--light { background: #fff; }
+.tiles { gap: 14px; }
+.tile { padding: 18px 20px; border-radius: 14px; gap: 6px; }
+.tile span { font-size: 12px; letter-spacing: 0.02em; }
+.tile strong { font-size: 26px; }
+.tile--main strong { font-size: 30px; }
+.tile small { font-size: 12px; }
+.panel { border-radius: 14px; padding: 20px 22px; }
+.panel h2 { font-size: 15px; }
+.chart-empty { height: 180px; display: grid; place-items: center; color: var(--muted); font-size: 13px; border: 1px dashed var(--line-2); border-radius: 12px; margin-top: 8px; }
+.tbl th { font-size: 11px; letter-spacing: 0.02em; text-transform: none; background: #fafbfc; }
+.tbl thead tr th:first-child { border-top-left-radius: 8px; }
+.tbl thead tr th:last-child { border-top-right-radius: 8px; }

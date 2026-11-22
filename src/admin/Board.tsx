@@ -253,7 +253,7 @@ export function Board() {
             <h2>오늘</h2>
             <div className="kpis">
               <div><span>주문</span><strong>{today.length}건</strong></div>
-              <div><span>매출</span><strong>{won(revenue)}</strong></div>
+              <div><span>매출</span><strong>{won(revenue)}원</strong></div>
             </div>
             <div className="roomcharge">
               <span className="roomcharge-t">객실 합산</span>
