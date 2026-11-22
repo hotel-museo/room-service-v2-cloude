@@ -1,5 +1,6 @@
 /* PASTA HOUSE 손님 화면 (B안 확정 디자인) */
 :root {
+  color-scheme: only light;
   --terracotta: #b54a25;
   --terracotta-ink: #963a1b;
   --terracotta-soft: #fbf3ee;

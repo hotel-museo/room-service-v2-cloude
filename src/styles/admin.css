@@ -1,5 +1,6 @@
 /* 관리자 주문판 (1안 확정: 흰 배경 + 딥그린) */
 :root {
+  color-scheme: only light;
   --green: #123828;
   --green-soft: #e6efea;
   --bg: #f5f6f8;
