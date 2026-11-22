@@ -117,7 +117,7 @@ export function GuestApp() {
   if (view === 'home') {
     return (
       <>
-        <HomePage t={t} room={form.room} hasOrder={!!tracked} onRoomService={() => setView('menu')} onMyOrder={() => setView('status')} onOpenLang={() => setLangOpen(true)} />
+        <HomePage lang={lang} t={t} room={form.room} hasOrder={!!tracked} onRoomService={() => setView('menu')} onMyOrder={() => setView('status')} onOpenLang={() => setLangOpen(true)} />
         {langSheet}
       </>
     );
