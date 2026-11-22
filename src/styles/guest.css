@@ -354,3 +354,4 @@ img { display: block; }
 @keyframes cap-fill { from { transform: scaleX(0); } to { transform: scaleX(1); } }
 @media (min-height: 860px) { .home-row { min-height: 62px; } }
 @media (prefers-reduced-motion: reduce) { .home-hero, .home-list { animation: none; } .home-slide img { transition: none; } .home-cap-bar i { animation: none; transform: none; } }
+.home-hero, .home-top, .home-caption { text-shadow: 0 1px 12px rgba(0,0,0,0.45); }
