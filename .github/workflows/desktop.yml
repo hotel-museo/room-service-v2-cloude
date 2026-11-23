@@ -1,6 +1,6 @@
 name: Build desktop app (Windows)
 
-# desktop/ 폴더를 고치면 윈도우 설치 파일을 새로 만들어
+# desktop/ 폴더를 고치면 윈도우 설치 파일 2개(보테가 관리자용·프런트용)를 새로 만들어
 # GitHub Releases의 'desktop-latest'에 올려요.
 on:
   push:
@@ -24,13 +24,14 @@ jobs:
         with:
           node-version: 20
       - run: npm install --no-audit --no-fund
-      - run: npm run dist
+      - run: npm run dist:admin
+      - run: npm run dist:front
       - name: Publish release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           gh release delete desktop-latest --yes --cleanup-tag || true
-          gh release create desktop-latest release/PASTA-HOUSE-Order-Setup.exe \
-            --title "PASTA HOUSE 주문 (윈도우 프로그램)" \
-            --notes "보테가 관리자용 새 주문 알림 프로그램. PASTA-HOUSE-Order-Setup.exe를 받아 실행하세요." \
+          gh release create desktop-latest release/PASTA-HOUSE-Order-Setup.exe release/HOTEL-MUSEO-Front-Setup.exe \
+            --title "룸서비스 윈도우 프로그램" \
+            --notes "PASTA-HOUSE-Order-Setup.exe: 보테가 관리자용 (새 주문 알림) / HOTEL-MUSEO-Front-Setup.exe: 호텔 프런트용 (객실 반영 확인 알림)" \
             --latest=false

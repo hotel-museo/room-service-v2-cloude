@@ -8,25 +8,13 @@
   "private": true,
   "scripts": {
     "start": "electron .",
-    "dist": "electron-builder --win --x64 --publish never"
+    "start:front": "electron . --front",
+    "dist:admin": "electron-builder --win --x64 --publish never -c build-admin.json",
+    "dist:front": "electron-builder --win --x64 --publish never -c build-front.json"
   },
   "devDependencies": {
     "electron": "^33.2.0",
     "electron-builder": "^25.1.8"
   },
-  "build": {
-    "appId": "kr.hotelmuseo.pastahouse.admin",
-    "productName": "PASTA HOUSE Order",
-    "directories": { "buildResources": "build", "output": "release" },
-    "files": ["main.js", "preload.js", "assets/**", "build/icon.png"],
-    "win": { "target": "nsis", "icon": "build/icon.png" },
-    "nsis": {
-      "oneClick": true,
-      "perMachine": false,
-      "shortcutName": "PASTA HOUSE 주문",
-      "artifactName": "PASTA-HOUSE-Order-Setup.${ext}",
-      "createDesktopShortcut": true,
-      "runAfterFinish": true
-    }
-  }
+  "phVariant": "admin"
 }

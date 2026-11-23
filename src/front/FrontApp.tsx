@@ -77,6 +77,11 @@ export function FrontApp() {
   useEffect(() => {
     document.title = confirmCount ? `(${confirmCount}) 객실 반영 확인 · 프런트` : '프런트 · 룸서비스 정산';
   }, [confirmCount]);
+  // 윈도우 프로그램(HOTEL MUSEO 프런트)으로 열었으면 확인할 객실 수를 알려줘요 → 아이콘 숫자·깜빡임
+  useEffect(() => {
+    window.phDesktop?.setPending(confirmCount);
+  }, [confirmCount]);
+  useEffect(() => () => window.phDesktop?.setPending(0), []);
 
   useEffect(() => {
     void load();
