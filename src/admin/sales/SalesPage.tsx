@@ -7,6 +7,9 @@ import { useToast } from '../menu/ui';
 import { addDays, downloadCsv, itemSummary, kstDayStart, kstYmd, presetRange, summarize, type Preset, type RankRow } from './aggregate';
 import { ColumnChart, compactWon } from './Charts';
 import { renderDailyReport } from './dailyReport';
+import { StaffPicker, staffLabel, useStaff } from '../../lib/staff';
+
+const REPORTER_KEY = 'ph-report-staff';
 
 const PRESETS: [Preset, string][] = [['today', '오늘'], ['yesterday', '어제'], ['week', '최근 7일'], ['month', '이번 달'], ['lastMonth', '지난 달'], ['custom', '직접 선택']];
 const pad = (n: number) => '#' + String(n).padStart(4, '0');
@@ -26,6 +29,10 @@ export function SalesPage() {
   const [prev, setPrev] = useState<{ revenue: number; count: number } | null>(null);
   const [report, setReport] = useState<{ blob: Blob; url: string; name: string } | null>(null);
   const [making, setMaking] = useState(false);
+  // 보고용 이미지 담당자 (보테가 직원 명단에서 고름, 지난번 담당자 기억)
+  const bottegaStaff = useStaff('bottega');
+  const [picking, setPicking] = useState(false);
+  const [reporter, setReporter] = useState(() => { try { return localStorage.getItem(REPORTER_KEY) ?? ''; } catch { return ''; } });
   const [sort, setSort] = useState<Sort>('revenue');
   const [kind, setKind] = useState<Kind>('all');
   const [cat, setCat] = useState('ALL');
@@ -87,10 +94,18 @@ export function SalesPage() {
       .sort((a, b) => a.stage - b.stage || a.room.localeCompare(b.room, 'ko', { numeric: true }));
   }, [roomOrders]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  const openReport = () => {
+    // 지난번 담당자가 지금 명단에 없으면 비워두고 고르게 해요
+    const labels = bottegaStaff.active.map(staffLabel);
+    if (labels.length && !labels.includes(reporter)) setReporter('');
+    setPicking(true);
+  };
   const makeReport = async () => {
+    setPicking(false);
+    try { localStorage.setItem(REPORTER_KEY, reporter.trim()); } catch { /* 무시 */ }
     setMaking(true);
     try {
-      const blob = await renderDailyReport(range.from, s.completed, s.rejected);
+      const blob = await renderDailyReport(range.from, s.completed, s.rejected, reporter);
       setReport({ blob, url: URL.createObjectURL(blob), name: `룸서비스_일일보고_${range.from}.png` });
     } catch {
       toast.show('보고 이미지를 만들지 못했어요', true);
@@ -157,7 +172,7 @@ export function SalesPage() {
         <span className="meta">{range.from === range.to ? range.from : `${range.from} ~ ${range.to}`}{loading ? ' · 불러오는 중…' : ''}</span>
         <span className="grow" />
         <button type="button" className="btn-outline btn-sm" onClick={exportOrders} disabled={!orders.length}>주문 내역 엑셀</button>
-        <button type="button" className="btn-green btn-sm" disabled={range.from !== range.to || making} title={range.from !== range.to ? '하루를 골라 주세요' : ''} onClick={() => void makeReport()}>{making ? '만드는 중…' : '보고용 이미지'}</button>
+        <button type="button" className="btn-green btn-sm" disabled={range.from !== range.to || making} title={range.from !== range.to ? '하루를 골라 주세요' : ''} onClick={openReport}>{making ? '만드는 중…' : '보고용 이미지'}</button>
       </div>
 
       <section className="tiles">
@@ -285,12 +300,28 @@ export function SalesPage() {
           </div>
         )}
       </section>
+      {picking && (
+        <div className="modal-layer">
+          <button type="button" className="modal-backdrop" aria-label="닫기" onClick={() => setPicking(false)} />
+          <div className="modal" role="dialog" aria-modal="true" aria-labelledby="pick-t">
+            <h2 id="pick-t">보고 담당자</h2>
+            <p className="meta">보고용 이미지에 담당자로 들어가요.</p>
+            <label className="f-label" htmlFor="step-staff">담당자 <span className="req">필수</span></label>
+            <StaffPicker staff={bottegaStaff.active} value={reporter} onChange={setReporter} />
+            <div className="row-btns">
+              <button type="button" className="btn-outline" onClick={() => setPicking(false)}>취소</button>
+              <button type="button" className="btn-green wide" disabled={!reporter.trim()} onClick={() => void makeReport()}>이미지 만들기</button>
+            </div>
+          </div>
+        </div>
+      )}
       {report && (
         <div className="modal-layer">
           <button type="button" className="modal-backdrop" aria-label="닫기" onClick={closeReport} />
           <div className="modal report-modal" role="dialog" aria-modal="true" aria-labelledby="rep-t">
             <h2 id="rep-t">보고용 이미지</h2>
-            <p className="meta">완료된 주문 기준이에요. 아래 방법 중 하나로 카톡에 보내 주세요.</p>
+            <p className="meta">완료된 주문 기준이에요. 보고 담당 <b>{reporter}</b> · <button type="button" className="link" onClick={() => { closeReport(); setPicking(true); }}>담당자 바꾸기</button></p>
+            <p className="meta">아래 방법 중 하나로 카톡에 보내 주세요.</p>
             <div className="report-preview"><img src={report.url} alt="룸서비스 일일 보고 이미지" /></div>
             <div className="report-btns">
               {canShare && <button type="button" className="btn-green" onClick={() => void shareReport()}>카톡으로 공유</button>}

@@ -4,7 +4,7 @@ import { checkoutPayLabel } from '../../lib/types';
 
 /**
  * 대표님께 카톡으로 보낼 "룸서비스 일일 보고" 이미지 (캔버스로 직접 그림).
- * 내용: 룸서비스 건수, 총매출, 투숙객 후불·카드 결제 건수와 금액, 거절한 객실과 사유, 주문마다 시간·객실·성함·결제방법·금액·메뉴.
+ * 내용: 보고 담당자, 룸서비스 건수, 총매출, 투숙객 후불·카드 결제 건수와 금액, 거절한 객실과 사유, 주문마다 시간·객실·성함·결제방법·금액·메뉴.
  */
 const W = 1080;
 const PAD = 64;
@@ -33,7 +33,7 @@ function wrap(ctx: CanvasRenderingContext2D, text: string, maxW: number): string
   return out;
 }
 
-export async function renderDailyReport(ymd: string, orders: Order[], rejected: Order[] = []): Promise<Blob> {
+export async function renderDailyReport(ymd: string, orders: Order[], rejected: Order[] = [], reporter = ''): Promise<Blob> {
   await Promise.all([document.fonts.load(`400 28px 'Noto Sans KR'`), document.fonts.load(`700 28px 'Noto Sans KR'`), document.fonts.load(`900 28px 'Noto Sans KR'`)]).catch(() => undefined);
   const list = [...orders].sort((a, b) => a.created_at.localeCompare(b.created_at));
   const total = list.reduce((a, o) => a + (o.total_amount ?? 0), 0);
@@ -72,6 +72,11 @@ export async function renderDailyReport(ymd: string, orders: Order[], rejected: 
   ctx.textAlign = 'right';
   ctx.fillStyle = 'rgba(255,255,255,0.85)';
   ctx.fillText(dayLabel(ymd), W - PAD, 140);
+  if (reporter.trim()) {
+    ctx.font = `700 22px ${FONT}`;
+    ctx.fillStyle = 'rgba(255,255,255,0.7)';
+    ctx.fillText(`보고 담당  ${reporter.trim()}`, W - PAD, 76);
+  }
   ctx.textAlign = 'left';
 
   // 요약

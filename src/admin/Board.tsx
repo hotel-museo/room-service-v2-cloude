@@ -7,6 +7,8 @@ import { SalesPage } from './sales/SalesPage';
 import { printTicket } from './print';
 import { useBoard } from './useBoard';
 import { GuestPreview } from './GuestPreview';
+import { AdminSettings, useStaff } from '../lib/staff';
+import { useToast } from './menu/ui';
 import { REJECT_REASONS as REJECT_PRESETS } from '../lib/rejectReasons';
 
 const REJECT_REASONS = REJECT_PRESETS.map((r) => r.ko);
@@ -38,9 +40,9 @@ function Opts({ list }: { list: string[] }) {
   );
 }
 
-type Page = 'orders' | 'menu' | 'sales';
+type Page = 'orders' | 'menu' | 'sales' | 'settings';
 function usePage(): Page {
-  const get = (): Page => (location.hash === '#menu' ? 'menu' : location.hash === '#sales' ? 'sales' : 'orders');
+  const get = (): Page => (location.hash === '#menu' ? 'menu' : location.hash === '#sales' ? 'sales' : location.hash === '#settings' ? 'settings' : 'orders');
   const [page, setPage] = useState<Page>(get);
   useEffect(() => {
     const on = () => setPage(get());
@@ -110,6 +112,7 @@ export function Board() {
           <a className={page === 'orders' ? 'is-active' : ''} href="#orders">주문판{page !== 'orders' && pending.length > 0 ? ` (${pending.length})` : ''}</a>
           <a className={page === 'menu' ? 'is-active' : ''} href="#menu">메뉴 관리</a>
           <a className={page === 'sales' ? 'is-active' : ''} href="#sales">매출 · 정산</a>
+          <a className={page === 'settings' ? 'is-active' : ''} href="#settings">관리자 설정</a>
         </nav>
         <div className="grow" />
         <div className="seg seg--svc" role="group" aria-label="영업 상태">
@@ -149,6 +152,7 @@ export function Board() {
 
       {page === 'menu' && <MenuAdmin />}
       {page === 'sales' && <SalesPage />}
+      {page === 'settings' && <BottegaSettings />}
 
       <main className="a-main" hidden={page !== 'orders'}>
         <section className="cols" aria-label="주문 현황">
@@ -345,5 +349,17 @@ function WingsPanel({ list, onPost }: { list: Order[]; onPost: (id: number, on: 
         </details>
       )}
     </section>
+  );
+}
+
+/** 보테가 관리자 설정: 비밀번호 → 보테가 직원 명단(보고용 이미지 담당자) · 비밀번호 변경 */
+function BottegaSettings() {
+  const staff = useStaff('bottega');
+  const toast = useToast();
+  return (
+    <main className="fd">
+      <AdminSettings team="bottega" usedFor="보고용 이미지" staff={staff} toast={toast.show} />
+      {toast.node}
+    </main>
   );
 }

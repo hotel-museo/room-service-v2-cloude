@@ -1,35 +1,39 @@
 import { useCallback, useEffect, useState } from 'react';
-import { supabase } from '../lib/supabase';
+import { supabase } from './supabase';
 
 /**
- * 프런트 직원 명단 (이름 + 직급). DB front_staff 표에 저장해서 프런트 PC 어디서나 같아요.
- * 객실 반영 확인·퇴실 결제 완료 때 '담당자'를 버튼으로 바로 고를 수 있게 해요.
+ * 직원 명단 (직급 + 이름). DB front_staff 표에 팀별로 저장해요.
+ * - front: 호텔 프런트 — 객실 반영 확인·퇴실 결제 완료 담당자
+ * - bottega: 보테가 — 보고용 이미지 담당자
+ * '관리자 설정'은 팀별 비밀번호로 잠겨 있어요.
  */
+export type StaffTeam = 'front' | 'bottega';
 export interface FrontStaff {
   id: number;
   name: string;
   rank: string;
   sort_order: number;
   active: boolean;
+  team: StaffTeam;
 }
 
-export const RANKS = ['지배인', '부지배인', '매니저', '주임', '대리', '사원', '인턴'];
-export const staffLabel = (s: Pick<FrontStaff, 'name' | 'rank'>) => (s.rank.trim() ? `${s.name.trim()} ${s.rank.trim()}` : s.name.trim());
+export const RANKS = ['수습', '사원', '주임', '대리', '과장', '팀장'];
+export const staffLabel = (s: Pick<FrontStaff, 'name' | 'rank'>) => (s.rank.trim() ? `${s.rank.trim()} ${s.name.trim()}` : s.name.trim());
 
-export function useFrontStaff() {
+export function useStaff(team: StaffTeam) {
   const [list, setList] = useState<FrontStaff[]>([]);
   const [error, setError] = useState<string | null>(null);
   const load = useCallback(async () => {
-    const { data, error: e } = await supabase.from('front_staff').select('*').order('sort_order').order('id');
+    const { data, error: e } = await supabase.from('front_staff').select('*').eq('team', team).order('sort_order').order('id');
     if (e) setError(e.message);
     else { setList((data ?? []) as FrontStaff[]); setError(null); }
-  }, []);
+  }, [team]);
   useEffect(() => { void load(); }, [load]);
   return { list, active: list.filter((s) => s.active), error, reload: load };
 }
 
 /** 관리자 설정: 비밀번호를 넣어야 들어갈 수 있어요. 다른 탭으로 나가면 다시 잠겨요. */
-export function AdminSettings(props: { staff: ReturnType<typeof useFrontStaff>; toast: (m: string, bad?: boolean) => void }) {
+export function AdminSettings(props: { team: StaffTeam; staff: ReturnType<typeof useStaff>; toast: (m: string, bad?: boolean) => void; usedFor: string }) {
   const [unlocked, setUnlocked] = useState(false);
   const [pin, setPin] = useState('');
   const [busy, setBusy] = useState(false);
@@ -38,7 +42,7 @@ export function AdminSettings(props: { staff: ReturnType<typeof useFrontStaff>; 
   const enter = async () => {
     if (!pin) return;
     setBusy(true);
-    const { data, error } = await supabase.rpc('check_front_admin_pin', { p: pin });
+    const { data, error } = await supabase.rpc('check_staff_pin', { team: props.team, p: pin });
     setBusy(false);
     if (error) return props.toast('확인하지 못했어요: ' + error.message, true);
     if (data === true) { setUnlocked(true); setPin(''); setBad(false); }
@@ -62,12 +66,12 @@ export function AdminSettings(props: { staff: ReturnType<typeof useFrontStaff>; 
   return (
     <div className="fd-staff">
       <StaffSettings {...props} />
-      <PinChange toast={props.toast} />
+      <PinChange team={props.team} toast={props.toast} />
     </div>
   );
 }
 
-function PinChange({ toast }: { toast: (m: string, bad?: boolean) => void }) {
+function PinChange({ team, toast }: { team: StaffTeam; toast: (m: string, bad?: boolean) => void }) {
   const [oldPin, setOld] = useState('');
   const [newPin, setNew] = useState('');
   const [again, setAgain] = useState('');
@@ -76,7 +80,7 @@ function PinChange({ toast }: { toast: (m: string, bad?: boolean) => void }) {
   const digits = (v: string) => v.replace(/[^0-9]/g, '');
   const save = async () => {
     setBusy(true);
-    const { data, error } = await supabase.rpc('change_front_admin_pin', { old_pin: oldPin, new_pin: newPin });
+    const { data, error } = await supabase.rpc('change_staff_pin', { team, old_pin: oldPin, new_pin: newPin });
     setBusy(false);
     if (error) return toast('바꾸지 못했어요: ' + error.message, true);
     if (data !== true) return toast('지금 비밀번호가 맞지 않아요', true);
@@ -98,7 +102,7 @@ function PinChange({ toast }: { toast: (m: string, bad?: boolean) => void }) {
 }
 
 /** 직원 명단 관리 */
-function StaffSettings({ staff, toast }: { staff: ReturnType<typeof useFrontStaff>; toast: (m: string, bad?: boolean) => void }) {
+function StaffSettings({ team, staff, toast, usedFor }: { team: StaffTeam; staff: ReturnType<typeof useStaff>; toast: (m: string, bad?: boolean) => void; usedFor: string }) {
   const [name, setName] = useState('');
   const [rank, setRank] = useState('');
   const [busy, setBusy] = useState(false);
@@ -108,7 +112,7 @@ function StaffSettings({ staff, toast }: { staff: ReturnType<typeof useFrontStaf
     if (!name.trim()) return;
     setBusy(true);
     const next = Math.max(0, ...staff.list.map((s) => s.sort_order)) + 1;
-    const { error } = await supabase.from('front_staff').insert({ name: name.trim(), rank: rank.trim(), sort_order: next });
+    const { error } = await supabase.from('front_staff').insert({ team, name: name.trim(), rank: rank.trim(), sort_order: next });
     setBusy(false);
     if (error) return toast('추가하지 못했어요: ' + error.message, true);
     toast(`${staffLabel({ name, rank })}님을 추가했어요`);
@@ -147,7 +151,7 @@ function StaffSettings({ staff, toast }: { staff: ReturnType<typeof useFrontStaf
     <>
       <div className="fd-sum">
         <div><span>등록된 직원</span><strong>{staff.active.length}명</strong></div>
-        <p className="meta">여기 등록한 직원은 <b>객실 반영 확인</b>·<b>퇴실 결제 완료</b> 때 담당자 버튼으로 나와요. 쉬는 직원은 '숨김'으로 두면 버튼에서 빠지고, 다시 켜면 돌아와요.</p>
+        <p className="meta">여기 등록한 직원은 <b>{usedFor}</b> 때 담당자 목록에 나와요. 쉬는 직원은 '숨김'으로 두면 버튼에서 빠지고, 다시 켜면 돌아와요.</p>
       </div>
 
       {staff.error && <p className="alert-bad">직원 명단을 불러오지 못했어요: {staff.error}</p>}

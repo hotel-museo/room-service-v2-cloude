@@ -8,7 +8,7 @@ import { addDays, kstDayStart, kstYmd } from '../admin/sales/aggregate';
 import { printFolio } from './folio';
 import { printPaidReport } from './report';
 import { downloadPaidXlsx } from './excel';
-import { AdminSettings, StaffPicker, staffLabel, useFrontStaff, type FrontStaff } from './staff';
+import { AdminSettings, StaffPicker, staffLabel, useStaff, type FrontStaff } from '../lib/staff';
 
 /**
  * 프런트 GL 화면. 투숙객 후불 주문의 3단계 중 프런트 몫 2단계를 처리합니다.
@@ -50,7 +50,7 @@ export function FrontApp() {
   const [acting, setActing] = useState<{ g: Group; step: Step } | null>(null);
   const seen = useRef<Set<number> | null>(null);
   const toast = useToast();
-  const staff = useFrontStaff();
+  const staff = useStaff('front');
 
 
   const load = useCallback(async () => {
@@ -270,7 +270,7 @@ export function FrontApp() {
             )}
           </>
         )}
-        {tab === 'staff' && <AdminSettings staff={staff} toast={toast.show} />}
+        {tab === 'staff' && <AdminSettings team="front" usedFor="객실 반영 확인·퇴실 결제 완료" staff={staff} toast={toast.show} />}
       </main>
 
       {acting && <StepModal g={acting.g} step={acting.step} staff={staff.active} onClose={() => setActing(null)} onSave={save} />}
