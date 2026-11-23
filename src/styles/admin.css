@@ -444,3 +444,24 @@ td.bar-col { display: flex; align-items: center; gap: 8px; }
 /* 프런트 퇴실 결제 방법 선택 */
 .seg--pay { margin-bottom: 4px; }
 .seg--pay button { flex: 1; height: 44px; font-size: 15px; }
+
+/* 프런트 직원 설정 · 담당자 고르기 */
+.fd-h2 { margin: 0; font-size: 16px; }
+.fd-staff { display: flex; flex-direction: column; gap: 16px; max-width: 760px; }
+.fd-staff-add { display: grid; grid-template-columns: 1fr 1fr auto; gap: 8px; }
+.fd-rank-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.fd-rank-chips .chip { border: 0; cursor: pointer; height: 30px; font-size: 13px; }
+.chip--on { background: var(--green) !important; color: #fff !important; }
+.fd-staff-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; }
+.fd-staff-list li { display: flex; align-items: center; gap: 10px; padding: 10px 0; border-top: 1px solid var(--line); }
+.fd-staff-list li:first-child { border-top: 0; }
+.fd-staff-list li.is-off strong { color: var(--muted); text-decoration: line-through; }
+.fd-staff-list .inp--sm { width: 140px; }
+.fd-order { display: inline-flex; flex-direction: column; gap: 2px; }
+.fd-order button { width: 26px; height: 18px; border: 1px solid var(--line); background: #fff; border-radius: 5px; font-size: 9px; color: var(--ink-2); line-height: 1; padding: 0; }
+.fd-order button:disabled { opacity: 0.3; }
+.link.danger { color: var(--red); }
+.fd-picker { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 6px; }
+.fd-picker button { height: 44px; border: 1px solid var(--line-2); border-radius: 10px; background: #fff; font-weight: 700; font-size: 14px; color: var(--ink-2); }
+.fd-picker button.is-on { background: var(--green); border-color: var(--green); color: #fff; }
+.fd-picker-toggle { align-self: flex-start; font-size: 12px; }

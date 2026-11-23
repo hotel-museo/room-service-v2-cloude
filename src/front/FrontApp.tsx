@@ -8,13 +8,14 @@ import { addDays, kstDayStart, kstYmd } from '../admin/sales/aggregate';
 import { printFolio } from './folio';
 import { printPaidReport } from './report';
 import { downloadPaidXlsx } from './excel';
+import { StaffPicker, StaffSettings, staffLabel, useFrontStaff, type FrontStaff } from './staff';
 
 /**
  * 프런트 GL 화면. 투숙객 후불 주문의 3단계 중 프런트 몫 2단계를 처리합니다.
  *   (보테가) WINGS 입력 완료 → (프런트) 객실 반영 확인 → (프런트) 퇴실 결제 완료
  * 퇴실 결제 대기는 날짜와 상관없이 결제 완료될 때까지 계속 남아 있어요 (연박·장기 투숙).
  */
-type Tab = 'confirm' | 'stay' | 'paid';
+type Tab = 'confirm' | 'stay' | 'paid' | 'staff';
 type Step = 'confirm' | 'paid';
 
 const STAFF_KEY = 'ph-front-staff';
@@ -49,6 +50,7 @@ export function FrontApp() {
   const [acting, setActing] = useState<{ g: Group; step: Step } | null>(null);
   const seen = useRef<Set<number> | null>(null);
   const toast = useToast();
+  const staff = useFrontStaff();
 
 
   const load = useCallback(async () => {
@@ -149,6 +151,7 @@ export function FrontApp() {
           <button type="button" className={`nav-btn${tab === 'confirm' ? ' is-active' : ''}`} onClick={() => setTab('confirm')}>객실 반영 확인{toConfirm.length ? ` (${group(toConfirm).length})` : ''}</button>
           <button type="button" className={`nav-btn${tab === 'stay' ? ' is-active' : ''}`} onClick={() => setTab('stay')}>퇴실 결제 대기{staying.length ? ` (${group(staying).length})` : ''}</button>
           <button type="button" className={`nav-btn${tab === 'paid' ? ' is-active' : ''}`} onClick={() => setTab('paid')}>결제 완료</button>
+          <button type="button" className={`nav-btn${tab === 'staff' ? ' is-active' : ''}`} onClick={() => setTab('staff')}>직원 설정</button>
         </nav>
         <div className="grow" />
         <input className="inp inp--sm fd-search" type="search" placeholder="객실 번호 · 성함" value={q} onChange={(e) => setQ(e.target.value)} aria-label="객실 번호 또는 성함 검색" />
@@ -267,19 +270,21 @@ export function FrontApp() {
             )}
           </>
         )}
+        {tab === 'staff' && <StaffSettings staff={staff} toast={toast.show} />}
       </main>
 
-      {acting && <StepModal g={acting.g} step={acting.step} onClose={() => setActing(null)} onSave={save} />}
+      {acting && <StepModal g={acting.g} step={acting.step} staff={staff.active} onClose={() => setActing(null)} onSave={save} />}
       {toast.node}
     </div>
   );
 }
 
-function StepModal({ g, step, onClose, onSave }: { g: Group; step: Step; onClose: () => void; onSave: (g: Group, step: Step, note: string, staff: string, method: CheckoutPayMethod | null) => Promise<void> }) {
+function StepModal({ g, step, staff: staffList, onClose, onSave }: { g: Group; step: Step; staff: FrontStaff[]; onClose: () => void; onSave: (g: Group, step: Step, note: string, staff: string, method: CheckoutPayMethod | null) => Promise<void> }) {
   const [note, setNote] = useState('');
   const [method, setMethod] = useState<CheckoutPayMethod | null>(null);
   const needMethod = step === 'paid';
-  const [staff, setStaff] = useState(readStaff);
+  // 지난번 담당자가 명단에 있으면 미리 골라둬요
+  const [staff, setStaff] = useState(() => { const saved = readStaff(); const labels = staffList.map(staffLabel); return labels.includes(saved) || !labels.length ? saved : ''; });
   const [busy, setBusy] = useState(false);
   const label = step === 'confirm' ? '객실 반영 확인' : '퇴실 결제 완료';
   return (
@@ -305,7 +310,7 @@ function StepModal({ g, step, onClose, onSave }: { g: Group; step: Step; onClose
           </>
         )}
         <label className="f-label" htmlFor="step-staff">담당자 <span className="req">필수</span></label>
-        <input id="step-staff" className="inp" placeholder="처리한 직원 이름" value={staff} onChange={(e) => setStaff(e.target.value)} maxLength={30} autoFocus={!staff} />
+        <StaffPicker staff={staffList} value={staff} onChange={setStaff} />
         <input className="inp" placeholder="특이사항 (있을 때만)" value={note} onChange={(e) => setNote(e.target.value)} maxLength={200} aria-label="특이사항" />
         <div className="fd-actions">
           <button type="button" className="btn-outline" onClick={onClose}>취소</button>
