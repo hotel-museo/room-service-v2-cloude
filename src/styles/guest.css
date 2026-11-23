@@ -296,6 +296,7 @@ img { display: block; }
 .reject-label { font-size: 12px; font-weight: 700; letter-spacing: 0.04em; color: var(--terracotta-ink); }
 .reject-text { margin: 0; font-size: 17px; font-weight: 700; color: var(--ink); line-height: 1.45; }
 .reject-note { margin: 0; font-size: 13px; }
+.nocharge-tag { color: var(--terracotta-ink); }
 
 /* ---------- 호텔 첫 화면 ---------- */
 .hero-top-l { display: flex; gap: 8px; }

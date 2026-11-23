@@ -49,7 +49,7 @@ export function StatusPage({ lang, t, order, onMenu, onNewOrder }: Props) {
     desc = t('st_completed_d');
   } else if (status === 'rejected') {
     title = t('st_rejected_t');
-    desc = t('st_rejected_d');
+    desc = row?.rejection_reason?.trim() ? t('st_rejected_d_reason') : t('st_rejected_d');
   }
 
   const steps = [
@@ -76,8 +76,12 @@ export function StatusPage({ lang, t, order, onMenu, onNewOrder }: Props) {
 
         {status === 'rejected' && (
           <section className="card reject-box" aria-label={t('st_reject_reason')}>
-            <div className="reject-label">{t('st_reject_reason')}</div>
-            <p className="reject-text">{row?.rejection_reason ? translateReason(row.rejection_reason, lang) ?? row.rejection_reason : t('st_rejected_d')}</p>
+            {row?.rejection_reason?.trim() && (
+              <>
+                <div className="reject-label">{t('st_reject_reason')}</div>
+                <p className="reject-text">{translateReason(row.rejection_reason, lang) ?? row.rejection_reason}</p>
+              </>
+            )}
             <p className="muted reject-note">{t('st_reject_nocharge')}</p>
           </section>
         )}
@@ -113,8 +117,17 @@ export function StatusPage({ lang, t, order, onMenu, onNewOrder }: Props) {
             </div>
           ))}
           <div className="sum-line sum-line--total">
-            <span>{t('total')} · {order.payment === 'checkout' ? t('payCheckout') : t('payCard')}</span>
-            <span>{won(order.total)}</span>
+            {status === 'rejected' ? (
+              <>
+                <span>{t('total')} · <span className="nocharge-tag">{t('st_nocharge_tag')}</span></span>
+                <s className="muted">{won(order.total)}</s>
+              </>
+            ) : (
+              <>
+                <span>{t('total')} · {order.payment === 'checkout' ? t('payCheckout') : t('payCard')}</span>
+                <span>{won(order.total)}</span>
+              </>
+            )}
           </div>
         </section>
       </div>
