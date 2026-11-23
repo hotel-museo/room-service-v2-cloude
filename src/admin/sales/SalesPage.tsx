@@ -5,6 +5,7 @@ import type { CategoryLabels, Menu, Order, SetMenu } from '../../lib/types';
 import { useToast } from '../menu/ui';
 import { addDays, downloadCsv, itemSummary, kstDayStart, kstYmd, presetRange, summarize, type Preset, type RankRow } from './aggregate';
 import { ColumnChart, compactWon } from './Charts';
+import { renderDailyReport } from './dailyReport';
 
 const PRESETS: [Preset, string][] = [['today', '오늘'], ['yesterday', '어제'], ['week', '최근 7일'], ['month', '이번 달'], ['lastMonth', '지난 달'], ['custom', '직접 선택']];
 const pad = (n: number) => '#' + String(n).padStart(4, '0');
@@ -22,6 +23,8 @@ export function SalesPage() {
   const [labels, setLabels] = useState<CategoryLabels>({});
   const [loading, setLoading] = useState(true);
   const [prev, setPrev] = useState<{ revenue: number; count: number } | null>(null);
+  const [report, setReport] = useState<{ blob: Blob; url: string; name: string } | null>(null);
+  const [making, setMaking] = useState(false);
   const [sort, setSort] = useState<Sort>('revenue');
   const [kind, setKind] = useState<Kind>('all');
   const [cat, setCat] = useState('ALL');
@@ -83,6 +86,40 @@ export function SalesPage() {
       .sort((a, b) => a.stage - b.stage || a.room.localeCompare(b.room, 'ko', { numeric: true }));
   }, [roomOrders]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  const makeReport = async () => {
+    setMaking(true);
+    try {
+      const blob = await renderDailyReport(range.from, s.completed);
+      setReport({ blob, url: URL.createObjectURL(blob), name: `룸서비스_일일보고_${range.from}.png` });
+    } catch {
+      toast.show('보고 이미지를 만들지 못했어요', true);
+    }
+    setMaking(false);
+  };
+  const closeReport = () => { if (report) URL.revokeObjectURL(report.url); setReport(null); };
+  const file = report ? new File([report.blob], report.name, { type: 'image/png' }) : null;
+  const canShare = !!file && typeof navigator.canShare === 'function' && navigator.canShare({ files: [file] });
+  const shareReport = async () => {
+    if (!file) return;
+    try { await navigator.share({ files: [file], title: '룸서비스 일일 보고' }); } catch { /* 취소 */ }
+  };
+  const copyReport = async () => {
+    if (!report) return;
+    try {
+      await navigator.clipboard.write([new ClipboardItem({ 'image/png': report.blob })]);
+      toast.show('복사했어요. 카톡 대표님 채팅방에서 Ctrl+V 하세요');
+    } catch {
+      toast.show('복사가 안 돼요. "이미지 저장"으로 받아서 보내 주세요', true);
+    }
+  };
+  const saveReport = () => {
+    if (!report) return;
+    const a = document.createElement('a');
+    a.href = report.url;
+    a.download = report.name;
+    a.click();
+  };
+
   const exportOrders = () =>
     downloadCsv(`룸서비스_주문내역_${range.from}_${range.to}.csv`,
       ['주문번호', '주문일시', '객실', '상태', '결제', '투숙객', '메뉴', '금액', '요청사항', '알레르기', '후불 단계', '확인 담당', '결제 담당', '특이사항'],
@@ -119,6 +156,7 @@ export function SalesPage() {
         <span className="meta">{range.from === range.to ? range.from : `${range.from} ~ ${range.to}`}{loading ? ' · 불러오는 중…' : ''}</span>
         <span className="grow" />
         <button type="button" className="btn-outline btn-sm" onClick={exportOrders} disabled={!orders.length}>주문 내역 엑셀</button>
+        <button type="button" className="btn-green btn-sm" disabled={range.from !== range.to || making} title={range.from !== range.to ? '하루를 골라 주세요' : ''} onClick={() => void makeReport()}>{making ? '만드는 중…' : '대표님께 보고'}</button>
       </div>
 
       <section className="tiles">
@@ -246,6 +284,22 @@ export function SalesPage() {
           </div>
         )}
       </section>
+      {report && (
+        <div className="modal-layer">
+          <button type="button" className="modal-backdrop" aria-label="닫기" onClick={closeReport} />
+          <div className="modal report-modal" role="dialog" aria-modal="true" aria-labelledby="rep-t">
+            <h2 id="rep-t">대표님께 보낼 보고 이미지</h2>
+            <p className="meta">완료된 주문 기준이에요. 아래 방법 중 하나로 카톡에 보내 주세요.</p>
+            <div className="report-preview"><img src={report.url} alt="룸서비스 일일 보고 이미지" /></div>
+            <div className="report-btns">
+              {canShare && <button type="button" className="btn-green" onClick={() => void shareReport()}>카톡으로 공유</button>}
+              <button type="button" className={canShare ? 'btn-outline' : 'btn-green'} onClick={() => void copyReport()}>이미지 복사 (PC 카톡에 붙여넣기)</button>
+              <button type="button" className="btn-outline" onClick={saveReport}>이미지 저장</button>
+              <button type="button" className="link" onClick={closeReport}>닫기</button>
+            </div>
+          </div>
+        </div>
+      )}
       {toast.node}
     </div>
   );

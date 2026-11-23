@@ -420,3 +420,7 @@ td.bar-col { display: flex; align-items: center; gap: 8px; }
 .tbl thead tr th:last-child { border-top-right-radius: 8px; }
 .fd-consent { font-size: 12px; font-weight: 700; color: var(--green); }
 .fd-consent.is-missing { color: var(--muted); font-weight: 500; }
+.report-modal { max-width: 560px; max-height: calc(100vh - 48px); }
+.report-preview { flex: 1; min-height: 0; overflow: auto; border: 1px solid var(--line); border-radius: 12px; background: var(--row); max-height: 56vh; }
+.report-preview img { display: block; width: 100%; height: auto; }
+.report-btns { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
