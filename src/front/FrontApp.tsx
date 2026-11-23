@@ -26,6 +26,7 @@ const readStaff = () => { try { return localStorage.getItem(STAFF_KEY) ?? ''; } 
 const pad = (n: number) => '#' + String(n).padStart(4, '0');
 const dt = (iso: string) => new Date(iso).toLocaleString('ko-KR', { timeZone: 'Asia/Seoul', month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit', hour12: false });
 const summary = (o: Order) => (o.order_items ?? []).map((it) => `${it.name}${it.quantity > 1 ? ` ×${it.quantity}` : ''}`).join(', ');
+const OLD_DAYS = 3;
 const daysSince = (iso: string) => Math.floor((kstDayStart(kstYmd(new Date())).getTime() - kstDayStart(kstYmd(new Date(iso))).getTime()) / 864e5);
 
 interface Group { k: string; room: string; guest: string; list: Order[]; total: number; cooking: number }
@@ -61,11 +62,10 @@ export function FrontApp() {
 
 
   const load = useCallback(async () => {
-    const since = new Date(Date.now() - 120 * 864e5).toISOString();
     const base = () => supabase.from('orders').select('*').eq('payment_method', 'checkout');
     // 1,000건이 넘어도 끝까지 받아와요
     const [a, b, c] = await Promise.all([
-      fetchAll<Order>(() => base().in('status', ['cooking', 'completed']).not('wings_posted_at', 'is', null).is('settled_at', null).gte('created_at', since).order('created_at').order('id')),
+      fetchAll<Order>(() => base().in('status', ['cooking', 'completed']).not('wings_posted_at', 'is', null).is('settled_at', null).order('created_at').order('id')),
       fetchAll<Order>(() => base().not('settled_at', 'is', null).is('checkout_paid_at', null).order('created_at').order('id')),
       fetchAll<Order>(() => base().gte('checkout_paid_at', kstDayStart(range.from).toISOString()).lt('checkout_paid_at', kstDayStart(addDays(range.to, 1)).toISOString()).order('checkout_paid_at', { ascending: false }).order('id')),
     ]);
@@ -100,7 +100,8 @@ export function FrontApp() {
   }, [load]);
 
   const match = (g: Group) => !q.trim() || g.room.includes(q.trim()) || g.guest.includes(q.trim());
-  const confirmGroups = useMemo(() => group(toConfirm).filter(match), [toConfirm, q]); // eslint-disable-line react-hooks/exhaustive-deps
+  // 오래된 건(3일 넘음)을 맨 위로
+  const confirmGroups = useMemo(() => group(toConfirm).filter(match).sort((a, b) => Number(daysSince(b.list[0].created_at) >= OLD_DAYS) - Number(daysSince(a.list[0].created_at) >= OLD_DAYS)), [toConfirm, q]); // eslint-disable-line react-hooks/exhaustive-deps
   const stayGroups = useMemo(() => group(staying).filter(match), [staying, q]); // eslint-disable-line react-hooks/exhaustive-deps
   const paidGroups = useMemo(() => group(paid, (o) => `${o.checkout_paid_at}|${o.room_number}`).filter(match), [paid, q]); // eslint-disable-line react-hooks/exhaustive-deps
   const sum = (l: Order[]) => l.reduce((a, o) => a + (o.total_amount ?? 0), 0);
@@ -187,6 +188,7 @@ export function FrontApp() {
                         <div className="fd-amt">{won(g.total)}<small>원</small></div>
                       </div>
                       {isNew && <span className="tag">새로 들어옴</span>}
+                      {daysSince(g.list[0].created_at) >= OLD_DAYS && <span className="tag tag--red">{daysSince(g.list[0].created_at)}일 지남 · 확인 필요</span>}
                       {orderList(g, true)}
                       <div className="fd-actions">
                         <button type="button" className="btn-outline btn-sm" onClick={() => print(g)}>내역서 인쇄</button>

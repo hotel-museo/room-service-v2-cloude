@@ -6,6 +6,7 @@ import { MenuAdmin } from './menu/MenuAdmin';
 import { SalesPage } from './sales/SalesPage';
 import { printTicket } from './print';
 import { useBoard } from './useBoard';
+import { kstDayStart, kstYmd } from './sales/aggregate';
 import { GuestPreview } from './GuestPreview';
 import { AdminSettings, useStaff } from '../lib/staff';
 import { HoursTab } from './menu/HoursTab';
@@ -316,6 +317,10 @@ export function Board() {
 }
 
 
+/** 오늘 기준 며칠 지났는지 (한국 날짜) */
+const daysOld = (iso: string) => Math.floor((kstDayStart(kstYmd(new Date())).getTime() - kstDayStart(kstYmd(new Date(iso))).getTime()) / 864e5);
+const OLD_DAYS = 3;
+
 function WingsPanel({ list, onPost }: { list: Order[]; onPost: (id: number, on: boolean) => Promise<void> }) {
   const todo = list.filter((o) => !o.wings_posted_at);
   const posted = list.filter((o) => o.wings_posted_at);
@@ -331,6 +336,7 @@ function WingsPanel({ list, onPost }: { list: Order[]; onPost: (id: number, on: 
             <li key={o.id}>
               <div>
                 <strong>{o.room_number}호</strong> <span>{o.guest_name || '성함 없음'}</span>
+                {daysOld(o.created_at) >= OLD_DAYS && <span className="tag tag--red">{daysOld(o.created_at)}일 지남</span>}
                 <div className="meta">{pad(o.id)} · {md(o.created_at)}</div>
               </div>
               <b>{won(o.total_amount ?? 0)}원</b>

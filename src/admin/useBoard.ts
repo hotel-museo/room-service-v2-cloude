@@ -1,4 +1,5 @@
 import { notifyPreview } from '../lib/preview';
+import { fetchAll } from '../lib/fetchAll';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { nextKstMidnightIso, todayKstStartIso } from '../lib/menu';
 import { supabase } from '../lib/supabase';
@@ -19,14 +20,14 @@ export function useBoard() {
     if (busy.current) return;
     busy.current = true;
     const since = todayKstStartIso();
-    const since60 = new Date(Date.now() - 60 * 864e5).toISOString();
     const [o, m, s, w] = await Promise.all([
       // 오늘 들어온 주문 + 아직 끝나지 않은 예전 주문
       supabase.from('orders').select('*').or(`created_at.gte."${since}",status.in.(pending,cooking)`).order('created_at', { ascending: true }),
       supabase.from('menus').select('*').order('sort_order', { ascending: true }),
       supabase.from('service_status').select('status').eq('id', 1).maybeSingle(),
       // WINGS 입력 대기 + 입력했지만 프런트가 아직 확인 안 한 투숙객 후불 주문 (날짜 상관없이)
-      supabase.from('orders').select('*').eq('payment_method', 'checkout').in('status', ['cooking', 'completed']).is('settled_at', null).gte('created_at', since60).order('created_at', { ascending: true }),
+      // 처리 안 된 건은 몇 달이 지나도 계속 보여요 (1,000건이 넘어도 끝까지)
+      fetchAll<Order>(() => supabase.from('orders').select('*').eq('payment_method', 'checkout').in('status', ['cooking', 'completed']).is('settled_at', null).order('created_at', { ascending: true }).order('id')),
     ]);
     busy.current = false;
     if (o.error || m.error) {
