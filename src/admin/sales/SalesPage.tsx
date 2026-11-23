@@ -2,6 +2,7 @@ import { checkoutPayLabel } from '../../lib/types';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { won } from '../../lib/menu';
 import { supabase } from '../../lib/supabase';
+import { fetchAll } from '../../lib/fetchAll';
 import type { CategoryLabels, Menu, Order, SetMenu } from '../../lib/types';
 import { useToast } from '../menu/ui';
 import { addDays, downloadCsv, itemSummary, kstDayStart, kstYmd, presetRange, summarize, type Preset, type RankRow } from './aggregate';
@@ -46,11 +47,11 @@ export function SalesPage() {
     const days = Math.round((kstDayStart(addDays(range.to, 1)).getTime() - kstDayStart(range.from).getTime()) / 864e5);
     const pFrom = kstDayStart(addDays(range.from, -days)).toISOString();
     const [o, m, s, l, p] = await Promise.all([
-      supabase.from('orders').select('*').gte('created_at', from).lt('created_at', to).order('created_at', { ascending: false }).limit(5000),
+      fetchAll<Order>(() => supabase.from('orders').select('*').gte('created_at', from).lt('created_at', to).order('created_at', { ascending: false }).order('id', { ascending: false })),
       supabase.from('menus').select('*'),
       supabase.from('set_menus').select('*'),
       supabase.from('site_settings').select('settings').eq('key', 'category_translations').maybeSingle(),
-      supabase.from('orders').select('total_amount').eq('status', 'completed').gte('created_at', pFrom).lt('created_at', from).limit(5000),
+      fetchAll<{ total_amount: number | null }>(() => supabase.from('orders').select('total_amount').eq('status', 'completed').gte('created_at', pFrom).lt('created_at', from).order('id')),
     ]);
     setPrev(p.error ? null : { revenue: (p.data ?? []).reduce((a, r) => a + ((r as { total_amount: number | null }).total_amount ?? 0), 0), count: (p.data ?? []).length });
     if (o.error) toast.show('불러오지 못했어요: ' + o.error.message, true);

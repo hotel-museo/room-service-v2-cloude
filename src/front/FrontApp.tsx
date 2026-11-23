@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { won } from '../lib/menu';
 import { supabase } from '../lib/supabase';
+import { fetchAll } from '../lib/fetchAll';
 import type { Order , CheckoutPayMethod } from '../lib/types';
 import { CHECKOUT_PAY, checkoutPayLabel } from '../lib/types';
 import { useToast } from '../admin/menu/ui';
@@ -62,10 +63,11 @@ export function FrontApp() {
   const load = useCallback(async () => {
     const since = new Date(Date.now() - 120 * 864e5).toISOString();
     const base = () => supabase.from('orders').select('*').eq('payment_method', 'checkout');
+    // 1,000건이 넘어도 끝까지 받아와요
     const [a, b, c] = await Promise.all([
-      base().in('status', ['cooking', 'completed']).not('wings_posted_at', 'is', null).is('settled_at', null).gte('created_at', since).order('created_at').limit(1000),
-      base().not('settled_at', 'is', null).is('checkout_paid_at', null).order('created_at').limit(2000),
-      base().gte('checkout_paid_at', kstDayStart(range.from).toISOString()).lt('checkout_paid_at', kstDayStart(addDays(range.to, 1)).toISOString()).order('checkout_paid_at', { ascending: false }).limit(2000),
+      fetchAll<Order>(() => base().in('status', ['cooking', 'completed']).not('wings_posted_at', 'is', null).is('settled_at', null).gte('created_at', since).order('created_at').order('id')),
+      fetchAll<Order>(() => base().not('settled_at', 'is', null).is('checkout_paid_at', null).order('created_at').order('id')),
+      fetchAll<Order>(() => base().gte('checkout_paid_at', kstDayStart(range.from).toISOString()).lt('checkout_paid_at', kstDayStart(addDays(range.to, 1)).toISOString()).order('checkout_paid_at', { ascending: false }).order('id')),
     ]);
     if (a.error || b.error || c.error) { setOnline(false); return; }
     setOnline(true);
