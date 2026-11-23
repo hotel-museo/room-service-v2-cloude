@@ -147,6 +147,8 @@ export interface Order {
   checkout_paid_at?: string | null;
   checkout_staff?: string | null;
   checkout_note?: string | null;
+  checkout_consent_at?: string | null;
+  checkout_consent_text?: string | null;
   order_items: OrderItem[] | null;
   accepted_at: string | null;
   completed_at: string | null;

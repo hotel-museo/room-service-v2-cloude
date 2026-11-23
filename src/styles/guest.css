@@ -396,3 +396,15 @@ img { display: block; }
 @keyframes light-sweep { 0% { left: -45%; } 55%, 100% { left: 120%; } }
 .hero-brand .hero-logo, .hero-brand .hero-cue { z-index: 2; }
 @media (prefers-reduced-motion: reduce) { .hero-light i, .hero-light b { animation: none; } .hero-light b { display: none; } }
+
+/* 후불 동의 */
+.consent { margin-top: 14px; padding: 14px; border-radius: 14px; background: rgba(255, 255, 255, 0.55); border: 1px solid var(--line); display: flex; flex-direction: column; gap: 8px; }
+.consent.is-error { border-color: var(--terracotta); }
+.consent-title { font-size: 13px; font-weight: 700; color: var(--ink); }
+.consent-text { margin: 0; font-size: 13px; line-height: 1.6; color: var(--ink-2, #4a4239); word-break: keep-all; }
+.consent-check { position: relative; display: flex; align-items: center; gap: 10px; min-height: 44px; font-size: 14px; font-weight: 700; cursor: pointer; }
+.consent-check input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+.consent-box { flex: none; width: 24px; height: 24px; border-radius: 7px; border: 1.5px solid #b9ab97; background: #fff; display: grid; place-items: center; color: transparent; }
+.consent-box svg { width: 16px; height: 16px; }
+.consent-check input:checked + .consent-box { background: var(--terracotta); border-color: var(--terracotta); color: #fff; }
+.consent-check input:focus-visible + .consent-box { outline: 2px solid var(--terracotta); outline-offset: 2px; }

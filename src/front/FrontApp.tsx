@@ -120,6 +120,7 @@ export function FrontApp() {
             {showStatus && <span className={`chip${o.status === 'cooking' ? ' chip--amber' : ''}`}>{o.status === 'cooking' ? '조리 중' : '배달 완료'}</span>}
           </div>
           <div className="fd-items">{summary(o)}</div>
+          <div className={`fd-consent${o.checkout_consent_at ? '' : ' is-missing'}`}>{o.checkout_consent_at ? `✓ 고객 후불 동의 ${dt(o.checkout_consent_at)}` : '후불 동의 기록 없음 (이전 주문)'}</div>
           {o.settle_note && <div className="meta">특이사항: {o.settle_note}</div>}
           <div className="fd-ol"><span className="meta">{o.settle_staff ? `확인 ${o.settle_staff}` : o.phone ?? ''}</span><b>{won(o.total_amount ?? 0)}원</b></div>
         </li>

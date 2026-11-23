@@ -418,3 +418,5 @@ td.bar-col { display: flex; align-items: center; gap: 8px; }
 .tbl th { font-size: 11px; letter-spacing: 0.02em; text-transform: none; background: #fafbfc; }
 .tbl thead tr th:first-child { border-top-left-radius: 8px; }
 .tbl thead tr th:last-child { border-top-right-radius: 8px; }
+.fd-consent { font-size: 12px; font-weight: 700; color: var(--green); }
+.fd-consent.is-missing { color: var(--muted); font-weight: 500; }

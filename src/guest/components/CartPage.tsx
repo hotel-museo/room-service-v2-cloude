@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { won } from '../../lib/menu';
 import type { Lang, PaymentMethod } from '../../lib/types';
 import type { StringKey } from '../../i18n/strings';
@@ -15,6 +15,7 @@ export interface CheckoutForm {
   allergy: string;
   cutlery: number;
   payment: PaymentMethod;
+  consent: boolean;
 }
 
 interface Props {
@@ -36,14 +37,23 @@ export function CartPage({ t, lines, form, setForm, canOrder, submitting, error,
   const total = lines.reduce((a, l) => a + l.total, 0);
   const roomMissing = !form.room.trim();
   const nameMissing = form.payment === 'checkout' && !form.guestName.trim();
+  const consentMissing = form.payment === 'checkout' && !form.consent;
   const invalid = lines.some((l) => !l.valid);
   const allergyMissing = form.hasAllergy && !form.allergy.trim();
 
   const submit = () => {
     setTouched(true);
-    if (roomMissing || nameMissing || allergyMissing || !lines.length || invalid) return;
+    if (roomMissing || nameMissing || consentMissing || allergyMissing || !lines.length || invalid) return;
     onSubmit();
   };
+
+  // 동의한 뒤 금액이 바뀌면 다시 동의받기
+  const agreedTotal = useRef(total);
+  useEffect(() => {
+    if (form.consent && agreedTotal.current !== total) setForm({ ...form, consent: false });
+    agreedTotal.current = total;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [total]);
 
   const set = <K extends keyof CheckoutForm>(k: K, v: CheckoutForm[K]) => setForm({ ...form, [k]: v });
 
@@ -112,6 +122,18 @@ export function CartPage({ t, lines, form, setForm, canOrder, submitting, error,
               <label htmlFor="guest" className="label">{t('guestName')}</label>
               <input id="guest" className={`input${touched && nameMissing ? ' is-error' : ''}`} placeholder={t('guestNamePlaceholder')} value={form.guestName} onChange={(e) => set('guestName', e.target.value)} />
               {touched && nameMissing && <p className="help is-error">{t('errName')}</p>}
+            </div>
+          )}
+          {form.payment === 'checkout' && (
+            <div className={`consent${touched && consentMissing ? ' is-error' : ''}`}>
+              <div className="consent-title">{t('consentTitle')}</div>
+              <p className="consent-text">{t('consentText', { room: form.room.trim() || '—', name: form.guestName.trim() || '—', total: won(total) })}</p>
+              <label className="consent-check">
+                <input type="checkbox" checked={form.consent} onChange={(e) => set('consent', e.target.checked)} />
+                <span className="consent-box" aria-hidden="true"><Check /></span>
+                <span>{t('consentCheck')}</span>
+              </label>
+              {touched && consentMissing && <p className="help is-error">{t('errConsent')}</p>}
             </div>
           )}
         </section>

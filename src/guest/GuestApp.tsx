@@ -43,7 +43,7 @@ export function GuestApp() {
   const [langOpen, setLangOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [form, setForm] = useState<CheckoutForm>({ room: initialRoom(), guestName: '', phone: '', note: '', hasAllergy: false, allergy: '', cutlery: 1, payment: 'checkout' });
+  const [form, setForm] = useState<CheckoutForm>({ room: initialRoom(), guestName: '', phone: '', note: '', hasAllergy: false, allergy: '', cutlery: 1, payment: 'checkout', consent: false });
 
   const [clock, setClock] = useState(Date.now());
   useEffect(() => {
@@ -77,10 +77,12 @@ export function GuestApp() {
     setSubmitting(true);
     setError(null);
     const items = toOrderItems(cart.lines, data.menus, data.sets, data.options);
-    const res = await placeOrder({ ...form, allergy: form.hasAllergy ? form.allergy : '', items });
+    const orderTotal = items.reduce((a, i) => a + i.price * i.quantity, 0);
+    const consentText = form.payment === 'checkout' ? t('consentText', { room: form.room.trim(), name: form.guestName.trim(), total: won(orderTotal) }) : undefined;
+    const res = await placeOrder({ ...form, allergy: form.hasAllergy ? form.allergy : '', items, consentText });
     setSubmitting(false);
     if (!res.ok) {
-      const key = res.reason === 'price' ? 'errPrice' : res.reason === 'closed' ? 'errClosed' : res.reason === 'cutoff' ? 'errCutoff' : 'errGeneric';
+      const key = res.reason === 'price' ? 'errPrice' : res.reason === 'closed' ? 'errClosed' : res.reason === 'cutoff' ? 'errCutoff' : res.reason === 'name' ? 'errName' : res.reason === 'consent' ? 'errConsent' : 'errGeneric';
       setError(t(key));
       void data.reload();
       return;

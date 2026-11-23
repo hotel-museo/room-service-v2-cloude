@@ -13,7 +13,8 @@ export function printFolio(room: string, guest: string, list: Order[]) {
       const items = (o.order_items ?? [])
         .map((it) => `<tr><td>${esc(it.name)} × ${it.quantity}</td><td class="r">${won(it.price * it.quantity)}</td></tr>`)
         .join('');
-      return `<tr class="h"><td colspan="2">#${String(o.id).padStart(4, '0')} · ${dt(o.created_at)}</td></tr>${items}`;
+      const consent = o.checkout_consent_at ? `<tr><td colspan="2" class="cs">✓ 고객 후불 동의 ${dt(o.checkout_consent_at)}${o.checkout_consent_text ? `<br>“${esc(o.checkout_consent_text)}”` : ''}</td></tr>` : '';
+      return `<tr class="h"><td colspan="2">#${String(o.id).padStart(4, '0')} · ${dt(o.created_at)}</td></tr>${items}${consent}`;
     })
     .join('');
   const html = `<!doctype html><html lang="ko"><head><meta charset="utf-8"><title>룸서비스 이용 내역 ${esc(room)}호</title>
@@ -28,6 +29,7 @@ td { padding: 3px 0; vertical-align: top; }
 .r { text-align: right; white-space: nowrap; }
 tr.h td { padding-top: 8px; font-weight: 700; border-top: 1px dashed #000; }
 .tot { display: flex; justify-content: space-between; font-size: 18px; font-weight: 900; border-top: 2px solid #000; margin-top: 10px; padding-top: 6px; }
+.cs { font-size: 11px; padding-top: 4px; line-height: 1.4; }
 .foot { margin-top: 14px; font-size: 11px; text-align: center; }
 </style></head><body>
 <h1>HOTEL MUSEO · PASTA HOUSE</h1>

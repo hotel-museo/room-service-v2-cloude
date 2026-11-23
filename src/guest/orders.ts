@@ -10,6 +10,8 @@ export interface PlaceOrderInput {
   cutlery: number;
   payment: PaymentMethod;
   items: OrderItem[];
+  /** 후불일 때 손님이 동의한 문구 (손님 언어 그대로) */
+  consentText?: string;
 }
 
 export interface TrackedOrder {
@@ -22,7 +24,7 @@ export interface TrackedOrder {
   lines: { name: string; detail: string; qty: number; total: number }[];
 }
 
-export type PlaceResult = { ok: true; token: string } | { ok: false; reason: 'price' | 'closed' | 'cutoff' | 'generic' };
+export type PlaceResult = { ok: true; token: string } | { ok: false; reason: 'price' | 'closed' | 'cutoff' | 'name' | 'consent' | 'generic' };
 
 function makeToken(): string {
   const bytes = new Uint8Array(16);
@@ -46,10 +48,14 @@ export async function placeOrder(input: PlaceOrderInput): Promise<PlaceResult> {
     ordered_at: new Date().toISOString(),
     payment_method: input.payment,
     order_token: token,
+    checkout_consent_at: input.payment === 'checkout' ? new Date().toISOString() : null,
+    checkout_consent_text: input.payment === 'checkout' ? input.consentText ?? null : null,
   });
   if (error) {
     const msg = `${error.message} ${error.details ?? ''}`;
     if (/ORDER_CLOSED/.test(msg)) return { ok: false, reason: 'closed' };
+    if (/GUEST_NAME_REQUIRED/.test(msg)) return { ok: false, reason: 'name' };
+    if (/CHECKOUT_CONSENT_REQUIRED/.test(msg)) return { ok: false, reason: 'consent' };
     if (/ITEM_CUT_OFF/.test(msg)) return { ok: false, reason: 'cutoff' };
     if (/PRICE_CHANGED|MENU_NOT_AVAILABLE|TOTAL_MISMATCH|SET_|INVALID_OPTIONS/.test(msg)) return { ok: false, reason: 'price' };
     return { ok: false, reason: 'generic' };
