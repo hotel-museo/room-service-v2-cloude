@@ -1,0 +1,32 @@
+{
+  "name": "pasta-house-order",
+  "productName": "PASTA HOUSE Order",
+  "version": "1.0.0",
+  "description": "PASTA HOUSE 룸서비스 새 주문 알림 (보테가 관리자용)",
+  "author": "Hotel Museo",
+  "main": "main.js",
+  "private": true,
+  "scripts": {
+    "start": "electron .",
+    "dist": "electron-builder --win --x64 --publish never"
+  },
+  "devDependencies": {
+    "electron": "^33.2.0",
+    "electron-builder": "^25.1.8"
+  },
+  "build": {
+    "appId": "kr.hotelmuseo.pastahouse.admin",
+    "productName": "PASTA HOUSE Order",
+    "directories": { "buildResources": "build", "output": "release" },
+    "files": ["main.js", "preload.js", "assets/**", "build/icon.png"],
+    "win": { "target": "nsis", "icon": "build/icon.png" },
+    "nsis": {
+      "oneClick": true,
+      "perMachine": false,
+      "shortcutName": "PASTA HOUSE 주문",
+      "artifactName": "PASTA-HOUSE-Order-Setup.${ext}",
+      "createDesktopShortcut": true,
+      "runAfterFinish": true
+    }
+  }
+}

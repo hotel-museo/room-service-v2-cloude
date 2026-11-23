@@ -89,6 +89,12 @@ export function Board() {
     return () => window.clearInterval(id);
   }, [sound, pending.length]);
 
+  // 윈도우 프로그램(PASTA HOUSE 주문)으로 열었으면 접수 대기 건수를 알려줘요 → 아이콘 숫자·깜빡임·창 자동 띄우기
+  useEffect(() => {
+    window.phDesktop?.setPending(pending.length);
+  }, [pending.length]);
+  useEffect(() => () => window.phDesktop?.setPending(0), []);
+
   useEffect(() => {
     document.title = pending.length ? `(${pending.length}) 새 주문 · PASTA HOUSE` : 'PASTA HOUSE · 관리자 주문판';
   }, [pending.length]);

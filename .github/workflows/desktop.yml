@@ -1,0 +1,36 @@
+name: Build desktop app (Windows)
+
+# desktop/ 폴더를 고치면 윈도우 설치 파일을 새로 만들어
+# GitHub Releases의 'desktop-latest'에 올려요.
+on:
+  push:
+    branches: [main]
+    paths: ['desktop/**', '.github/workflows/desktop.yml']
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: windows-latest
+    defaults:
+      run:
+        shell: bash
+        working-directory: desktop
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: npm install --no-audit --no-fund
+      - run: npm run dist
+      - name: Publish release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release delete desktop-latest --yes --cleanup-tag || true
+          gh release create desktop-latest release/PASTA-HOUSE-Order-Setup.exe \
+            --title "PASTA HOUSE 주문 (윈도우 프로그램)" \
+            --notes "보테가 관리자용 새 주문 알림 프로그램. PASTA-HOUSE-Order-Setup.exe를 받아 실행하세요." \
+            --latest=false
