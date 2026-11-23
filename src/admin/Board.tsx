@@ -9,6 +9,7 @@ import { useBoard } from './useBoard';
 import { GuestPreview } from './GuestPreview';
 import { AdminSettings, useStaff } from '../lib/staff';
 import { HoursTab } from './menu/HoursTab';
+import { RoomsSection } from './RoomsSection';
 import { loadMenuAdminData } from './menu/api';
 import { orderedCategories } from '../lib/categories';
 import { notifyPreview } from '../lib/preview';
@@ -374,6 +375,7 @@ function BottegaSettings() {
             <p className="meta">불러오는 중…</p>
           )}
         </section>
+        <RoomsSection toast={toast.show} />
       </AdminSettings>
       {toast.node}
     </main>

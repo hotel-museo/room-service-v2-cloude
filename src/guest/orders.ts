@@ -24,7 +24,7 @@ export interface TrackedOrder {
   lines: { name: string; detail: string; qty: number; total: number }[];
 }
 
-export type PlaceResult = { ok: true; token: string } | { ok: false; reason: 'price' | 'closed' | 'cutoff' | 'name' | 'consent' | 'generic' };
+export type PlaceResult = { ok: true; token: string } | { ok: false; reason: 'price' | 'closed' | 'cutoff' | 'name' | 'consent' | 'room' | 'generic' };
 
 function makeToken(): string {
   const bytes = new Uint8Array(16);
@@ -54,6 +54,7 @@ export async function placeOrder(input: PlaceOrderInput): Promise<PlaceResult> {
   if (error) {
     const msg = `${error.message} ${error.details ?? ''}`;
     if (/ORDER_CLOSED/.test(msg)) return { ok: false, reason: 'closed' };
+    if (/ROOM_NOT_FOUND/.test(msg)) return { ok: false, reason: 'room' };
     if (/GUEST_NAME_REQUIRED/.test(msg)) return { ok: false, reason: 'name' };
     if (/CHECKOUT_CONSENT_REQUIRED/.test(msg)) return { ok: false, reason: 'consent' };
     if (/ITEM_CUT_OFF/.test(msg)) return { ok: false, reason: 'cutoff' };

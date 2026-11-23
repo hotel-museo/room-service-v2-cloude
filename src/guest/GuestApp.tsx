@@ -87,7 +87,7 @@ export function GuestApp() {
     const res = await placeOrder({ ...form, allergy: form.hasAllergy ? form.allergy : '', items, consentText });
     setSubmitting(false);
     if (!res.ok) {
-      const key = res.reason === 'price' ? 'errPrice' : res.reason === 'closed' ? 'errClosed' : res.reason === 'cutoff' ? 'errCutoff' : res.reason === 'name' ? 'errName' : res.reason === 'consent' ? 'errConsent' : 'errGeneric';
+      const key = res.reason === 'price' ? 'errPrice' : res.reason === 'closed' ? 'errClosed' : res.reason === 'cutoff' ? 'errCutoff' : res.reason === 'name' ? 'errName' : res.reason === 'consent' ? 'errConsent' : res.reason === 'room' ? 'errRoomUnknown' : 'errGeneric';
       setError(t(key));
       void data.reload();
       return;
@@ -145,6 +145,7 @@ export function GuestApp() {
   if (view === 'cart') {
     return (
       <CartPage
+        rooms={data.rooms}
         lang={lang}
         t={t}
         lines={lines}

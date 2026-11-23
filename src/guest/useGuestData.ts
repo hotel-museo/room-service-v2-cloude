@@ -13,6 +13,8 @@ export interface GuestData {
   options: OptionLinks;
   hours: BusinessHours;
   catOrder: string[];
+  /** 주문 받는 객실 번호 (비어 있으면 모두 받음) */
+  rooms: string[];
   loading: boolean;
   error: string | null;
   reload: () => Promise<void>;
@@ -29,11 +31,12 @@ export function useGuestData(): GuestData {
   const [options, setOptions] = useState<OptionLinks>(EMPTY_LINKS);
   const [hours, setHours] = useState<BusinessHours>(DEFAULT_HOURS);
   const [catOrder, setCatOrder] = useState<string[]>([]);
+  const [rooms, setRooms] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   const reload = useCallback(async () => {
-    const [m, s, l, st, op, bh, co] = await Promise.all([
+    const [m, s, l, st, op, bh, co, rl] = await Promise.all([
       supabase.from('menus').select('*').order('sort_order', { ascending: true }),
       supabase.from('set_menus').select('*').order('sort_order', { ascending: true }),
       supabase.from('site_settings').select('settings').eq('key', 'category_translations').maybeSingle(),
@@ -41,7 +44,9 @@ export function useGuestData(): GuestData {
       loadOptionLinks(),
       supabase.from('site_settings').select('settings').eq('key', 'business_hours').maybeSingle(),
       supabase.from('site_settings').select('settings').eq('key', 'category_order').maybeSingle(),
+      supabase.from('site_settings').select('settings').eq('key', 'room_list').maybeSingle(),
     ]);
+    setRooms(((rl.data?.settings as { rooms?: string[] } | undefined)?.rooms) ?? []);
     setCatOrder(((co.data?.settings as { order?: string[] } | undefined)?.order) ?? []);
     if (bh.data?.settings) setHours({ ...DEFAULT_HOURS, ...(bh.data.settings as BusinessHours) });
     setOptions(op);
@@ -70,5 +75,5 @@ export function useGuestData(): GuestData {
     };
   }, [reload]);
 
-  return { menus, sets, labels, service, options, hours, catOrder, loading, error, reload };
+  return { menus, sets, labels, service, options, hours, catOrder, rooms, loading, error, reload };
 }

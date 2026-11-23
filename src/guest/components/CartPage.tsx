@@ -1,3 +1,4 @@
+import { roomAllowed } from '../../lib/rooms';
 import { useEffect, useRef, useState } from 'react';
 import { won } from '../../lib/menu';
 import type { Lang, PaymentMethod } from '../../lib/types';
@@ -19,6 +20,7 @@ export interface CheckoutForm {
 }
 
 interface Props {
+  rooms: string[];
   lang: Lang;
   t: (k: StringKey, v?: Record<string, string | number>) => string;
   lines: ResolvedLine[];
@@ -32,10 +34,14 @@ interface Props {
   onSubmit: () => void;
 }
 
-export function CartPage({ t, lines, form, setForm, canOrder, submitting, error, onQty, onBack, onSubmit }: Props) {
+export function CartPage({ rooms, t, lines, form, setForm, canOrder, submitting, error, onQty, onBack, onSubmit }: Props) {
   const [touched, setTouched] = useState(false);
   const total = lines.reduce((a, l) => a + l.total, 0);
   const roomMissing = !form.room.trim();
+  const [roomLeft, setRoomLeft] = useState(false);
+  const roomBad = !roomMissing && !roomAllowed(rooms, form.room);
+  // 입력하는 중에는 빨간 글씨를 띄우지 않고, 칸을 벗어나거나 주문을 누르면 알려줘요
+  const roomUnknown = roomBad && (touched || roomLeft);
   const nameMissing = form.payment === 'checkout' && !form.guestName.trim();
   const consentMissing = form.payment === 'checkout' && !form.consent;
   const invalid = lines.some((l) => !l.valid);
@@ -43,7 +49,7 @@ export function CartPage({ t, lines, form, setForm, canOrder, submitting, error,
 
   const submit = () => {
     setTouched(true);
-    if (roomMissing || nameMissing || consentMissing || allergyMissing || !lines.length || invalid) return;
+    if (roomMissing || roomBad || nameMissing || consentMissing || allergyMissing || !lines.length || invalid) return;
     onSubmit();
   };
 
@@ -70,17 +76,18 @@ export function CartPage({ t, lines, form, setForm, canOrder, submitting, error,
           <div className="room-row">
             <input
               id="room"
-              className={`room-input${touched && roomMissing ? ' is-error' : ''}`}
+              className={`room-input${(touched && roomMissing) || roomUnknown ? ' is-error' : ''}`}
               inputMode="numeric"
               autoComplete="off"
               placeholder={t('roomPlaceholder')}
               value={form.room}
               maxLength={6}
-              onChange={(e) => set('room', e.target.value.replace(/[^0-9A-Za-z-]/g, ''))}
+              onChange={(e) => { setRoomLeft(false); set('room', e.target.value.replace(/[^0-9A-Za-z-]/g, '')); }}
+              onBlur={() => setRoomLeft(true)}
             />
             {t('roomSuffix') && <span className="room-suffix">{t('roomSuffix')}</span>}
           </div>
-          <p className={`help${touched && roomMissing ? ' is-error' : ''}`}>{touched && roomMissing ? t('errRoom') : t('roomHelp')}</p>
+          <p className={`help${(touched && roomMissing) || roomUnknown ? ' is-error' : ''}`}>{touched && roomMissing ? t('errRoom') : roomUnknown ? t('errRoomUnknown') : t('roomHelp')}</p>
         </section>
 
         <section className="card card--list">
