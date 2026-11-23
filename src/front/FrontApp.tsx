@@ -4,7 +4,7 @@ import { supabase } from '../lib/supabase';
 import type { Order , CheckoutPayMethod } from '../lib/types';
 import { CHECKOUT_PAY, checkoutPayLabel } from '../lib/types';
 import { useToast } from '../admin/menu/ui';
-import { addDays, kstDayStart, kstYmd } from '../admin/sales/aggregate';
+import { addDays, kstDayStart, kstYmd, presetRange, type Preset } from '../admin/sales/aggregate';
 import { printFolio } from './folio';
 import { printPaidReport } from './report';
 import { downloadPaidXlsx } from './excel';
@@ -18,6 +18,7 @@ import { AdminSettings, StaffPicker, staffLabel, useStaff, type FrontStaff } fro
  */
 type Tab = 'confirm' | 'stay' | 'paid' | 'staff';
 type Step = 'confirm' | 'paid';
+const PAID_PRESETS: [Preset, string][] = [['today', '오늘'], ['yesterday', '어제'], ['week', '최근 7일'], ['month', '이번 달'], ['lastMonth', '지난 달'], ['custom', '기간 선택']];
 
 const STAFF_KEY = 'ph-front-staff';
 const readStaff = () => { try { return localStorage.getItem(STAFF_KEY) ?? ''; } catch { return ''; } };
@@ -41,7 +42,11 @@ function group(list: Order[], keyOf: (o: Order) => string = (o) => `${o.room_num
 
 export function FrontApp() {
   const [tab, setTab] = useState<Tab>('confirm');
-  const [day, setDay] = useState(() => kstYmd(new Date()));
+  // 결제 완료 탭: 기간 (관리자 매출과 같은 방식)
+  const [preset, setPreset] = useState<Preset>('today');
+  const [range, setRange] = useState(() => presetRange('today'));
+  const rangeLabel = range.from === range.to ? range.from : `${range.from} ~ ${range.to}`;
+  const pickPreset = (p: Preset) => { setPreset(p); if (p !== 'custom') setRange(presetRange(p)); };
   const [toConfirm, setToConfirm] = useState<Order[]>([]);
   const [staying, setStaying] = useState<Order[]>([]);
   const [paid, setPaid] = useState<Order[]>([]);
@@ -60,7 +65,7 @@ export function FrontApp() {
     const [a, b, c] = await Promise.all([
       base().in('status', ['cooking', 'completed']).not('wings_posted_at', 'is', null).is('settled_at', null).gte('created_at', since).order('created_at').limit(1000),
       base().not('settled_at', 'is', null).is('checkout_paid_at', null).order('created_at').limit(2000),
-      base().gte('checkout_paid_at', kstDayStart(day).toISOString()).lt('checkout_paid_at', kstDayStart(addDays(day, 1)).toISOString()).order('checkout_paid_at', { ascending: false }).limit(1000),
+      base().gte('checkout_paid_at', kstDayStart(range.from).toISOString()).lt('checkout_paid_at', kstDayStart(addDays(range.to, 1)).toISOString()).order('checkout_paid_at', { ascending: false }).limit(2000),
     ]);
     if (a.error || b.error || c.error) { setOnline(false); return; }
     setOnline(true);
@@ -73,7 +78,7 @@ export function FrontApp() {
     setToConfirm(list);
     setStaying((b.data ?? []) as Order[]);
     setPaid((c.data ?? []) as Order[]);
-  }, [day]);
+  }, [range]);
 
   // 프런트는 소리 없이 화면으로만 알려요: 브라우저 탭 제목에 확인할 객실 수
   const confirmCount = useMemo(() => group(toConfirm).length, [toConfirm]);
@@ -232,14 +237,23 @@ export function FrontApp() {
         {tab === 'paid' && (
           <>
             <div className="filters">
-              <input className="inp inp--date" type="date" value={day} max={kstYmd(new Date())} onChange={(e) => e.target.value && setDay(e.target.value)} aria-label="결제한 날짜" />
-              <span className="meta">퇴실 결제 {paidGroups.length}객실 · {won(sum(paid))}원</span>
+              <div className="seg seg--light" role="group" aria-label="결제한 기간">
+                {PAID_PRESETS.map(([k, l]) => <button type="button" key={k} className={preset === k ? 'is-on is-open' : ''} aria-pressed={preset === k} onClick={() => pickPreset(k)}>{l}</button>)}
+              </div>
+              {preset === 'custom' && (
+                <div className="slot">
+                  <input className="inp inp--date" type="date" value={range.from} max={range.to} onChange={(e) => e.target.value && setRange((r) => ({ ...r, from: e.target.value }))} aria-label="시작일" />
+                  <span>~</span>
+                  <input className="inp inp--date" type="date" value={range.to} min={range.from} max={kstYmd(new Date())} onChange={(e) => e.target.value && setRange((r) => ({ ...r, to: e.target.value }))} aria-label="종료일" />
+                </div>
+              )}
+              <span className="meta">{rangeLabel} · 퇴실 결제 {paidGroups.length}객실 · {won(sum(paid))}원</span>
               <span className="grow" />
-              <button type="button" className="btn-outline btn-sm" disabled={!paid.length} onClick={() => void downloadPaidXlsx(day, paid).catch(() => toast.show('엑셀을 만들지 못했어요. 다시 눌러 주세요', true))}>엑셀 다운로드</button>
-              <button type="button" className="btn-green btn-sm" onClick={() => { if (!printPaidReport(day, group(paid))) toast.show('팝업이 막혀 있어요. 주소창 오른쪽에서 팝업을 허용해 주세요', true); }}>보고서 인쇄</button>
+              <button type="button" className="btn-outline btn-sm" disabled={!paid.length} onClick={() => void downloadPaidXlsx(rangeLabel, paid).catch(() => toast.show('엑셀을 만들지 못했어요. 다시 눌러 주세요', true))}>엑셀 다운로드</button>
+              <button type="button" className="btn-green btn-sm" onClick={() => { if (!printPaidReport(rangeLabel, group(paid))) toast.show('팝업이 막혀 있어요. 주소창 오른쪽에서 팝업을 허용해 주세요', true); }}>보고서 인쇄</button>
             </div>
             {paidGroups.length === 0 ? (
-              <div className="empty-col">이 날 퇴실 결제한 객실이 없어요</div>
+              <div className="empty-col">이 기간에 퇴실 결제한 객실이 없어요</div>
             ) : (
               <div className="panel">
                 <div className="tbl-wrap">

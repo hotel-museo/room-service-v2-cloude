@@ -82,7 +82,7 @@ ${groups.length ? `<table>
   <thead><tr><th>객실</th><th>투숙객</th><th>주문 내역 · 고객 동의</th><th class="r">금액(원)</th><th>결제 시각 · 방법 · 담당</th></tr></thead>
   <tbody>${body}</tbody>
   <tfoot><tr><td colspan="3">합계</td><td class="r">${won(total)}</td><td></td></tr></tfoot>
-</table>` : '<div class="empty">이 날 퇴실 결제한 내역이 없어요</div>'}
+</table>` : '<div class="empty">이 기간에 퇴실 결제한 내역이 없어요</div>'}
 <div class="sign"><div><span>보고</span><i></i></div><div><span>확인</span><i></i></div><div><span>대표</span><i></i></div></div>
 <script>window.onload = () => window.print();</script>
 </body></html>`;

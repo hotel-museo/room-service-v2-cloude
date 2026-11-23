@@ -141,7 +141,7 @@ export async function downloadPaidXlsx(day: string, orders: Order[]) {
   const url = URL.createObjectURL(new Blob([buf], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' }));
   const a = document.createElement('a');
   a.href = url;
-  a.download = `룸서비스_후불결제보고_${day}.xlsx`;
+  a.download = `룸서비스_후불결제보고_${day.replace(/ ~ /, '_')}.xlsx`;
   a.click();
   setTimeout(() => URL.revokeObjectURL(url), 1500);
 }
