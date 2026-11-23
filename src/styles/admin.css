@@ -483,3 +483,4 @@ td.bar-col { display: flex; align-items: center; gap: 8px; }
 .fd-pin.is-bad { border-color: var(--red); }
 .fd-pin-err { margin: 0; font-size: 13px; color: var(--red); font-weight: 700; }
 .fd-pin-change { display: grid; grid-template-columns: 1fr 1fr 1fr auto; gap: 8px; }
+.fd-hours { display: flex; flex-direction: column; gap: 10px; }

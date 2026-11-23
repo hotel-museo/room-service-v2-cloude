@@ -8,6 +8,10 @@ import { printTicket } from './print';
 import { useBoard } from './useBoard';
 import { GuestPreview } from './GuestPreview';
 import { AdminSettings, useStaff } from '../lib/staff';
+import { HoursTab } from './menu/HoursTab';
+import { loadMenuAdminData } from './menu/api';
+import { orderedCategories } from '../lib/categories';
+import { notifyPreview } from '../lib/preview';
 import { useToast } from './menu/ui';
 import { REJECT_REASONS as REJECT_PRESETS } from '../lib/rejectReasons';
 
@@ -356,9 +360,21 @@ function WingsPanel({ list, onPost }: { list: Order[]; onPost: (id: number, on: 
 function BottegaSettings() {
   const staff = useStaff('bottega');
   const toast = useToast();
+  const [data, setData] = useState<Awaited<ReturnType<typeof loadMenuAdminData>> | null>(null);
+  const reload = async () => { try { setData(await loadMenuAdminData()); } catch (e) { toast.show('영업시간을 불러오지 못했어요: ' + (e as Error).message, true); } };
+  useEffect(() => { void reload(); }, []); // eslint-disable-line react-hooks/exhaustive-deps
   return (
     <main className="fd">
-      <AdminSettings team="bottega" usedFor="보고용 이미지" staff={staff} toast={toast.show} />
+      <AdminSettings team="bottega" usedFor="보고용 이미지" staff={staff} toast={toast.show}>
+        <section className="fd-hours">
+          <h2 className="fd-h2">영업시간 관리</h2>
+          {data ? (
+            <HoursTab key={JSON.stringify(data.hours)} hours={data.hours} labels={data.labels} cats={orderedCategories(data.catOrder, data.menus)} reload={async () => { await reload(); notifyPreview(); }} toast={toast.show} />
+          ) : (
+            <p className="meta">불러오는 중…</p>
+          )}
+        </section>
+      </AdminSettings>
       {toast.node}
     </main>
   );

@@ -4,13 +4,12 @@ import type { CategoryLabels, Menu, SetMenu } from '../../lib/types';
 import { orderedCategories } from '../../lib/categories';
 import { loadMenuAdminData } from './api';
 import { CategoryTab } from './CategoryTab';
-import { HoursTab } from './HoursTab';
 import { MenuTab } from './MenuTab';
 import { SetTab } from './SetTab';
 import { useToast } from './ui';
 import { notifyPreview } from '../../lib/preview';
 
-type Tab = 'menu' | 'set' | 'cat' | 'hours';
+type Tab = 'menu' | 'set' | 'cat';
 
 export function MenuAdmin() {
   const [tab, setTab] = useState<Tab>('menu');
@@ -35,7 +34,7 @@ export function MenuAdmin() {
   return (
     <div className="madmin">
       <div className="mtabs" role="tablist" aria-label="메뉴 관리">
-        {([['menu', '단품 메뉴'], ['set', '세트'], ['cat', '카테고리'], ['hours', '영업시간']] as [Tab, string][]).map(([k, label]) => (
+        {([['menu', '단품 메뉴'], ['set', '세트'], ['cat', '카테고리']] as [Tab, string][]).map(([k, label]) => (
           <button type="button" role="tab" key={k} aria-selected={tab === k} className={tab === k ? 'is-on' : ''} onClick={() => setTab(k)}>{label}</button>
         ))}
         <span className="grow" />
@@ -47,7 +46,6 @@ export function MenuAdmin() {
       {data && tab === 'menu' && <MenuTab menus={data.menus} cats={cats} labels={data.labels} reload={reload} toast={toast.show} />}
       {data && tab === 'set' && <SetTab sets={data.sets} menus={data.menus} labels={data.labels} reload={reload} toast={toast.show} />}
       {data && tab === 'cat' && <CategoryTab key={cats.join('|') + JSON.stringify(data.labels)} cats={cats} menus={data.menus} labels={data.labels} reload={reload} toast={toast.show} />}
-      {data && tab === 'hours' && <HoursTab hours={data.hours} labels={data.labels} cats={cats} reload={reload} toast={toast.show} />}
       {toast.node}
     </div>
   );

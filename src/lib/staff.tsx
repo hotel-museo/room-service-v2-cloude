@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useState, type ReactNode } from 'react';
 import { supabase } from './supabase';
 
 /**
@@ -33,7 +33,7 @@ export function useStaff(team: StaffTeam) {
 }
 
 /** 관리자 설정: 비밀번호를 넣어야 들어갈 수 있어요. 다른 탭으로 나가면 다시 잠겨요. */
-export function AdminSettings(props: { team: StaffTeam; staff: ReturnType<typeof useStaff>; toast: (m: string, bad?: boolean) => void; usedFor: string }) {
+export function AdminSettings(props: { team: StaffTeam; staff: ReturnType<typeof useStaff>; toast: (m: string, bad?: boolean) => void; usedFor: string; children?: ReactNode }) {
   const [unlocked, setUnlocked] = useState(false);
   const [pin, setPin] = useState('');
   const [busy, setBusy] = useState(false);
@@ -65,6 +65,7 @@ export function AdminSettings(props: { team: StaffTeam; staff: ReturnType<typeof
   }
   return (
     <div className="fd-staff">
+      {props.children}
       <StaffSettings {...props} />
       <PinChange team={props.team} toast={props.toast} />
     </div>
