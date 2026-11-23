@@ -49,8 +49,10 @@ export function useCart() {
     setLines((prev) => (qty <= 0 ? prev.filter((l) => l.key !== key) : prev.map((l) => (l.key === key ? { ...l, qty: Math.min(99, qty) } : l))));
 
   const clear = () => setLines([]);
+  /** 주문 수정: 보냈던 장바구니를 그대로 되돌려요 */
+  const replace = (next: CartLine[]) => setLines(next);
 
-  return { lines, addMenu, addSet, setQty, clear };
+  return { lines, addMenu, addSet, setQty, clear, replace };
 }
 
 export interface ResolvedLine {

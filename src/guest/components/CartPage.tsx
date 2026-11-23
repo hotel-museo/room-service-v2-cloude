@@ -1,4 +1,5 @@
 import { roomAllowed, roomComplete } from '../../lib/rooms';
+import { Sheet } from './Sheet';
 import { DELIVERY_PREFS, type DeliveryPref } from '../../lib/delivery';
 import type { KeyboardEvent } from 'react';
 import { useEffect, useRef, useState } from 'react';
@@ -57,10 +58,12 @@ export function CartPage({ rooms, eta, t, lines, form, setForm, canOrder, submit
   const invalid = lines.some((l) => !l.valid);
   const allergyMissing = form.hasAllergy && !form.allergy.trim();
 
+  // 주문 버튼 → 입력 확인 → '주문을 확정하시겠습니까?' 한 번 더 묻고 보냄
+  const [confirming, setConfirming] = useState(false);
   const submit = () => {
     setTouched(true);
     if (roomMissing || roomBad || nameMissing || consentMissing || allergyMissing || !lines.length || invalid) return;
-    onSubmit();
+    setConfirming(true);
   };
 
   // 동의한 뒤 금액이 바뀌면 다시 동의받기
@@ -231,6 +234,26 @@ export function CartPage({ rooms, eta, t, lines, form, setForm, canOrder, submit
           {submitting ? t('placing') : t('placeOrder', { price: won(total) })}
         </button>
       </div>
+      <Sheet open={confirming} onClose={() => setConfirming(false)} label={t('confirm_t')} closeLabel={t('close')}>
+        <div className="sheet-body confirm">
+          <h2 className="confirm-title">{t('confirm_t')}</h2>
+          <div className="confirm-list">
+            {lines.map((l) => (
+              <div className="sum-line" key={l.line.key}><span>{l.name} × {l.line.qty}{l.detail && <span className="cline-detail">{l.detail}</span>}</span><span>{won(l.total)}</span></div>
+            ))}
+          </div>
+          <div className="confirm-meta">
+            <div><span>{t('confirm_room')}</span><b>{form.room.trim()}{t('roomSuffix')}{form.payment === 'checkout' && form.guestName.trim() ? ` · ${form.guestName.trim()}` : ''}</b></div>
+            <div><span>{t('confirm_pay')}</span><b>{form.payment === 'checkout' ? t('payCheckout') : t('payCard')}</b></div>
+            <div><span>{t('confirm_delivery')}</span><b>{t(`dp_${form.deliveryPref}` as StringKey)}</b></div>
+            <div className="confirm-total"><span>{t('confirm_total')}</span><b>{won(total)}</b></div>
+          </div>
+          <div className="confirm-btns">
+            <button type="button" className="btn-ghost" onClick={() => setConfirming(false)}>{t('confirm_back')}</button>
+            <button type="button" className="btn-primary" disabled={submitting} onClick={() => { setConfirming(false); onSubmit(); }}>{submitting ? t('placing') : t('confirm_ok')}</button>
+          </div>
+        </div>
+      </Sheet>
     </div>
   );
 }

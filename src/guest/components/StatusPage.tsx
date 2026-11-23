@@ -14,6 +14,8 @@ interface Props {
   onNewOrder: () => void;
   /** 주문이 없어졌을 때 (삭제된 주문) */
   onGone: () => void;
+  /** 주문 수정 (접수 전에만) — 결과 메시지를 돌려줌 (성공하면 화면이 장바구니로 바뀜) */
+  onEdit: () => Promise<string | null>;
 }
 
 const POLL_MS = 8000;
@@ -23,7 +25,9 @@ function timeText(d: Date, lang: Lang) {
   return d.toLocaleTimeString(loc, { hour: 'numeric', minute: '2-digit', timeZone: 'Asia/Seoul' });
 }
 
-export function StatusPage({ lang, t, order, onMenu, onNewOrder, onGone }: Props) {
+export function StatusPage({ lang, t, order, onMenu, onNewOrder, onGone, onEdit }: Props) {
+  const [editMsg, setEditMsg] = useState<string | null>(null);
+  const [editing, setEditing] = useState(false);
   const [row, setRow] = useState<OrderStatusRow | null>(null);
 
   useEffect(() => {
@@ -77,6 +81,13 @@ export function StatusPage({ lang, t, order, onMenu, onNewOrder, onGone }: Props
           <h1 className="status-title">{title}</h1>
           <p className="status-desc">{desc}</p>
           {!ended && <p className="status-note">🔔 {t('st_arrival_note')}</p>}
+          {status === 'pending' && (
+            <div className="edit-box">
+              <button type="button" className="btn-ghost edit-btn" disabled={editing} onClick={async () => { setEditing(true); setEditMsg(await onEdit()); setEditing(false); }}>✎ {t('st_edit')}</button>
+              <span className="muted">{t('st_edit_hint')}</span>
+            </div>
+          )}
+          {editMsg && <p className="alert" role="alert">{editMsg}</p>}
         </section>
 
         {status === 'rejected' && (

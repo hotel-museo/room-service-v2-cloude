@@ -12,7 +12,7 @@ import { MenuSheet } from './components/MenuSheet';
 import { SetSheet } from './components/SetSheet';
 import { Sheet } from './components/Sheet';
 import { StatusPage } from './components/StatusPage';
-import { fetchOrderStatus, loadTracked, placeOrder, saveTracked, type TrackedOrder } from './orders';
+import { cancelPendingOrder, fetchOrderStatus, loadTracked, placeOrder, saveTracked, type TrackedOrder } from './orders';
 import { useGuestData } from './useGuestData';
 import { isPreview } from '../lib/preview';
 
@@ -109,6 +109,7 @@ export function GuestApp() {
       total,
       payment: form.payment,
       deliveryPref: form.deliveryPref,
+      cartLines: cart.lines,
       lines: lines.map((l) => ({ name: l.name, detail: l.detail, qty: l.line.qty, total: l.total })),
     };
     saveTracked(tr);
@@ -150,6 +151,21 @@ export function GuestApp() {
         onMenu={() => goMenu(true)}
         onNewOrder={() => { saveTracked(null); setTracked(null); goMenu(true); }}
         onGone={() => { saveTracked(null); setTracked(null); setView('home'); }}
+        onEdit={async () => {
+          const r = await cancelPendingOrder(tracked.token);
+          if (r === 'canceled') {
+            // 접수 전이라 취소됨 → 보냈던 장바구니를 그대로 되돌려 다시 고치게
+            cart.replace(tracked.cartLines ?? []);
+            saveTracked(null);
+            setTracked(null);
+            setError(null);
+            setView('cart');
+            return null;
+          }
+          if (r === 'not_found') { saveTracked(null); setTracked(null); setView('home'); return null; }
+          if (r === null) return t('st_edit_fail');
+          return t('st_edit_late');
+        }}
       />
     );
   }

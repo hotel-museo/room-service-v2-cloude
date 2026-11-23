@@ -97,7 +97,7 @@ export function Board() {
     document.title = pending.length ? `(${pending.length}) 새 주문 · PASTA HOUSE` : 'PASTA HOUSE · 관리자 주문판';
   }, [pending.length]);
 
-  const today = b.orders.filter((o) => o.status !== 'rejected' && new Date(o.created_at).getTime() >= new Date(new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Seoul' }) + 'T00:00:00+09:00').getTime());
+  const today = b.orders.filter((o) => o.status !== 'rejected' && (o.status as string) !== 'canceled' && new Date(o.created_at).getTime() >= new Date(new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Seoul' }) + 'T00:00:00+09:00').getTime());
   const revenue = today.reduce((a, o) => a + (o.total_amount ?? 0), 0);
   const roomCharge = today.filter((o) => o.payment_method === 'checkout');
 

@@ -1,3 +1,4 @@
+import type { CartLine } from './cart';
 import type { DeliveryPref } from '../lib/delivery';
 import { supabase } from '../lib/supabase';
 import type { OrderItem, OrderStatus, PaymentMethod } from '../lib/types';
@@ -23,6 +24,8 @@ export interface TrackedOrder {
   total: number;
   payment: PaymentMethod;
   deliveryPref?: DeliveryPref;
+  /** 주문 수정 때 장바구니로 되돌릴 원래 내용 */
+  cartLines?: CartLine[];
   /** 손님은 자기 주문 내역을 DB에서 읽을 수 없어서, 보낸 내용을 이 기기에 보관합니다. */
   lines: { name: string; detail: string; qty: number; total: number }[];
 }
@@ -84,7 +87,10 @@ export interface OrderStatusRow {
 export async function fetchOrderStatus(token: string): Promise<OrderStatusRow | 'gone' | null> {
   const { data, error } = await supabase.rpc('get_order_status', { p_token: token }).maybeSingle();
   if (error) return null;
-  return (data as OrderStatusRow | null) ?? 'gone';
+  const row = data as OrderStatusRow | null;
+  // 손님이 수정하려고 취소한 주문은 없어진 것으로 봐요
+  if (!row || row.status === ('canceled' as OrderStatusRow['status'])) return 'gone';
+  return row;
 }
 
 const TRACK_KEY = 'ph-tracked-order-v1';
@@ -109,4 +115,14 @@ export function saveTracked(t: TrackedOrder | null) {
   } catch {
     /* 무시 */
   }
+}
+
+/**
+ * 주문 수정: 아직 접수 전이면 그 주문을 취소하고 'canceled'를 돌려줘요 (화면에서 장바구니로 되돌림).
+ * 이미 접수됐으면 지금 상태('cooking' 등), 인터넷 문제면 null.
+ */
+export async function cancelPendingOrder(token: string): Promise<string | null> {
+  const { data, error } = await supabase.rpc('cancel_pending_order', { p_token: token });
+  if (error) return null;
+  return String(data);
 }

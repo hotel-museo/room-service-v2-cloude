@@ -399,3 +399,16 @@ html.on-home, html.on-home body { background: #08190f; overflow: hidden; overscr
 .payopt--sm .payopt-title { font-size: 14px; font-weight: 600; }
 .eta-line { margin: 4px 4px 0; text-align: center; font-size: 14px; font-weight: 700; color: var(--terracotta-ink); }
 .status-note { margin: 10px 0 0; font-size: 13px; font-weight: 600; color: var(--terracotta-ink); }
+
+/* 주문 수정 · 주문 확정 확인 */
+.edit-box { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-top: 14px; }
+.edit-btn { height: 40px; padding: 0 16px; font-size: 14px; }
+.edit-box .muted { font-size: 12px; }
+.confirm-title { margin: 0 0 6px; font-size: 20px; font-weight: 700; }
+.confirm-list { display: flex; flex-direction: column; gap: 2px; padding: 8px 0; border-bottom: 1px solid #e7dfd2; }
+.confirm-meta { display: flex; flex-direction: column; gap: 8px; padding: 10px 0 4px; font-size: 14px; }
+.confirm-meta > div { display: flex; justify-content: space-between; gap: 12px; }
+.confirm-meta span { color: var(--muted); }
+.confirm-total { font-size: 17px; padding-top: 8px; border-top: 1px solid #e7dfd2; }
+.confirm-total b { color: var(--terracotta-ink); }
+.confirm-btns { display: grid; grid-template-columns: 1fr 1.4fr; gap: 10px; margin-top: 12px; }

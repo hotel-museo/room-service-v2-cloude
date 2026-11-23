@@ -152,7 +152,7 @@ export function SalesPage() {
   const exportOrders = () =>
     downloadCsv(`룸서비스_주문내역_${range.from}_${range.to}.csv`,
       ['주문번호', '주문일시', '객실', '상태', '결제', '투숙객', '메뉴', '금액', '요청사항', '알레르기', '후불 단계', '확인 담당', '결제 담당', '특이사항'],
-      orders.map((o) => [o.id, kstDateTime(o.created_at), o.room_number ?? '', ({ pending: '접수 대기', cooking: '조리 중', completed: '완료', rejected: '거절' } as Record<string, string>)[o.status ?? 'pending'], o.payment_method === 'checkout' ? `객실 합산${o.checkout_pay_method ? ` → ${checkoutPayLabel(o.checkout_pay_method)}` : ''}` : '카드', o.guest_name ?? '', itemSummary(o), o.total_amount ?? 0, o.request_note ?? '', o.allergy_note ?? '', o.payment_method === 'checkout' ? ['WINGS 입력 전', '프런트 확인 전', '퇴실 결제 대기', '결제 완료'][stageOf(o)] : '', o.settle_staff ?? '', o.checkout_staff ?? '', [o.settle_note, o.checkout_note].filter(Boolean).join(' / ')]));
+      orders.map((o) => [o.id, kstDateTime(o.created_at), o.room_number ?? '', ({ pending: '접수 대기', cooking: '조리 중', completed: '완료', rejected: '거절', canceled: '손님이 수정하려고 취소' } as Record<string, string>)[o.status ?? 'pending'], o.payment_method === 'checkout' ? `객실 합산${o.checkout_pay_method ? ` → ${checkoutPayLabel(o.checkout_pay_method)}` : ''}` : '카드', o.guest_name ?? '', itemSummary(o), o.total_amount ?? 0, o.request_note ?? '', o.allergy_note ?? '', o.payment_method === 'checkout' ? ['WINGS 입력 전', '프런트 확인 전', '퇴실 결제 대기', '결제 완료'][stageOf(o)] : '', o.settle_staff ?? '', o.checkout_staff ?? '', [o.settle_note, o.checkout_note].filter(Boolean).join(' / ')]));
 
   const exportRanking = () =>
     downloadCsv(`룸서비스_메뉴순위_${range.from}_${range.to}.csv`,
