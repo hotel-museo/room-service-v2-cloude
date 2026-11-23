@@ -1,7 +1,8 @@
-import { useState } from 'react';
+import { changedBases, fillTranslations, hasHangul, TR_LANGS } from './translate';
+import { useRef, useState } from 'react';
 import { isSoldOut, nextKstMidnightIso, won } from '../../lib/menu';
 import type { CategoryLabels, Menu } from '../../lib/types';
-import { autoTranslate, createMenu, deleteMenu, saveMenu, saveOrder, uploadImage } from './api';
+import { createMenu, deleteMenu, saveMenu, saveOrder, uploadImage } from './api';
 import { Confirm, Drawer, Field, Toggle } from './ui';
 
 interface Props {
@@ -132,7 +133,14 @@ function MenuEditor({ menu, cats, labels, nextSort, onClose, onSaved, onError }:
   const [busy, setBusy] = useState(false);
   const [langOpen, setLangOpen] = useState(!menu);
   const [confirm, setConfirm] = useState<'price' | 'delete' | null>(null);
-  const set = (k: keyof typeof f, v: string) => setF((p) => ({ ...p, [k]: v }));
+  // 직원이 직접 고친 번역 칸 (저장할 때 자동 번역으로 덮어쓰지 않아요)
+  const touched = useRef(new Set<string>());
+  const set = (k: keyof typeof f, v: string) => {
+    if (/_(en|ja|zh)$/.test(k)) touched.current.add(k);
+    setF((p) => ({ ...p, [k]: v }));
+  };
+  const koChanged = changedBases(f, ['name', 'description'], menu as unknown as Record<string, unknown>).length > 0;
+  const hasTr = TR_LANGS.some((l) => f[`name_${l}`] || f[`description_${l}`]);
 
   const price = Number(f.price.replace(/[^0-9]/g, ''));
   const valid = f.name.trim() && price > 0 && f.category;
@@ -149,34 +157,32 @@ function MenuEditor({ menu, cats, labels, nextSort, onClose, onSaved, onError }:
     setBusy(false);
   };
 
-  const translate = async () => {
+  /** force=false: 빈 칸 + 한국어가 바뀐 부분만, force=true: 전부 다시 */
+  const translate = async (force: boolean) => {
     setBusy(true);
-    try {
-      const next = { ...f };
-      for (const l of ['en', 'ja', 'zh'] as Lang3[]) {
-        if (!next[`name_${l}`]) next[`name_${l}`] = await autoTranslate(f.name, l);
-        if (!next[`description_${l}`] && f.description) next[`description_${l}`] = await autoTranslate(f.description, l);
-      }
-      setF(next);
-      setLangOpen(true);
-    } catch (e) {
-      onError('자동 번역에 실패했습니다: ' + (e as Error).message);
-    }
+    const { next, failed } = await fillTranslations(f, ['name', 'description'], { orig: menu as unknown as Record<string, unknown>, touched: touched.current, force });
+    if (force) touched.current.clear();
+    setF(next);
+    setLangOpen(true);
+    if (failed) onError('일부를 자동 번역하지 못했습니다. 잠시 후 다시 누르거나 직접 입력해 주십시오.');
     setBusy(false);
   };
 
   const save = async () => {
     setBusy(true);
+    // 저장 전에: 빈 번역 칸 채우기 + 한국어가 바뀐 부분 다시 번역 (직접 고친 번역은 그대로)
+    const { next: g, failed } = await fillTranslations(f, ['name', 'description'], { orig: menu as unknown as Record<string, unknown>, touched: touched.current });
+    setF(g);
     const row: Partial<Menu> = {
-      name: f.name.trim(), price, description: f.description.trim() || null, category: f.category, image_url: f.image_url || null,
-      name_en: f.name_en.trim() || null, description_en: f.description_en.trim() || null,
-      name_ja: f.name_ja.trim() || null, description_ja: f.description_ja.trim() || null,
-      name_zh: f.name_zh.trim() || null, description_zh: f.description_zh.trim() || null,
+      name: g.name.trim(), price, description: g.description.trim() || null, category: g.category, image_url: g.image_url || null,
+      name_en: g.name_en.trim() || null, description_en: g.description_en.trim() || null,
+      name_ja: g.name_ja.trim() || null, description_ja: g.description_ja.trim() || null,
+      name_zh: g.name_zh.trim() || null, description_zh: g.description_zh.trim() || null,
     };
     try {
       if (menu) await saveMenu(menu.id, row);
       else await createMenu({ ...row, sort_order: nextSort, is_available: true, is_hidden: false });
-      await onSaved(menu ? '저장했습니다' : '메뉴를 추가했습니다');
+      await onSaved((menu ? '저장했습니다' : '메뉴를 추가했습니다') + (failed ? ' (일부 번역 실패 — 외국어 칸을 확인해 주십시오)' : ''));
     } catch (e) {
       onError('저장하지 못했습니다: ' + (e as Error).message);
       setBusy(false);
@@ -204,7 +210,7 @@ function MenuEditor({ menu, cats, labels, nextSort, onClose, onSaved, onError }:
           <div className="grow" />
           <button type="button" className="btn-outline" onClick={onClose}>취소</button>
           <button type="button" className="btn-green" disabled={!valid || busy} onClick={() => (priceChanged ? setConfirm('price') : void save())}>
-            {busy ? '저장 중…' : '저장'}
+            {busy ? '저장 중… (번역 포함)' : '저장'}
           </button>
         </>
       }
@@ -237,22 +243,30 @@ function MenuEditor({ menu, cats, labels, nextSort, onClose, onSaved, onError }:
         <textarea className="inp" rows={2} value={f.description} onChange={(e) => set('description', e.target.value)} />
       </Field>
 
+      {koChanged && hasTr && (
+        <p className="tr-note">한국어 이름·설명을 바꿨습니다. <b>저장하면 바뀐 부분의 외국어도 새로 번역합니다.</b> (직접 고친 번역은 그대로 둡니다)</p>
+      )}
       <div className="langbox">
         <button type="button" className="langbox-head" aria-expanded={langOpen} onClick={() => setLangOpen(!langOpen)}>
           <span>외국어 (영어 · 일본어 · 중국어)</span>
-          <span className="meta">{f.name_en && f.name_ja && f.name_zh ? '입력됨' : '비어 있는 칸은 한국어로 보입니다'} {langOpen ? '▲' : '▼'}</span>
+          <span className="meta">{TR_LANGS.some((l) => hasHangul(f[`name_${l}`]) || hasHangul(f[`description_${l}`])) ? '⚠ 확인 필요' : f.name_en && f.name_ja && f.name_zh ? '입력됨' : '저장하면 자동 번역됩니다'} {langOpen ? '▲' : '▼'}</span>
         </button>
         {langOpen && (
           <div className="langbox-body">
-            <button type="button" className="btn-outline btn-sm" disabled={busy || !f.name.trim()} onClick={() => void translate()}>빈 칸 자동 번역</button>
-            <p className="f-hint">자동 번역은 틀리는 경우가 많습니다. 특히 메뉴 이름은 꼭 확인해 주십시오.</p>
+            <div className="tr-btns">
+              <button type="button" className="btn-outline btn-sm" disabled={busy || !f.name.trim()} onClick={() => void translate(false)}>빈 칸 자동 번역</button>
+              <button type="button" className="btn-outline btn-sm" disabled={busy || !f.name.trim()} onClick={() => void translate(true)}>전부 다시 번역</button>
+            </div>
+            <p className="f-hint">저장하면 빈 칸은 자동으로 번역됩니다. 자동 번역은 틀릴 수 있으니 특히 메뉴 이름은 꼭 확인해 주십시오.</p>
             {(['en', 'ja', 'zh'] as Lang3[]).map((l) => (
               <div className="f-row" key={l}>
                 <Field label={{ en: '영어 이름', ja: '일본어 이름', zh: '중국어 이름' }[l]}>
-                  <input className="inp" value={f[`name_${l}`]} onChange={(e) => set(`name_${l}`, e.target.value)} />
+                  <input className={`inp${hasHangul(f[`name_${l}`]) ? ' inp--warn' : ''}`} value={f[`name_${l}`]} onChange={(e) => set(`name_${l}`, e.target.value)} />
+                  {hasHangul(f[`name_${l}`]) && <span className="tr-warn">한글이 남아 있습니다. 고쳐 주십시오</span>}
                 </Field>
                 <Field label="설명">
-                  <input className="inp" value={f[`description_${l}`]} onChange={(e) => set(`description_${l}`, e.target.value)} />
+                  <input className={`inp${hasHangul(f[`description_${l}`]) ? ' inp--warn' : ''}`} value={f[`description_${l}`]} onChange={(e) => set(`description_${l}`, e.target.value)} />
+                  {hasHangul(f[`description_${l}`]) && <span className="tr-warn">한글이 남아 있습니다. 고쳐 주십시오</span>}
                 </Field>
               </div>
             ))}

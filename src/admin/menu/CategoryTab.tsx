@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
+import { hasHangul, TR_LANGS } from './translate';
 import type { CategoryLabels, Menu } from '../../lib/types';
 import { autoTranslate, saveSetting } from './api';
 import { Confirm, Field } from './ui';
@@ -34,9 +35,31 @@ export function CategoryTab({ cats, menus, labels, reload, toast }: Props) {
   const [dirty, setDirty] = useState(false);
 
   const count = (code: string) => menus.filter((m) => m.category === code).length;
+  // 직원이 직접 고친 번역 칸 (저장할 때 덮어쓰지 않아요)
+  const touched = useRef(new Set<string>());
   const patch = (code: string, p: Partial<Row>) => {
+    (['en', 'ja', 'zh'] as const).forEach((l) => { if (l in p) touched.current.add(`${code}_${l}`); });
     setRows((prev) => prev.map((r) => (r.code === code ? { ...r, ...p } : r)));
     setDirty(true);
+  };
+  const koChanged = (r: Row) => !r.isNew && (labels[r.code]?.ko ?? r.code).trim() !== r.ko.trim();
+
+  /** 저장 전에: 빈 칸 번역 + 한국어 이름이 바뀐 카테고리는 다시 번역 (직접 고친 번역은 그대로) */
+  const fillAll = async (list: Row[]) => {
+    let failed = false;
+    const out: Row[] = [];
+    for (const r of list) {
+      const n = { ...r };
+      if (n.ko.trim()) {
+        for (const l of TR_LANGS) {
+          const need = !n[l].trim() || (koChanged(r) && !touched.current.has(`${r.code}_${l}`));
+          if (!need) continue;
+          try { n[l] = await autoTranslate(n.ko.trim(), l); } catch { failed = true; }
+        }
+      }
+      out.push(n);
+    }
+    return { out, failed };
   };
   const move = (i: number, dir: -1 | 1) => {
     const j = i + dir;
@@ -73,14 +96,16 @@ export function CategoryTab({ cats, menus, labels, reload, toast }: Props) {
   const save = async () => {
     setBusy(true);
     try {
+      const { out: filled, failed } = await fillAll(rows);
+      setRows(filled);
       const nextLabels: CategoryLabels = { ...labels };
-      rows.forEach((r) => {
+      filled.forEach((r) => {
         nextLabels[r.code] = { ko: r.ko.trim(), en: r.en.trim() || undefined, ja: r.ja.trim() || undefined, zh: r.zh.trim() || undefined };
       });
       await saveSetting('category_translations', nextLabels);
-      await saveSetting('category_order', { order: rows.map((r) => r.code) });
+      await saveSetting('category_order', { order: filled.map((r) => r.code) });
       setDirty(false);
-      toast('카테고리를 저장했습니다');
+      toast('카테고리를 저장했습니다' + (failed ? ' (일부 번역 실패 — 외국어 칸을 확인해 주십시오)' : ''), failed);
       await reload();
     } catch (e) {
       toast('저장하지 못했습니다: ' + (e as Error).message, true);
@@ -115,7 +140,7 @@ export function CategoryTab({ cats, menus, labels, reload, toast }: Props) {
                 />
                 <span className="meta cat-count">메뉴 {n}개</span>
                 <button type="button" className="btn-outline btn-sm" aria-expanded={expanded} onClick={() => setOpen(expanded ? null : r.code)}>
-                  외국어 {r.en && r.ja && r.zh ? '✓' : ''} {expanded ? '▲' : '▼'}
+                  외국어 {[r.en, r.ja, r.zh].some((v) => hasHangul(v)) ? '⚠' : r.en && r.ja && r.zh ? '✓' : ''} {expanded ? '▲' : '▼'}
                 </button>
                 <button
                   type="button"
@@ -129,9 +154,12 @@ export function CategoryTab({ cats, menus, labels, reload, toast }: Props) {
               </div>
               {expanded && (
                 <div className="cat-langs">
-                  <Field label="영어"><input className="inp" value={r.en} onChange={(e) => patch(r.code, { en: e.target.value })} /></Field>
-                  <Field label="일본어"><input className="inp" value={r.ja} onChange={(e) => patch(r.code, { ja: e.target.value })} /></Field>
-                  <Field label="중국어"><input className="inp" value={r.zh} onChange={(e) => patch(r.code, { zh: e.target.value })} /></Field>
+                  {TR_LANGS.map((l) => (
+                    <Field key={l} label={{ en: '영어', ja: '일본어', zh: '중국어' }[l]}>
+                      <input className={`inp${hasHangul(r[l]) ? ' inp--warn' : ''}`} value={r[l]} onChange={(e) => patch(r.code, { [l]: e.target.value })} />
+                      {hasHangul(r[l]) && <span className="tr-warn">한글이 남아 있습니다</span>}
+                    </Field>
+                  ))}
                   <button type="button" className="btn-outline btn-sm" disabled={busy || !r.ko.trim()} onClick={() => void translateRow(r)}>빈 칸 자동 번역</button>
                 </div>
               )}
@@ -143,8 +171,8 @@ export function CategoryTab({ cats, menus, labels, reload, toast }: Props) {
       <p className="f-hint">메뉴를 다른 카테고리로 옮기려면 '단품 메뉴'에서 메뉴를 열고 카테고리를 바꾸십시오. 메뉴가 있는 카테고리는 지울 수 없습니다.</p>
 
       <div className="hours-save">
-        <button type="button" className="btn-green" disabled={!valid || busy || !dirty} onClick={() => void save()}>{busy ? '저장 중…' : '저장'}</button>
-        {dirty && <span className="meta">저장하지 않은 변경이 있습니다</span>}
+        <button type="button" className="btn-green" disabled={!valid || busy || !dirty} onClick={() => void save()}>{busy ? '저장 중… (번역 포함)' : '저장'}</button>
+        {dirty && <span className="meta">저장하지 않은 변경이 있습니다 · 저장하면 빈 외국어 칸과 이름이 바뀐 카테고리는 자동 번역됩니다</span>}
         {!valid && <span className="meta danger-txt">이름이 빈 카테고리가 있습니다</span>}
       </div>
 

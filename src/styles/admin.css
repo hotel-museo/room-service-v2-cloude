@@ -479,3 +479,9 @@ td.bar-col { display: flex; align-items: center; gap: 8px; }
 .fd-room-chips .chip { height: 26px; font-size: 12px; padding: 0 9px; }
 .fd-contacts { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
 .fd-contact { display: flex; flex-direction: column; gap: 6px; }
+
+/* 외국어 번역 */
+.tr-btns { display: flex; gap: 6px; flex-wrap: wrap; }
+.tr-note { margin: 0; padding: 10px 12px; border-radius: 10px; background: var(--amber-bg); color: var(--amber); font-size: 13px; line-height: 1.5; }
+.inp--warn { border-color: var(--red-2); background: #fff8f7; }
+.tr-warn { font-size: 12px; font-weight: 700; color: var(--red); }

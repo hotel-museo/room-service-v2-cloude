@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { changedBases, fillTranslations, hasHangul, TR_LANGS } from './translate';
+import { useRef, useState } from 'react';
 import { won } from '../../lib/menu';
 import type { CategoryLabels, Menu, SetComponentConfig, SetMenu } from '../../lib/types';
 import { createSet, deleteSet, saveSet, uploadImage } from './api';
@@ -92,7 +93,22 @@ function SetEditor({ set, menus, labels, nextSort, onClose, onSaved, onError }: 
   const [busy, setBusy] = useState(false);
   const [confirm, setConfirm] = useState<'delete' | null>(null);
   const [langOpen, setLangOpen] = useState(false);
-  const set_ = (k: keyof typeof f, v: string) => setF((p) => ({ ...p, [k]: v }));
+  const touched = useRef(new Set<string>());
+  const set_ = (k: keyof typeof f, v: string) => {
+    if (/_(en|ja|zh)$/.test(k)) touched.current.add(k);
+    setF((p) => ({ ...p, [k]: v }));
+  };
+  const koChanged = changedBases(f, ['name', 'description'], set as unknown as Record<string, unknown>).length > 0;
+  const hasTr = TR_LANGS.some((l) => f[`name_${l}`] || f[`description_${l}`]);
+  const translate = async (force: boolean) => {
+    setBusy(true);
+    const { next, failed } = await fillTranslations(f, ['name', 'description'], { orig: set as unknown as Record<string, unknown>, touched: touched.current, force });
+    if (force) touched.current.clear();
+    setF(next);
+    setLangOpen(true);
+    if (failed) onError('일부를 자동 번역하지 못했습니다. 잠시 후 다시 누르거나 직접 입력해 주십시오.');
+    setBusy(false);
+  };
 
   const price = Number(f.price.replace(/[^0-9]/g, ''));
   const compsOk = comps.length > 0 && comps.every((c) => c.menu_ids.length >= (c.count ?? 1));
@@ -119,6 +135,9 @@ function SetEditor({ set, menus, labels, nextSort, onClose, onSaved, onError }: 
 
   const save = async () => {
     setBusy(true);
+    // 저장 전에: 빈 번역 칸 채우기 + 한국어가 바뀐 부분 다시 번역 (직접 고친 번역은 그대로)
+    const { next: g, failed } = await fillTranslations(f, ['name', 'description'], { orig: set as unknown as Record<string, unknown>, touched: touched.current });
+    setF(g);
     const cleaned = comps.map((c) => ({
       category: c.category,
       count: c.count ?? 1,
@@ -126,15 +145,15 @@ function SetEditor({ set, menus, labels, nextSort, onClose, onSaved, onError }: 
       extras: Object.fromEntries(Object.entries(c.extras ?? {}).filter(([k, v]) => c.menu_ids.includes(Number(k)) && Number(v) > 0).map(([k, v]) => [k, Number(v)])),
     }));
     const row: Partial<SetMenu> = {
-      name: f.name.trim(), description: f.description.trim() || null, price, image_url: f.image_url || null,
-      name_en: f.name_en.trim() || null, name_ja: f.name_ja.trim() || null, name_zh: f.name_zh.trim() || null,
-      description_en: f.description_en.trim() || null, description_ja: f.description_ja.trim() || null, description_zh: f.description_zh.trim() || null,
+      name: g.name.trim(), description: g.description.trim() || null, price, image_url: g.image_url || null,
+      name_en: g.name_en.trim() || null, name_ja: g.name_ja.trim() || null, name_zh: g.name_zh.trim() || null,
+      description_en: g.description_en.trim() || null, description_ja: g.description_ja.trim() || null, description_zh: g.description_zh.trim() || null,
       config: { version: 2, components: cleaned },
     };
     try {
       if (set) await saveSet(set.id, row);
       else await createSet({ ...row, is_active: true, is_hidden: false, sort_order: nextSort });
-      await onSaved(set ? '세트를 저장했습니다' : '세트를 추가했습니다');
+      await onSaved((set ? '세트를 저장했습니다' : '세트를 추가했습니다') + (failed ? ' (일부 번역 실패 — 외국어 칸을 확인해 주십시오)' : ''));
     } catch (e) {
       onError('저장하지 못했습니다: ' + (e as Error).message);
       setBusy(false);
@@ -213,16 +232,31 @@ function SetEditor({ set, menus, labels, nextSort, onClose, onSaved, onError }: 
       <button type="button" className="btn-outline" onClick={() => setComps((p) => [...p, { category: 'PASTA', count: 1, menu_ids: [], extras: {} }])}>+ 구성 추가</button>
       <p className="f-hint">메뉴를 고른 뒤 옆 칸에 숫자를 넣으면 그 메뉴를 고를 때 추가금이 붙습니다.</p>
 
+      {koChanged && hasTr && (
+        <p className="tr-note">한국어 이름·설명을 바꿨습니다. <b>저장하면 바뀐 부분의 외국어도 새로 번역합니다.</b> (직접 고친 번역은 그대로 둡니다)</p>
+      )}
       <div className="langbox">
         <button type="button" className="langbox-head" aria-expanded={langOpen} onClick={() => setLangOpen(!langOpen)}>
-          <span>외국어 이름</span><span className="meta">{langOpen ? '▲' : '▼'}</span>
+          <span>외국어 (영어 · 일본어 · 중국어)</span>
+          <span className="meta">{TR_LANGS.some((l) => hasHangul(f[`name_${l}`]) || hasHangul(f[`description_${l}`])) ? '⚠ 확인 필요' : f.name_en && f.name_ja && f.name_zh ? '입력됨' : '저장하면 자동 번역됩니다'} {langOpen ? '▲' : '▼'}</span>
         </button>
         {langOpen && (
           <div className="langbox-body">
-            {(['en', 'ja', 'zh'] as const).map((l) => (
+            <div className="tr-btns">
+              <button type="button" className="btn-outline btn-sm" disabled={busy || !f.name.trim()} onClick={() => void translate(false)}>빈 칸 자동 번역</button>
+              <button type="button" className="btn-outline btn-sm" disabled={busy || !f.name.trim()} onClick={() => void translate(true)}>전부 다시 번역</button>
+            </div>
+            <p className="f-hint">저장하면 빈 칸은 자동으로 번역됩니다. 자동 번역은 틀릴 수 있으니 꼭 확인해 주십시오.</p>
+            {TR_LANGS.map((l) => (
               <div className="f-row" key={l}>
-                <Field label={{ en: '영어', ja: '일본어', zh: '중국어' }[l]}><input className="inp" value={f[`name_${l}`]} onChange={(e) => set_(`name_${l}`, e.target.value)} /></Field>
-                <Field label="구성 설명"><input className="inp" value={f[`description_${l}`]} onChange={(e) => set_(`description_${l}`, e.target.value)} /></Field>
+                <Field label={{ en: '영어', ja: '일본어', zh: '중국어' }[l]}>
+                  <input className={`inp${hasHangul(f[`name_${l}`]) ? ' inp--warn' : ''}`} value={f[`name_${l}`]} onChange={(e) => set_(`name_${l}`, e.target.value)} />
+                  {hasHangul(f[`name_${l}`]) && <span className="tr-warn">한글이 남아 있습니다. 고쳐 주십시오</span>}
+                </Field>
+                <Field label="구성 설명">
+                  <input className={`inp${hasHangul(f[`description_${l}`]) ? ' inp--warn' : ''}`} value={f[`description_${l}`]} onChange={(e) => set_(`description_${l}`, e.target.value)} />
+                  {hasHangul(f[`description_${l}`]) && <span className="tr-warn">한글이 남아 있습니다. 고쳐 주십시오</span>}
+                </Field>
               </div>
             ))}
           </div>
