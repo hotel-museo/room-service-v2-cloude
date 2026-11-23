@@ -74,11 +74,8 @@ export interface OrderStatusRow {
 }
 
 export async function fetchOrderStatus(token: string): Promise<OrderStatusRow | null> {
-  const { data, error } = await supabase
-    .from('orders')
-    .select('id, status, accepted_at, completed_at, estimated_minutes, rejection_reason')
-    .eq('order_token', token)
-    .maybeSingle();
+  // 손님은 주문 표를 직접 못 읽어요. 자기 번호표로 그 주문 하나의 상태만 받아와요 (DB 함수 get_order_status)
+  const { data, error } = await supabase.rpc('get_order_status', { p_token: token }).maybeSingle();
   if (error) return null;
   return data as OrderStatusRow | null;
 }
