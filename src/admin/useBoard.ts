@@ -1,3 +1,4 @@
+import { notifyPreview } from '../lib/preview';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { nextKstMidnightIso, todayKstStartIso } from '../lib/menu';
 import { supabase } from '../lib/supabase';
@@ -72,6 +73,7 @@ export function useBoard() {
     setMenus((prev) => prev.map((m) => (m.id === id ? { ...m, ...patch } : m)));
     const { error } = await supabase.from('menus').update(patch).eq('id', id);
     if (error) alert('품절 상태를 저장하지 못했어요.\n' + error.message);
+    notifyPreview();
     void load();
   };
 
@@ -79,6 +81,7 @@ export function useBoard() {
     setService(status);
     const { error } = await supabase.from('service_status').update({ status, updated_at: new Date().toISOString() }).eq('id', 1);
     if (error) alert('영업 상태를 저장하지 못했어요.\n' + error.message);
+    notifyPreview();
     void load();
   };
 

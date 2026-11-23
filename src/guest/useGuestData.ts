@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { supabase } from '../lib/supabase';
 import { DEFAULT_HOURS, type BusinessHours } from '../lib/hours';
 import { EMPTY_LINKS, loadOptionLinks } from '../lib/options';
+import { isPreview, onPreviewChange } from '../lib/preview';
 import type { CategoryLabels, Menu, OptionLinks, ServiceStatus, SetMenu } from '../lib/types';
 
 export interface GuestData {
@@ -17,7 +18,8 @@ export interface GuestData {
   reload: () => Promise<void>;
 }
 
-const REFRESH_MS = 60_000;
+// 관리자 미리보기는 더 자주 새로 불러와요 (바꾼 즉시 알림도 받아요)
+const REFRESH_MS = isPreview ? 15_000 : 60_000;
 
 export function useGuestData(): GuestData {
   const [menus, setMenus] = useState<Menu[]>([]);
@@ -60,7 +62,9 @@ export function useGuestData(): GuestData {
     const t = window.setInterval(() => void reload(), REFRESH_MS);
     const onFocus = () => void reload();
     window.addEventListener('focus', onFocus);
+    const off = isPreview ? onPreviewChange(() => void reload()) : () => undefined;
     return () => {
+      off();
       window.clearInterval(t);
       window.removeEventListener('focus', onFocus);
     };

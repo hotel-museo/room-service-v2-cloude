@@ -7,6 +7,7 @@ import { MenuAdmin } from './menu/MenuAdmin';
 import { SalesPage } from './sales/SalesPage';
 import { printTicket } from './print';
 import { useBoard } from './useBoard';
+import { GuestPreview } from './GuestPreview';
 import { REJECT_REASONS as REJECT_PRESETS } from '../lib/rejectReasons';
 
 const REJECT_REASONS = REJECT_PRESETS.map((r) => r.ko);
@@ -59,6 +60,12 @@ export function Board() {
   const [reason, setReason] = useState('');
   const [query, setQuery] = useState('');
   const [autoPrint, setAutoPrint] = useState(() => localStorage.getItem('ph-auto-print') === '1');
+  const [previewOpen, setPreviewOpen] = useState(() => localStorage.getItem('ph-preview-open') === '1');
+  const togglePreview = () => {
+    const v = !previewOpen;
+    setPreviewOpen(v);
+    localStorage.setItem('ph-preview-open', v ? '1' : '0');
+  };
   const toggleAutoPrint = () => {
     const v = !autoPrint;
     setAutoPrint(v);
@@ -102,7 +109,7 @@ export function Board() {
   const ageChip = (min: number) => (min >= 10 ? 'chip chip--red' : min >= 5 ? 'chip chip--amber' : 'chip');
 
   return (
-    <div className="admin">
+    <div className={`admin${previewOpen ? ' has-preview' : ''}`}>
       <header className="a-head">
         <div className="brand">
           <div className="brand-name">PASTA HOUSE</div>
@@ -129,6 +136,10 @@ export function Board() {
           <button type="button" className={`tool${autoPrint ? ' is-on' : ''}`} onClick={toggleAutoPrint} aria-pressed={autoPrint} title="주문을 접수하면 주방 영수증을 자동으로 인쇄해요">
             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 9V4h10v5M7 17H5a1 1 0 0 1-1-1v-5a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v5a1 1 0 0 1-1 1h-2M7 14h10v6H7z" /></svg>
             <span>자동 인쇄 {autoPrint ? '켜짐' : '꺼짐'}</span>
+          </button>
+          <button type="button" className={`tool${previewOpen ? ' is-on' : ''}`} onClick={togglePreview} aria-pressed={previewOpen} title="손님이 보는 주문 화면을 오른쪽에 띄워요. 메뉴를 바꾸면 바로 반영돼요">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 3h8a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2zM11 18h2" /></svg>
+            <span>손님 화면</span>
           </button>
         </div>
         <div className="clockbox" title={b.online ? `마지막 동기화 ${hhmm(b.lastSync?.toISOString() ?? null)}` : '인터넷 연결을 확인해 주세요'}>
@@ -304,6 +315,7 @@ export function Board() {
           </div>
         </div>
       )}
+      {previewOpen && <GuestPreview onClose={togglePreview} />}
     </div>
   );
 }

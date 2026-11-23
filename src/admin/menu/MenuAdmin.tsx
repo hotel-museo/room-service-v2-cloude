@@ -8,6 +8,7 @@ import { HoursTab } from './HoursTab';
 import { MenuTab } from './MenuTab';
 import { SetTab } from './SetTab';
 import { useToast } from './ui';
+import { notifyPreview } from '../../lib/preview';
 
 type Tab = 'menu' | 'set' | 'cat' | 'hours';
 
@@ -21,6 +22,7 @@ export function MenuAdmin() {
     try {
       setData(await loadMenuAdminData());
       setErr(null);
+      notifyPreview();
     } catch (e) {
       setErr((e as Error).message);
     }
@@ -37,7 +39,7 @@ export function MenuAdmin() {
           <button type="button" role="tab" key={k} aria-selected={tab === k} className={tab === k ? 'is-on' : ''} onClick={() => setTab(k)}>{label}</button>
         ))}
         <span className="grow" />
-        <span className="meta">바꾼 내용은 손님 화면에 1분 안에 반영돼요</span>
+        <span className="meta">바꾼 내용은 손님 화면에 1분 안에 반영돼요 · 오른쪽 위 '손님 화면'에서 바로 확인</span>
       </div>
 
       {err && <p className="alert-bad">불러오지 못했어요: {err}</p>}

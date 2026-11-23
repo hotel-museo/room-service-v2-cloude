@@ -409,3 +409,6 @@ img { display: block; }
 .consent-box svg { width: 16px; height: 16px; }
 .consent-check input:checked + .consent-box { background: var(--terracotta); border-color: var(--terracotta); color: #fff; }
 .consent-check input:focus-visible + .consent-box { outline: 2px solid var(--terracotta); outline-offset: 2px; }
+
+/* 관리자 미리보기 표시 */
+.preview-badge { position: fixed; top: 8px; left: 50%; transform: translateX(-50%); z-index: 9999; pointer-events: none; padding: 4px 10px; border-radius: 999px; background: rgba(17, 24, 39, 0.78); color: #fff; font-size: 11px; font-weight: 700; letter-spacing: 0.02em; white-space: nowrap; }

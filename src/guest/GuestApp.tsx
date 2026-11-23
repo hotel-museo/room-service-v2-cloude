@@ -14,6 +14,7 @@ import { Sheet } from './components/Sheet';
 import { StatusPage } from './components/StatusPage';
 import { loadTracked, placeOrder, saveTracked, type TrackedOrder } from './orders';
 import { useGuestData } from './useGuestData';
+import { isPreview } from '../lib/preview';
 
 type View = 'home' | 'menu' | 'cart' | 'status';
 
@@ -36,7 +37,7 @@ export function GuestApp() {
   const data = useGuestData();
   const cart = useCart();
   const [lang, setLangState] = useState<Lang>(initialLang);
-  const [tracked, setTracked] = useState<TrackedOrder | null>(loadTracked);
+  const [tracked, setTracked] = useState<TrackedOrder | null>(() => (isPreview ? null : loadTracked()));
   const [view, setView] = useState<View>(() => (new URLSearchParams(location.search).get('view') === 'menu' ? 'menu' : 'home'));
   const [menuId, setMenuId] = useState<number | null>(null);
   const [setId, setSetId] = useState<number | null>(null);
@@ -74,6 +75,10 @@ export function GuestApp() {
   const canOrder = (data.service === 'open' || data.service === 'busy') && hours.open;
 
   const submit = async () => {
+    if (isPreview) {
+      setError('미리보기 화면이라 주문이 들어가지 않아요.');
+      return;
+    }
     setSubmitting(true);
     setError(null);
     const items = toOrderItems(cart.lines, data.menus, data.sets, data.options);

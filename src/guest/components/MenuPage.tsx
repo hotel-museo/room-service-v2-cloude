@@ -1,3 +1,4 @@
+import { isPreview } from '../../lib/preview';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { descOf, isSoldOut, nameOf, subNameOf, visibleMenus, visibleSets, won } from '../../lib/menu';
 import { cutoffFor, hoursText, type BusinessHours, type HoursState } from '../../lib/hours';
@@ -67,7 +68,8 @@ export function MenuPage({ lang, t, menus, sets, labels, service, hours, catOrde
   const brandRef = useRef<HTMLDivElement>(null);
   const logoRef = useRef<HTMLDivElement>(null);
   // 처음 들어왔을 때만 로고 인트로를 보여주고, 장바구니 등에서 돌아오면 바로 메뉴 위치로
-  const [introSeen] = useState(() => { try { return sessionStorage.getItem('ph-intro') === '1'; } catch { return false; } });
+  // 관리자 미리보기는 인트로를 건너뛰고 바로 메뉴부터
+  const [introSeen] = useState(() => { if (isPreview) return true; try { return sessionStorage.getItem('ph-intro') === '1'; } catch { return false; } });
 
   useEffect(() => {
     try { sessionStorage.setItem('ph-intro', '1'); } catch { /* 무시 */ }
