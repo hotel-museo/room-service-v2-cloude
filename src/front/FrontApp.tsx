@@ -6,6 +6,7 @@ import { audioReady, chime, unlockAudio } from '../admin/alarm';
 import { useToast } from '../admin/menu/ui';
 import { addDays, kstDayStart, kstYmd } from '../admin/sales/aggregate';
 import { printFolio } from './folio';
+import { downloadPaidExcel, printPaidReport } from './report';
 
 /**
  * 프런트 GL 화면. 투숙객 후불 주문의 3단계 중 프런트 몫 2단계를 처리합니다.
@@ -226,6 +227,9 @@ export function FrontApp() {
             <div className="filters">
               <input className="inp inp--date" type="date" value={day} max={kstYmd(new Date())} onChange={(e) => e.target.value && setDay(e.target.value)} aria-label="결제한 날짜" />
               <span className="meta">퇴실 결제 {paidGroups.length}객실 · {won(sum(paid))}원</span>
+              <span className="grow" />
+              <button type="button" className="btn-outline btn-sm" disabled={!paid.length} onClick={() => downloadPaidExcel(day, paid)}>엑셀 다운로드</button>
+              <button type="button" className="btn-green btn-sm" onClick={() => { if (!printPaidReport(day, group(paid))) toast.show('팝업이 막혀 있어요. 주소창 오른쪽에서 팝업을 허용해 주세요', true); }}>대표 보고서 인쇄 · PDF</button>
             </div>
             {paidGroups.length === 0 ? (
               <div className="empty-col">이 날 퇴실 결제한 객실이 없어요</div>
