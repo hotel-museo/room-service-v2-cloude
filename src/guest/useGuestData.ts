@@ -3,6 +3,7 @@ import { supabase } from '../lib/supabase';
 import { DEFAULT_HOURS, type BusinessHours } from '../lib/hours';
 import { EMPTY_LINKS, loadOptionLinks } from '../lib/options';
 import { isPreview, onPreviewChange } from '../lib/preview';
+import { DEFAULT_ETA, type EtaSettings } from '../lib/delivery';
 import type { CategoryLabels, Menu, OptionLinks, ServiceStatus, SetMenu } from '../lib/types';
 
 export interface GuestData {
@@ -15,6 +16,8 @@ export interface GuestData {
   catOrder: string[];
   /** 주문 받는 객실 번호 (비어 있으면 모두 받음) */
   rooms: string[];
+  /** 예상 도착 시간 설정 */
+  eta: EtaSettings;
   loading: boolean;
   error: string | null;
   reload: () => Promise<void>;
@@ -32,11 +35,12 @@ export function useGuestData(): GuestData {
   const [hours, setHours] = useState<BusinessHours>(DEFAULT_HOURS);
   const [catOrder, setCatOrder] = useState<string[]>([]);
   const [rooms, setRooms] = useState<string[]>([]);
+  const [eta, setEta] = useState<EtaSettings>(DEFAULT_ETA);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   const reload = useCallback(async () => {
-    const [m, s, l, st, op, bh, co, rl] = await Promise.all([
+    const [m, s, l, st, op, bh, co, rl, et] = await Promise.all([
       supabase.from('menus').select('*').order('sort_order', { ascending: true }),
       supabase.from('set_menus').select('*').order('sort_order', { ascending: true }),
       supabase.from('site_settings').select('settings').eq('key', 'category_translations').maybeSingle(),
@@ -45,7 +49,9 @@ export function useGuestData(): GuestData {
       supabase.from('site_settings').select('settings').eq('key', 'business_hours').maybeSingle(),
       supabase.from('site_settings').select('settings').eq('key', 'category_order').maybeSingle(),
       supabase.from('site_settings').select('settings').eq('key', 'room_list').maybeSingle(),
+      supabase.from('site_settings').select('settings').eq('key', 'eta').maybeSingle(),
     ]);
+    if (et.data?.settings) setEta({ ...DEFAULT_ETA, ...(et.data.settings as Partial<EtaSettings>) });
     setRooms(((rl.data?.settings as { rooms?: string[] } | undefined)?.rooms) ?? []);
     setCatOrder(((co.data?.settings as { order?: string[] } | undefined)?.order) ?? []);
     if (bh.data?.settings) setHours({ ...DEFAULT_HOURS, ...(bh.data.settings as BusinessHours) });
@@ -75,5 +81,5 @@ export function useGuestData(): GuestData {
     };
   }, [reload]);
 
-  return { menus, sets, labels, service, options, hours, catOrder, rooms, loading, error, reload };
+  return { menus, sets, labels, service, options, hours, catOrder, rooms, eta, loading, error, reload };
 }

@@ -9,9 +9,11 @@ import { printTicket } from './print';
 import { useBoard } from './useBoard';
 import { kstDayStart, kstYmd } from './sales/aggregate';
 import { GuestPreview } from './GuestPreview';
+import { DELIVERY_KO } from '../lib/delivery';
 import { AdminSettings, useStaff } from '../lib/staff';
 import { HoursTab } from './menu/HoursTab';
 import { RoomsSection } from './RoomsSection';
+import { EtaSection } from './EtaSection';
 import { loadMenuAdminData } from './menu/api';
 import { orderedCategories } from '../lib/categories';
 import { notifyPreview } from '../lib/preview';
@@ -181,6 +183,7 @@ export function Board() {
                   </ul>
                   {o.allergy_note && <div className="allergy">⚠ 알레르기: {o.allergy_note}</div>}
                   {o.request_note && <div className="note">{o.request_note}</div>}
+                  <DeliveryTag pref={o.delivery_pref} />
                   <div className="ocard-foot">
                     <span>수저 {o.disposable_cutlery_qty ?? 0} · {o.payment_method === 'checkout' ? `객실 합산${o.guest_name ? ` (${o.guest_name})` : ''}${o.checkout_consent_at ? ' · 후불 동의 ✓' : ''}` : '카드 결제'}{o.phone ? ` · ${o.phone}` : ''}</span>
                     <strong>{won(o.total_amount ?? 0)}원</strong>
@@ -227,6 +230,7 @@ export function Board() {
                   </ul>
                   {o.allergy_note && <div className="allergy allergy--sm">⚠ 알레르기: {o.allergy_note}</div>}
                   {o.request_note && <div className="note note--sm">{o.request_note}</div>}
+                  <DeliveryTag pref={o.delivery_pref} />
                   {o.payment_method === 'checkout' && !(o.wings_posted_at || b.wings.find((w) => w.id === o.id)?.wings_posted_at) && <div className="wings-flag">투숙객 후불 · WINGS 입력 전{o.guest_name ? ` (${o.guest_name})` : ''}</div>}
                   <div className="row-btns">
                     <button type="button" className="btn-outline" onClick={() => printTicket(o)}>인쇄</button>
@@ -315,6 +319,12 @@ export function Board() {
 }
 
 
+/** 배달 방법: 기본(노크하고 전달)은 표시 안 하고, 문 앞에 두기는 눈에 띄게 */
+function DeliveryTag({ pref }: { pref?: string | null }) {
+  if (pref !== 'door' && pref !== 'quiet') return null;
+  return <div className={`dtag${pref === 'quiet' ? ' dtag--quiet' : ''}`}>{pref === 'quiet' ? '🔕 ' : '🚪 '}{DELIVERY_KO[pref]}</div>;
+}
+
 /** 오늘 기준 며칠 지났는지 (한국 날짜) */
 const daysOld = (iso: string) => Math.floor((kstDayStart(kstYmd(new Date())).getTime() - kstDayStart(kstYmd(new Date(iso))).getTime()) / 864e5);
 const OLD_DAYS = 3;
@@ -379,6 +389,7 @@ function BottegaSettings() {
             <p className="meta">불러오는 중…</p>
           )}
         </section>
+        <EtaSection toast={toast.show} />
         <RoomsSection toast={toast.show} />
       </AdminSettings>
       {toast.node}

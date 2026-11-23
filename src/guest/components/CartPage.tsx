@@ -1,4 +1,5 @@
 import { roomAllowed, roomComplete } from '../../lib/rooms';
+import { DELIVERY_PREFS, type DeliveryPref } from '../../lib/delivery';
 import type { KeyboardEvent } from 'react';
 import { useEffect, useRef, useState } from 'react';
 import { won } from '../../lib/menu';
@@ -16,12 +17,15 @@ export interface CheckoutForm {
   hasAllergy: boolean;
   allergy: string;
   cutlery: number;
+  deliveryPref: DeliveryPref;
   payment: PaymentMethod;
   consent: boolean;
 }
 
 interface Props {
   rooms: string[];
+  /** 지금 주문하면 예상 도착 [최소, 최대] 분 */
+  eta: [number, number];
   lang: Lang;
   t: (k: StringKey, v?: Record<string, string | number>) => string;
   lines: ResolvedLine[];
@@ -40,7 +44,7 @@ const doneOnEnter = (e: KeyboardEvent<HTMLInputElement>) => {
   if (e.key === 'Enter') { e.preventDefault(); e.currentTarget.blur(); }
 };
 
-export function CartPage({ rooms, t, lines, form, setForm, canOrder, submitting, error, onQty, onBack, onSubmit }: Props) {
+export function CartPage({ rooms, eta, t, lines, form, setForm, canOrder, submitting, error, onQty, onBack, onSubmit }: Props) {
   const [touched, setTouched] = useState(false);
   const total = lines.reduce((a, l) => a + l.total, 0);
   const roomMissing = !form.room.trim();
@@ -160,6 +164,16 @@ export function CartPage({ rooms, t, lines, form, setForm, canOrder, submitting,
         </section>
 
         <section className="card">
+          <div className="label">{t('deliveryLabel')}</div>
+          {DELIVERY_PREFS.map((d) => (
+            <button type="button" key={d} className={`payopt payopt--sm${form.deliveryPref === d ? ' is-on' : ''}`} aria-pressed={form.deliveryPref === d} onClick={() => set('deliveryPref', d)}>
+              <span className="radio" />
+              <span className="payopt-text"><span className="payopt-title">{t(`dp_${d}` as StringKey)}</span></span>
+            </button>
+          ))}
+        </section>
+
+        <section className="card">
           <div className="cutlery-row">
             <div>
               <div className="row-title">{t('cutlery')}</div>
@@ -208,6 +222,7 @@ export function CartPage({ rooms, t, lines, form, setForm, canOrder, submitting,
           <div className="totals-sum"><span>{t('total')}</span><span>{won(total)}</span></div>
         </section>
 
+        {canOrder && lines.length > 0 && <p className="eta-line">{t('etaNow', { min: eta[0], max: eta[1] })}</p>}
         {error && <p className="alert" role="alert">{error}</p>}
       </div>
 

@@ -393,3 +393,8 @@ html.on-home, html.on-home body { background: #08190f; overflow: hidden; overscr
 .contact-name { font-size: 16px; font-weight: 700; color: #1f1b16; }
 .contact-num { font-size: 14px; color: #6b645a; letter-spacing: 0.02em; }
 
+
+/* 배달 방법 · 예상 도착 시간 */
+.payopt--sm { min-height: 50px; padding: 10px 14px; margin-top: 8px; }
+.payopt--sm .payopt-title { font-size: 14px; font-weight: 600; }
+.eta-line { margin: 4px 4px 0; text-align: center; font-size: 14px; font-weight: 700; color: var(--terracotta-ink); }

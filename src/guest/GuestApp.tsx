@@ -54,7 +54,7 @@ export function GuestApp() {
   const [langOpen, setLangOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [form, setForm] = useState<CheckoutForm>({ room: initialRoom(), guestName: '', phone: '', note: '', hasAllergy: false, allergy: '', cutlery: 1, payment: 'checkout', consent: false });
+  const [form, setForm] = useState<CheckoutForm>({ room: initialRoom(), guestName: '', phone: '', note: '', hasAllergy: false, allergy: '', cutlery: 1, deliveryPref: 'knock', payment: 'checkout', consent: false });
 
   const [clock, setClock] = useState(Date.now());
   useEffect(() => {
@@ -108,6 +108,7 @@ export function GuestApp() {
       room: form.room,
       total,
       payment: form.payment,
+      deliveryPref: form.deliveryPref,
       lines: lines.map((l) => ({ name: l.name, detail: l.detail, qty: l.line.qty, total: l.total })),
     };
     saveTracked(tr);
@@ -157,6 +158,7 @@ export function GuestApp() {
     return (
       <CartPage
         rooms={data.rooms}
+        eta={data.service === 'busy' ? data.eta.busy : data.eta.open}
         lang={lang}
         t={t}
         lines={lines}

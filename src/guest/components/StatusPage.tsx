@@ -120,6 +120,9 @@ export function StatusPage({ lang, t, order, onMenu, onNewOrder, onGone }: Props
               <span>{won(l.total)}</span>
             </div>
           ))}
+          {order.deliveryPref && order.deliveryPref !== 'knock' && (
+            <div className="sum-line"><span>{t('deliveryLabel')}</span><span>{t(`dp_${order.deliveryPref}` as StringKey)}</span></div>
+          )}
           <div className="sum-line sum-line--total">
             {status === 'rejected' ? (
               <>

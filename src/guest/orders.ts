@@ -1,3 +1,4 @@
+import type { DeliveryPref } from '../lib/delivery';
 import { supabase } from '../lib/supabase';
 import type { OrderItem, OrderStatus, PaymentMethod } from '../lib/types';
 
@@ -8,6 +9,7 @@ export interface PlaceOrderInput {
   note: string;
   allergy: string;
   cutlery: number;
+  deliveryPref: DeliveryPref;
   payment: PaymentMethod;
   items: OrderItem[];
   /** 후불일 때 손님이 동의한 문구 (손님 언어 그대로) */
@@ -20,6 +22,7 @@ export interface TrackedOrder {
   room: string;
   total: number;
   payment: PaymentMethod;
+  deliveryPref?: DeliveryPref;
   /** 손님은 자기 주문 내역을 DB에서 읽을 수 없어서, 보낸 내용을 이 기기에 보관합니다. */
   lines: { name: string; detail: string; qty: number; total: number }[];
 }
@@ -44,6 +47,7 @@ export async function placeOrder(input: PlaceOrderInput): Promise<PlaceResult> {
     request_note: input.note.trim(),
     allergy_note: input.allergy.trim() || null,
     disposable_cutlery_qty: input.cutlery,
+    delivery_pref: input.deliveryPref,
     order_items: input.items,
     ordered_at: new Date().toISOString(),
     payment_method: input.payment,

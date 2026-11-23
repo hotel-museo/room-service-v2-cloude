@@ -1,3 +1,4 @@
+import { DELIVERY_KO } from '../lib/delivery';
 import { won } from '../lib/menu';
 import { escapeHtml, kstTime } from '../lib/format';
 import type { Order } from '../lib/types';
@@ -36,6 +37,7 @@ hr { border: 0; border-top: 1px dashed #000; margin: 8px 0; }
 <hr>${items}<hr>
 ${o.allergy_note ? `<div class="note">⚠ 알레르기: ${escapeHtml(o.allergy_note)}</div>` : ''}
 ${o.request_note ? `<div class="note">요청: ${escapeHtml(o.request_note)}</div>` : ''}
+${o.delivery_pref === 'door' || o.delivery_pref === 'quiet' ? `<div class="note">배달: ${DELIVERY_KO[o.delivery_pref]}</div>` : ''}
 <div class="row"><span>일회용 수저</span><span>${o.disposable_cutlery_qty ?? 0}개</span></div>
 <div class="row"><span>${o.payment_method === 'checkout' ? '객실 합산' : '카드 결제'}${o.guest_name ? ` (${escapeHtml(o.guest_name)})` : ''}</span><span>${won(o.total_amount ?? 0)}원</span></div>
 <script>window.onload=function(){window.print();setTimeout(function(){window.close();},300);};</script>
