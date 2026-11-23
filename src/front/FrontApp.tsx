@@ -227,7 +227,7 @@ export function FrontApp() {
               <span className="meta">퇴실 결제 {paidGroups.length}객실 · {won(sum(paid))}원</span>
               <span className="grow" />
               <button type="button" className="btn-outline btn-sm" disabled={!paid.length} onClick={() => void downloadPaidXlsx(day, paid).catch(() => toast.show('엑셀을 만들지 못했어요. 다시 눌러 주세요', true))}>엑셀 다운로드</button>
-              <button type="button" className="btn-green btn-sm" onClick={() => { if (!printPaidReport(day, group(paid))) toast.show('팝업이 막혀 있어요. 주소창 오른쪽에서 팝업을 허용해 주세요', true); }}>대표 보고서 인쇄 · PDF</button>
+              <button type="button" className="btn-green btn-sm" onClick={() => { if (!printPaidReport(day, group(paid))) toast.show('팝업이 막혀 있어요. 주소창 오른쪽에서 팝업을 허용해 주세요', true); }}>보고서 인쇄</button>
             </div>
             {paidGroups.length === 0 ? (
               <div className="empty-col">이 날 퇴실 결제한 객실이 없어요</div>
