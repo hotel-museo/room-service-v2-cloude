@@ -25,14 +25,14 @@ export function SetTab({ sets, menus, labels, reload, toast }: Props) {
       toast(ok);
       await reload();
     } catch (e) {
-      toast('저장하지 못했어요: ' + (e as Error).message, true);
+      toast('저장하지 못했습니다: ' + (e as Error).message, true);
     }
   };
 
   return (
     <div className="mtab">
       <div className="mtab-bar">
-        <p className="meta">손님은 세트를 누른 뒤 구성별로 메뉴를 골라요. 고급 메뉴에는 추가금을 붙일 수 있어요.</p>
+        <p className="meta">손님은 세트를 누른 뒤 구성별로 메뉴를 고릅니다. 고급 메뉴에는 추가금을 붙일 수 있습니다.</p>
         <button type="button" className="btn-green" onClick={() => setEditing('new')}>+ 세트 추가</button>
       </div>
       <div className="mlist">
@@ -46,7 +46,7 @@ export function SetTab({ sets, menus, labels, reload, toast }: Props) {
                 <span className="meta">{s.description}</span>
               </button>
               <span className="mitem-price">{won(s.price)}원</span>
-              <Toggle on={on} label={`${s.name} 노출`} onText="보임" offText="숨김" onChange={() => void run(() => saveSet(s.id, { is_hidden: on, is_active: true }), on ? '세트를 숨겼어요' : '세트를 다시 보여요')} />
+              <Toggle on={on} label={`${s.name} 노출`} onText="보임" offText="숨김" onChange={() => void run(() => saveSet(s.id, { is_hidden: on, is_active: true }), on ? '세트를 숨겼습니다' : '세트를 다시 표시했습니다')} />
               <button type="button" className="edit-btn" onClick={() => setEditing(s)} aria-label={`${s.name} 수정`} title="수정">
                 <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20h4L19 9a2.1 2.1 0 0 0-3-3L5 17v3zM14 7l3 3" /></svg>
               </button>
@@ -113,7 +113,7 @@ function SetEditor({ set, menus, labels, nextSort, onClose, onSaved, onError }: 
   const onPhoto = async (file?: File) => {
     if (!file) return;
     setBusy(true);
-    try { set_('image_url', await uploadImage(file, 'sets')); } catch (e) { onError('사진을 올리지 못했어요: ' + (e as Error).message); }
+    try { set_('image_url', await uploadImage(file, 'sets')); } catch (e) { onError('사진을 올리지 못했습니다: ' + (e as Error).message); }
     setBusy(false);
   };
 
@@ -134,9 +134,9 @@ function SetEditor({ set, menus, labels, nextSort, onClose, onSaved, onError }: 
     try {
       if (set) await saveSet(set.id, row);
       else await createSet({ ...row, is_active: true, is_hidden: false, sort_order: nextSort });
-      await onSaved(set ? '세트를 저장했어요' : '세트를 추가했어요');
+      await onSaved(set ? '세트를 저장했습니다' : '세트를 추가했습니다');
     } catch (e) {
-      onError('저장하지 못했어요: ' + (e as Error).message);
+      onError('저장하지 못했습니다: ' + (e as Error).message);
       setBusy(false);
     }
   };
@@ -207,11 +207,11 @@ function SetEditor({ set, menus, labels, nextSort, onClose, onSaved, onError }: 
               </div>
             ))}
           </div>
-          {c.menu_ids.length < (c.count ?? 1) && <p className="f-hint danger-txt">메뉴를 {c.count}개 이상 골라 주세요</p>}
+          {c.menu_ids.length < (c.count ?? 1) && <p className="f-hint danger-txt">메뉴를 {c.count}개 이상 골라 주십시오</p>}
         </div>
       ))}
       <button type="button" className="btn-outline" onClick={() => setComps((p) => [...p, { category: 'PASTA', count: 1, menu_ids: [], extras: {} }])}>+ 구성 추가</button>
-      <p className="f-hint">메뉴를 고른 뒤 옆 칸에 숫자를 넣으면 그 메뉴를 고를 때 추가금이 붙어요.</p>
+      <p className="f-hint">메뉴를 고른 뒤 옆 칸에 숫자를 넣으면 그 메뉴를 고를 때 추가금이 붙습니다.</p>
 
       <div className="langbox">
         <button type="button" className="langbox-head" aria-expanded={langOpen} onClick={() => setLangOpen(!langOpen)}>
@@ -231,15 +231,15 @@ function SetEditor({ set, menus, labels, nextSort, onClose, onSaved, onError }: 
 
       {confirm === 'delete' && set && (
         <Confirm
-          title="세트를 삭제할까요?"
+          title="세트를 삭제하시겠습니까?"
           danger
-          body={<p><strong>{set.name}</strong>을(를) 삭제하면 되돌릴 수 없어요. 잠깐 안 팔 거라면 <strong>숨김</strong>을 쓰세요.</p>}
+          body={<p><strong>{set.name}</strong>을(를) 삭제하면 되돌릴 수 없습니다. 잠깐 안 팔 거라면 <strong>숨김</strong>을 쓰십시오.</p>}
           okLabel="삭제"
           onCancel={() => setConfirm(null)}
           onOk={async () => {
             setConfirm(null);
             setBusy(true);
-            try { await deleteSet(set.id); await onSaved('세트를 삭제했어요'); } catch (e) { onError('삭제하지 못했어요: ' + (e as Error).message); setBusy(false); }
+            try { await deleteSet(set.id); await onSaved('세트를 삭제했습니다'); } catch (e) { onError('삭제하지 못했습니다: ' + (e as Error).message); setBusy(false); }
           }}
         />
       )}

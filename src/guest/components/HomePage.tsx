@@ -7,7 +7,7 @@ import { Sheet } from './Sheet';
 
 /**
  * 호텔 뮤제오 첫 화면 (QR로 들어오면 처음 보는 곳).
- * 사진이 천천히 넘어가고, 그 위에 에디토리얼 스타일 서비스 목록이 있어요.
+ * 사진이 천천히 넘어가고, 그 위에 에디토리얼 스타일 서비스 목록이 있습니다.
  * 사진은 site_settings 'hotel_portal' { photos: [{ url, caption }] } 에서 읽고, 없으면 임시 화면.
  */
 interface Photo { url?: string; caption: string; tone: string; pos?: string }

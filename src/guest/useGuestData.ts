@@ -20,7 +20,7 @@ export interface GuestData {
   reload: () => Promise<void>;
 }
 
-// 관리자 미리보기는 더 자주 새로 불러와요 (바꾼 즉시 알림도 받아요)
+// 관리자 미리보기는 더 자주 새로 불러옵니다 (바꾼 즉시 알림도 받습니다)
 const REFRESH_MS = isPreview ? 15_000 : 60_000;
 
 export function useGuestData(): GuestData {

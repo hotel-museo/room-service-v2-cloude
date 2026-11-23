@@ -26,7 +26,7 @@ export function useBoard() {
       supabase.from('menus').select('*').order('sort_order', { ascending: true }),
       supabase.from('service_status').select('status').eq('id', 1).maybeSingle(),
       // WINGS 입력 대기 + 입력했지만 프런트가 아직 확인 안 한 투숙객 후불 주문 (날짜 상관없이)
-      // 처리 안 된 건은 몇 달이 지나도 계속 보여요 (1,000건이 넘어도 끝까지)
+      // 처리 안 된 건은 몇 달이 지나도 계속 보입니다 (1,000건이 넘어도 끝까지)
       fetchAll<Order>(() => supabase.from('orders').select('*').eq('payment_method', 'checkout').in('status', ['cooking', 'completed']).is('settled_at', null).order('created_at', { ascending: true }).order('id')),
     ]);
     busy.current = false;
@@ -51,7 +51,7 @@ export function useBoard() {
   const patchOrder = async (id: number, patch: Partial<Order>) => {
     setOrders((prev) => prev.map((o) => (o.id === id ? { ...o, ...patch } : o)));
     const { error } = await supabase.from('orders').update(patch).eq('id', id);
-    if (error) alert('저장하지 못했어요. 인터넷 연결을 확인해 주세요.\n' + error.message);
+    if (error) alert('저장하지 못했습니다. 인터넷 연결을 확인해 주십시오.\n' + error.message);
     void load();
   };
 
@@ -65,7 +65,7 @@ export function useBoard() {
     const patch = { wings_posted_at: on ? new Date().toISOString() : null };
     setWings((prev) => prev.map((o) => (o.id === id ? { ...o, ...patch } : o)));
     const { error } = await supabase.from('orders').update(patch).eq('id', id);
-    if (error) alert(error.message.includes('ALREADY_CONFIRMED') ? '프런트에서 이미 확인한 주문이라 취소할 수 없어요.' : 'WINGS 입력 상태를 저장하지 못했어요.\n' + error.message);
+    if (error) alert(error.message.includes('ALREADY_CONFIRMED') ? '프런트에서 이미 확인한 주문이라 취소할 수 없습니다.' : 'WINGS 입력 상태를 저장하지 못했습니다.\n' + error.message);
     void load();
   };
 
@@ -73,7 +73,7 @@ export function useBoard() {
     const patch = soldOut ? { is_available: false, sold_out_until: nextKstMidnightIso() } : { is_available: true, sold_out_until: null };
     setMenus((prev) => prev.map((m) => (m.id === id ? { ...m, ...patch } : m)));
     const { error } = await supabase.from('menus').update(patch).eq('id', id);
-    if (error) alert('품절 상태를 저장하지 못했어요.\n' + error.message);
+    if (error) alert('품절 상태를 저장하지 못했습니다.\n' + error.message);
     notifyPreview();
     void load();
   };
@@ -81,7 +81,7 @@ export function useBoard() {
   const changeService = async (status: ServiceStatus) => {
     setService(status);
     const { error } = await supabase.from('service_status').update({ status, updated_at: new Date().toISOString() }).eq('id', 1);
-    if (error) alert('영업 상태를 저장하지 못했어요.\n' + error.message);
+    if (error) alert('영업 상태를 저장하지 못했습니다.\n' + error.message);
     notifyPreview();
     void load();
   };

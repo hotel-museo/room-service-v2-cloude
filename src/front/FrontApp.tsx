@@ -16,7 +16,7 @@ import { AdminSettings, StaffPicker, staffLabel, useStaff, type FrontStaff } fro
 /**
  * 프런트 GL 화면. 투숙객 후불 주문의 3단계 중 프런트 몫 2단계를 처리합니다.
  *   (보테가) WINGS 입력 완료 → (프런트) 객실 반영 확인 → (프런트) 퇴실 결제 완료
- * 퇴실 결제 대기는 날짜와 상관없이 결제 완료될 때까지 계속 남아 있어요 (연박·장기 투숙).
+ * 퇴실 결제 대기는 날짜와 상관없이 결제 완료될 때까지 계속 남아 있습니다 (연박·장기 투숙).
  */
 type Tab = 'confirm' | 'stay' | 'paid' | 'staff';
 type Step = 'confirm' | 'paid';
@@ -61,7 +61,7 @@ export function FrontApp() {
 
   const load = useCallback(async () => {
     const base = () => supabase.from('orders').select('*').eq('payment_method', 'checkout');
-    // 1,000건이 넘어도 끝까지 받아와요
+    // 1,000건이 넘어도 끝까지 받아옵니다
     const [a, b, c] = await Promise.all([
       fetchAll<Order>(() => base().in('status', ['cooking', 'completed']).not('wings_posted_at', 'is', null).is('settled_at', null).order('created_at').order('id')),
       fetchAll<Order>(() => base().not('settled_at', 'is', null).is('checkout_paid_at', null).order('created_at').order('id')),
@@ -80,12 +80,12 @@ export function FrontApp() {
     setPaid((c.data ?? []) as Order[]);
   }, [range]);
 
-  // 프런트는 소리 없이 화면으로만 알려요: 브라우저 탭 제목에 확인할 객실 수
+  // 프런트는 소리 없이 화면으로만 알립니다: 브라우저 탭 제목에 확인할 객실 수
   const confirmCount = useMemo(() => group(toConfirm).length, [toConfirm]);
   useEffect(() => {
     document.title = confirmCount ? `(${confirmCount}) 객실 반영 확인 · 프런트` : '프런트 · 룸서비스 정산';
   }, [confirmCount]);
-  // 윈도우 프로그램(HOTEL MUSEO 프런트)으로 열었으면 확인할 객실 수를 알려줘요 → 아이콘 숫자·깜빡임
+  // 윈도우 프로그램(HOTEL MUSEO 프런트)으로 열었으면 확인할 객실 수를 알려 줍니다 → 아이콘 숫자·깜빡임
   useEffect(() => {
     window.phDesktop?.setPending(confirmCount);
   }, [confirmCount]);
@@ -111,8 +111,8 @@ export function FrontApp() {
     const { error } = step === 'confirm'
       ? await supabase.from('orders').update({ settled_at: now, settle_method: 'room', settle_note: note.trim() || null, settle_staff: staff.trim() }).in('id', ids).is('settled_at', null)
       : await supabase.from('orders').update({ checkout_paid_at: now, checkout_pay_method: method, checkout_note: note.trim() || null, checkout_staff: staff.trim() }).in('id', ids).is('checkout_paid_at', null);
-    if (error) toast.show('저장하지 못했어요: ' + error.message, true);
-    else toast.show(step === 'confirm' ? `${g.room}호 객실 반영 확인 → 퇴실 결제 대기로 옮겼어요` : `${g.room}호 퇴실 결제 완료 (${checkoutPayLabel(method)})`);
+    if (error) toast.show('저장하지 못했습니다: ' + error.message, true);
+    else toast.show(step === 'confirm' ? `${g.room}호 객실 반영 확인 → 퇴실 결제 대기로 옮겼습니다` : `${g.room}호 퇴실 결제 완료 (${checkoutPayLabel(method)})`);
     setActing(null);
     void load();
   };
@@ -122,12 +122,12 @@ export function FrontApp() {
     const { error } = step === 'confirm'
       ? await supabase.from('orders').update({ settled_at: null }).in('id', ids).is('checkout_paid_at', null)
       : await supabase.from('orders').update({ checkout_paid_at: null }).in('id', ids);
-    if (error) toast.show('되돌리지 못했어요: ' + error.message, true);
-    else toast.show(step === 'confirm' ? `${g.room}호를 객실 반영 확인 전으로 되돌렸어요` : `${g.room}호를 퇴실 결제 대기로 되돌렸어요`);
+    if (error) toast.show('되돌리지 못했습니다: ' + error.message, true);
+    else toast.show(step === 'confirm' ? `${g.room}호를 객실 반영 확인 전으로 되돌렸습니다` : `${g.room}호를 퇴실 결제 대기로 되돌렸습니다`);
     void load();
   };
 
-  const print = (g: Group) => { if (!printFolio(g.room, g.guest, g.list)) toast.show('팝업이 막혀 있어요. 주소창 오른쪽에서 팝업을 허용해 주세요', true); };
+  const print = (g: Group) => { if (!printFolio(g.room, g.guest, g.list)) toast.show('팝업이 막혀 있습니다. 주소창 오른쪽에서 팝업을 허용해 주십시오', true); };
   const clearFresh = (g: Group) => setFresh((s) => { const n = new Set(s); g.list.forEach((o) => n.delete(o.id)); return n; });
 
   const orderList = (g: Group, showStatus: boolean) => (
@@ -171,10 +171,10 @@ export function FrontApp() {
           <>
             <div className="fd-sum">
               <div><span>확인할 금액</span><strong>{won(sum(toConfirm))}원</strong></div>
-              <p className="meta">보테가에서 <b>WINGS 입력 완료</b>한 투숙객 후불 주문이에요. WINGS에서 객실 결제로 잘 들어갔는지 확인하고 <b>객실 반영 확인</b>을 눌러 주세요. 확인한 객실은 <b>퇴실 결제 대기</b>로 넘어가요.</p>
+              <p className="meta">보테가에서 <b>WINGS 입력 완료</b>한 투숙객 후불 주문입니다. WINGS에서 객실 결제로 잘 들어갔는지 확인하고 <b>객실 반영 확인</b>을 눌러 주십시오. 확인한 객실은 <b>퇴실 결제 대기</b>로 넘어갑니다.</p>
             </div>
             {confirmGroups.length === 0 ? (
-              <div className="empty-col">{q ? '검색한 객실이 없어요' : '확인할 주문이 없어요'}</div>
+              <div className="empty-col">{q ? '검색한 객실이 없습니다' : '확인할 주문이 없습니다'}</div>
             ) : (
               <div className="fd-grid">
                 {confirmGroups.map((g) => {
@@ -204,10 +204,10 @@ export function FrontApp() {
           <>
             <div className="fd-sum">
               <div><span>퇴실 때 받을 금액</span><strong>{won(sum(staying))}원</strong></div>
-              <p className="meta">객실 반영 확인이 끝난 객실이에요. 연박·장기 투숙 손님은 <b>퇴실 결제 완료</b>를 누를 때까지 날짜가 지나도 계속 여기 남아요. 같은 손님이 다음 날 또 주문하면 이 카드에 합쳐져요.</p>
+              <p className="meta">객실 반영 확인이 끝난 객실입니다. 연박·장기 투숙 손님은 <b>퇴실 결제 완료</b>를 누를 때까지 날짜가 지나도 계속 여기 남습니다. 같은 손님이 다음 날 또 주문하면 이 카드에 합쳐집니다.</p>
             </div>
             {stayGroups.length === 0 ? (
-              <div className="empty-col">{q ? '검색한 객실이 없어요' : '퇴실 결제를 기다리는 객실이 없어요'}</div>
+              <div className="empty-col">{q ? '검색한 객실이 없습니다' : '퇴실 결제를 기다리는 객실이 없습니다'}</div>
             ) : (
               <div className="fd-grid">
                 {stayGroups.map((g) => {
@@ -251,11 +251,11 @@ export function FrontApp() {
               )}
               <span className="meta">{rangeLabel} · 퇴실 결제 {paidGroups.length}객실 · {won(sum(paid))}원</span>
               <span className="grow" />
-              <button type="button" className="btn-outline btn-sm" disabled={!paid.length} onClick={() => void downloadPaidXlsx(rangeLabel, paid).catch(() => toast.show('엑셀을 만들지 못했어요. 다시 눌러 주세요', true))}>엑셀 다운로드</button>
-              <button type="button" className="btn-green btn-sm" onClick={() => { if (!printPaidReport(rangeLabel, group(paid))) toast.show('팝업이 막혀 있어요. 주소창 오른쪽에서 팝업을 허용해 주세요', true); }}>보고서 인쇄</button>
+              <button type="button" className="btn-outline btn-sm" disabled={!paid.length} onClick={() => void downloadPaidXlsx(rangeLabel, paid).catch(() => toast.show('엑셀을 만들지 못했습니다. 다시 눌러 주십시오', true))}>엑셀 다운로드</button>
+              <button type="button" className="btn-green btn-sm" onClick={() => { if (!printPaidReport(rangeLabel, group(paid))) toast.show('팝업이 막혀 있습니다. 주소창 오른쪽에서 팝업을 허용해 주십시오', true); }}>보고서 인쇄</button>
             </div>
             {paidGroups.length === 0 ? (
-              <div className="empty-col">이 기간에 퇴실 결제한 객실이 없어요</div>
+              <div className="empty-col">이 기간에 퇴실 결제한 객실이 없습니다</div>
             ) : (
               <div className="panel">
                 <div className="tbl-wrap">
@@ -304,7 +304,7 @@ function StepModal({ g, step, staff: staffList, onClose, onSave }: { g: Group; s
   const [note, setNote] = useState('');
   const [method, setMethod] = useState<CheckoutPayMethod | null>(null);
   const needMethod = step === 'paid';
-  // 지난번 담당자가 명단에 있으면 미리 골라둬요
+  // 지난번 담당자가 명단에 있으면 미리 골라 둡니다
   const [staff, setStaff] = useState(() => { const saved = readStaff(); const labels = staffList.map(staffLabel); return labels.includes(saved) || !labels.length ? saved : ''; });
   const [busy, setBusy] = useState(false);
   const label = step === 'confirm' ? '객실 반영 확인' : '퇴실 결제 완료';
@@ -316,10 +316,10 @@ function StepModal({ g, step, staff: staffList, onClose, onSave }: { g: Group; s
         <div className="fd-amt fd-amt--lg">{won(g.total)}<small>원</small></div>
         <p className="f-hint">
           {step === 'confirm'
-            ? 'WINGS에서 이 객실에 위 금액이 결제로 들어가 있는지 확인한 뒤 눌러 주세요. 퇴실 결제 대기로 넘어가요.'
-            : `주문 ${g.list.length}건 합계예요. 퇴실 때 결제를 받았으면 눌러 주세요. 영수증과 함께 대표님께 보고해 주세요.`}
+            ? 'WINGS에서 이 객실에 위 금액이 결제로 들어가 있는지 확인한 뒤 눌러 주십시오. 퇴실 결제 대기로 넘어갑니다.'
+            : `주문 ${g.list.length}건 합계입니다. 퇴실 때 결제를 받았으면 눌러 주십시오. 영수증과 함께 대표님께 보고해 주십시오.`}
         </p>
-        {step === 'confirm' && g.cooking > 0 && <p className="f-hint">아직 조리 중인 주문 {g.cooking}건이 함께 있어요. 금액은 확정이라 지금 확인해도 괜찮아요.</p>}
+        {step === 'confirm' && g.cooking > 0 && <p className="f-hint">아직 조리 중인 주문 {g.cooking}건이 함께 있습니다. 금액은 확정이라 지금 확인해도 괜찮습니다.</p>}
         {needMethod && (
           <>
             <div className="f-label">결제 방법 <span className="req">필수</span></div>
@@ -335,7 +335,7 @@ function StepModal({ g, step, staff: staffList, onClose, onSave }: { g: Group; s
         <input className="inp" placeholder="특이사항 (있을 때만)" value={note} onChange={(e) => setNote(e.target.value)} maxLength={200} aria-label="특이사항" />
         <div className="fd-actions">
           <button type="button" className="btn-outline" onClick={onClose}>취소</button>
-          <button type="button" className="btn-green grow" disabled={busy || !staff.trim() || (needMethod && !method)} title={needMethod && !method ? '결제 방법을 골라 주세요' : ''} onClick={async () => { setBusy(true); await onSave(g, step, note, staff, needMethod ? method : null); }}>{busy ? '저장 중…' : label}</button>
+          <button type="button" className="btn-green grow" disabled={busy || !staff.trim() || (needMethod && !method)} title={needMethod && !method ? '결제 방법을 골라 주십시오' : ''} onClick={async () => { setBusy(true); await onSave(g, step, note, staff, needMethod ? method : null); }}>{busy ? '저장 중…' : label}</button>
         </div>
       </div>
     </div>

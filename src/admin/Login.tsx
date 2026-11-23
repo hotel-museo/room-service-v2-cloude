@@ -28,7 +28,7 @@ export function Login({ sub = 'ROOM SERVICE ADMIN', title = '관리자 로그인
     const { error } = await supabase.auth.signInWithPassword({ email: email.trim(), password });
     setBusy(false);
     if (error) {
-      setError('이메일 또는 비밀번호가 맞지 않아요.');
+      setError('이메일 또는 비밀번호가 맞지 않습니다.');
       return;
     }
     try {
@@ -61,7 +61,7 @@ export function Login({ sub = 'ROOM SERVICE ADMIN', title = '관리자 로그인
             <span>자동 로그인</span>
           </label>
         </div>
-        {auto && <p className="login-hint">로그아웃을 누르기 전까지 이 컴퓨터에서 로그인이 유지돼요.</p>}
+        {auto && <p className="login-hint">로그아웃을 누르기 전까지 이 컴퓨터에서 로그인이 유지됩니다.</p>}
         {error && <p className="login-error" role="alert">{error}</p>}
         <button type="submit" className="btn-green" disabled={busy}>{busy ? '확인 중…' : '로그인'}</button>
       </form>

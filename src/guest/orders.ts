@@ -74,7 +74,7 @@ export interface OrderStatusRow {
 }
 
 /**
- * 손님은 주문 표를 직접 못 읽어요. 자기 번호표로 그 주문 하나의 상태만 받아와요 (DB 함수 get_order_status)
+ * 손님은 주문 표를 직접 못 읽습니다. 자기 번호표로 그 주문 하나의 상태만 받아옵니다 (DB 함수 get_order_status)
  * 돌려주는 값: 주문 정보 / 'gone'(그 주문이 없어짐 — 삭제된 테스트 주문 등) / null(인터넷 문제 등 잠깐 실패)
  */
 export async function fetchOrderStatus(token: string): Promise<OrderStatusRow | 'gone' | null> {

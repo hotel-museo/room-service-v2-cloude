@@ -58,7 +58,7 @@ export async function uploadImage(file: File, folder: 'menus' | 'sets'): Promise
 }
 
 /**
- * 자동 번역 (기존 번역 함수 사용). 기계 번역이라 메뉴 이름은 꼭 확인해야 해요.
+ * 자동 번역 (기존 번역 함수 사용). 기계 번역이라 메뉴 이름은 꼭 확인해야 합니다.
  */
 export async function autoTranslate(text: string, target: 'en' | 'ja' | 'zh'): Promise<string> {
   if (!text.trim()) return '';

@@ -11,8 +11,8 @@ function NoAccess() {
   return (
     <div className="login">
       <div className="login-card">
-        <h1>권한이 없는 계정이에요</h1>
-        <p className="meta">이 계정은 직원 명단에 등록되어 있지 않아요. 관리자에게 등록을 요청해 주세요.</p>
+        <h1>권한이 없는 계정입니다</h1>
+        <p className="meta">이 계정은 직원 명단에 등록되어 있지 않습니다. 관리자에게 등록을 요청해 주십시오.</p>
         <button type="button" className="btn-green" onClick={() => void supabase.auth.signOut()}>로그아웃</button>
       </div>
     </div>
@@ -28,7 +28,7 @@ function FrontRoot() {
     return () => data.subscription.unsubscribe();
   }, []);
 
-  // 직원 명단에 있는 계정인지 (관리자·프런트만 들어올 수 있어요)
+  // 직원 명단에 있는 계정인지 (관리자·프런트만 들어올 수 있습니다)
   const [role, setRole] = useState<string | null>(null);
   useEffect(() => {
     if (!session) { setRole(null); return; }

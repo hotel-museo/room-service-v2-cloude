@@ -3,8 +3,8 @@ import { CHECKOUT_PAY, checkoutPayLabel } from '../lib/types';
 import { itemSummary } from '../admin/sales/aggregate';
 
 /**
- * 대표 보고용 엑셀(.xlsx). 제목·요약·표·합계를 서식까지 넣어서 만들어요.
- * exceljs는 크기가 커서 버튼을 누를 때만 불러와요.
+ * 대표 보고용 엑셀(.xlsx). 제목·요약·표·합계를 서식까지 넣어서 만듭니다.
+ * exceljs는 크기가 커서 버튼을 누를 때만 불러옵니다.
  */
 const dt = (iso?: string | null) => {
   if (!iso) return '';

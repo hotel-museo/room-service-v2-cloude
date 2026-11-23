@@ -85,7 +85,7 @@ export function Board() {
   const cooking = b.orders.filter((o) => o.status === 'cooking');
   const finished = b.orders.filter((o) => o.status === 'completed' || o.status === 'rejected').sort((a, c) => (c.completed_at || c.rejected_at || '').localeCompare(a.completed_at || a.rejected_at || ''));
 
-  // 윈도우 프로그램(PASTA HOUSE 주문)으로 열었으면 접수 대기 건수를 알려줘요 → 아이콘 숫자·깜빡임·창 자동 띄우기
+  // 윈도우 프로그램(PASTA HOUSE 주문)으로 열었으면 접수 대기 건수를 알려 줍니다 → 아이콘 숫자·깜빡임·창 자동 띄우기
   useEffect(() => {
     window.phDesktop?.setPending(pending.length);
   }, [pending.length]);
@@ -127,16 +127,16 @@ export function Board() {
           ))}
         </div>
         <div className="tools">
-          <button type="button" className={`tool${autoPrint ? ' is-on' : ''}`} onClick={toggleAutoPrint} aria-pressed={autoPrint} title="주문을 접수하면 주방 영수증을 자동으로 인쇄해요">
+          <button type="button" className={`tool${autoPrint ? ' is-on' : ''}`} onClick={toggleAutoPrint} aria-pressed={autoPrint} title="주문을 접수하면 주방 영수증을 자동으로 인쇄합니다">
             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 9V4h10v5M7 17H5a1 1 0 0 1-1-1v-5a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v5a1 1 0 0 1-1 1h-2M7 14h10v6H7z" /></svg>
             <span>자동 인쇄 {autoPrint ? '켜짐' : '꺼짐'}</span>
           </button>
-          <button type="button" className={`tool${previewOpen ? ' is-on' : ''}`} onClick={togglePreview} aria-pressed={previewOpen} title="손님이 보는 주문 화면을 오른쪽에 띄워요. 메뉴를 바꾸면 바로 반영돼요">
+          <button type="button" className={`tool${previewOpen ? ' is-on' : ''}`} onClick={togglePreview} aria-pressed={previewOpen} title="손님이 보는 주문 화면을 오른쪽에 띄웁니다. 메뉴를 바꾸면 바로 반영됩니다">
             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 3h8a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2zM11 18h2" /></svg>
             <span>손님 화면</span>
           </button>
         </div>
-        <div className="clockbox" title={b.online ? `마지막 동기화 ${kstTime(b.lastSync?.toISOString() ?? null)}` : '인터넷 연결을 확인해 주세요'}>
+        <div className="clockbox" title={b.online ? `마지막 동기화 ${kstTime(b.lastSync?.toISOString() ?? null)}` : '인터넷 연결을 확인해 주십시오'}>
           <span className={`dot ${b.online ? 'dot--ok' : 'dot--bad'}`} />
           <span className="clock">{kstTime(new Date(now).toISOString())}</span>
           {!b.online && <span className="offline">연결 끊김</span>}
@@ -149,7 +149,7 @@ export function Board() {
       {pending.length > 0 && (
         <div className="a-banner" role="status">
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9" /><path d="M10.3 21a1.9 1.9 0 0 0 3.4 0" /></svg>
-          새 주문 {pending.length}건이 접수를 기다리고 있어요
+          새 주문 {pending.length}건이 접수를 기다리고 있습니다
           {page !== 'orders' && <a className="banner-btn" href="#orders">주문판 보기</a>}
         </div>
       )}
@@ -162,7 +162,7 @@ export function Board() {
         <section className="cols" aria-label="주문 현황">
           <div className="col">
             <div className="col-head"><h2>신규 주문</h2><span className="count count--green">{pending.length}</span></div>
-            {pending.length === 0 && <div className="empty-col">새 주문이 들어오면 여기에 떠요</div>}
+            {pending.length === 0 && <div className="empty-col">새 주문이 들어오면 여기에 뜹니다</div>}
             {pending.map((o) => {
               const age = minutesSince(o.created_at, now);
               return (
@@ -240,7 +240,7 @@ export function Board() {
           <div className="col">
             <div className="col-head"><h2 className="dim">오늘 완료</h2><span className="dim">{finished.length}건</span></div>
             <div className="donelist">
-              {finished.length === 0 && <div className="empty-col empty-col--flat">아직 완료된 주문이 없어요</div>}
+              {finished.length === 0 && <div className="empty-col empty-col--flat">아직 완료된 주문이 없습니다</div>}
               {finished.map((o) => (
                 <div className="done-row" key={o.id}>
                   <strong>{o.room_number}호</strong>
@@ -292,19 +292,19 @@ export function Board() {
         <div className="modal-layer">
           <button type="button" className="modal-backdrop" aria-label="닫기" onClick={() => setRejecting(null)} />
           <div className="modal" role="dialog" aria-modal="true" aria-label="주문 거절">
-            <h2>{rejecting.room_number}호 주문을 거절할까요?</h2>
-            <p className="meta">고른 사유가 손님 화면에 보여요. 아래 버튼 사유는 손님 언어(영어·일본어·중국어)로 자동 번역돼요.</p>
+            <h2>{rejecting.room_number}호 주문을 거절하시겠습니까?</h2>
+            <p className="meta">고른 사유가 손님 화면에 보입니다. 아래 버튼 사유는 손님 언어(영어·일본어·중국어)로 자동 번역됩니다.</p>
             <div className="reasons">
               {REJECT_REASONS.map((r) => (
                 <button type="button" key={r} className={reason === r ? 'is-on' : ''} aria-pressed={reason === r} onClick={() => setReason(r)}>{r}</button>
               ))}
             </div>
             <label className="f-label" htmlFor="reject-custom">직접 입력</label>
-            <input id="reject-custom" className="search" placeholder="예: 트러플 크림 재료가 떨어졌어요" value={reason} onChange={(e) => setReason(e.target.value)} maxLength={120} />
-            {reason.trim() && !REJECT_REASONS.includes(reason.trim()) && <p className="f-hint">직접 쓴 사유는 번역되지 않고 그대로 보여요. 외국인 손님이면 버튼 사유를 고르는 게 좋아요.</p>}
+            <input id="reject-custom" className="search" placeholder="예: 트러플 크림 재료가 떨어졌습니다" value={reason} onChange={(e) => setReason(e.target.value)} maxLength={120} />
+            {reason.trim() && !REJECT_REASONS.includes(reason.trim()) && <p className="f-hint">직접 쓴 사유는 번역되지 않고 그대로 보입니다. 외국인 손님이면 버튼 사유를 고르는 게 좋습니다.</p>}
             <div className="row-btns">
               <button type="button" className="btn-outline" onClick={() => setRejecting(null)}>취소</button>
-              <button type="button" className="btn-danger wide" disabled={!reason.trim()} title={reason.trim() ? '' : '거절 사유를 골라 주세요'} onClick={() => { void b.reject(rejecting.id, reason.trim()); setRejecting(null); }}>거절하기</button>
+              <button type="button" className="btn-danger wide" disabled={!reason.trim()} title={reason.trim() ? '' : '거절 사유를 골라 주십시오'} onClick={() => { void b.reject(rejecting.id, reason.trim()); setRejecting(null); }}>거절하기</button>
             </div>
           </div>
         </div>
@@ -327,7 +327,7 @@ function WingsPanel({ list, onPost }: { list: Order[]; onPost: (id: number, on: 
     <section className={`panel${todo.length ? ' panel--alert' : ''}`}>
       <div className="panel-head"><h2>WINGS 입력 대기</h2><span className="meta">투숙객 후불 · {todo.length}건</span></div>
       {todo.length === 0 ? (
-        <p className="meta" style={{ margin: 0 }}>WINGS에 넣을 주문이 없어요</p>
+        <p className="meta" style={{ margin: 0 }}>WINGS에 넣을 주문이 없습니다</p>
       ) : (
         <ul className="wings-list">
           {todo.map((o) => (
@@ -366,7 +366,7 @@ function BottegaSettings() {
   const staff = useStaff('bottega');
   const toast = useToast();
   const [data, setData] = useState<Awaited<ReturnType<typeof loadMenuAdminData>> | null>(null);
-  const reload = async () => { try { setData(await loadMenuAdminData()); } catch (e) { toast.show('영업시간을 불러오지 못했어요: ' + (e as Error).message, true); } };
+  const reload = async () => { try { setData(await loadMenuAdminData()); } catch (e) { toast.show('영업시간을 불러오지 못했습니다: ' + (e as Error).message, true); } };
   useEffect(() => { void reload(); }, []); // eslint-disable-line react-hooks/exhaustive-deps
   return (
     <main className="fd">

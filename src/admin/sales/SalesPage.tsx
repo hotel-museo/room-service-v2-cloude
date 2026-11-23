@@ -53,7 +53,7 @@ export function SalesPage() {
       fetchAll<{ total_amount: number | null }>(() => supabase.from('orders').select('total_amount').eq('status', 'completed').gte('created_at', pFrom).lt('created_at', from).order('id')),
     ]);
     setPrev(p.error ? null : { revenue: (p.data ?? []).reduce((a, r) => a + ((r as { total_amount: number | null }).total_amount ?? 0), 0), count: (p.data ?? []).length });
-    if (o.error) toast.show('불러오지 못했어요: ' + o.error.message, true);
+    if (o.error) toast.show('불러오지 못했습니다: ' + o.error.message, true);
     setOrders((o.data ?? []) as Order[]);
     setMenus((m.data ?? []) as Menu[]);
     setSets((s.data ?? []) as SetMenu[]);
@@ -95,7 +95,7 @@ export function SalesPage() {
   }, [roomOrders]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const openReport = () => {
-    // 지난번 담당자가 지금 명단에 없으면 비워두고 고르게 해요
+    // 지난번 담당자가 지금 명단에 없으면 비워두고 고르게 합니다
     const labels = bottegaStaff.active.map(staffLabel);
     if (labels.length && !labels.includes(reporter)) setReporter('');
     setPicking(true);
@@ -108,7 +108,7 @@ export function SalesPage() {
       const blob = await renderDailyReport(range.from, s.completed, s.rejected, reporter);
       setReport({ blob, url: URL.createObjectURL(blob), name: `룸서비스_일일보고_${range.from}.png` });
     } catch {
-      toast.show('보고 이미지를 만들지 못했어요', true);
+      toast.show('보고 이미지를 만들지 못했습니다', true);
     }
     setMaking(false);
   };
@@ -123,9 +123,9 @@ export function SalesPage() {
     if (!report) return;
     try {
       await navigator.clipboard.write([new ClipboardItem({ 'image/png': report.blob })]);
-      toast.show('복사했어요. 카톡 채팅방에서 Ctrl+V 하세요');
+      toast.show('복사했습니다. 카톡 채팅방에서 Ctrl+V 하십시오');
     } catch {
-      toast.show('복사가 안 돼요. "이미지 저장"으로 받아서 보내 주세요', true);
+      toast.show('복사가 안 됩니다. "이미지 저장"으로 받아서 보내 주십시오', true);
     }
   };
   const saveReport = () => {
@@ -149,7 +149,7 @@ export function SalesPage() {
   const prevLabel = preset === 'today' ? '어제' : preset === 'yesterday' ? '그저께' : preset === 'week' ? '그 전 7일' : preset === 'month' || preset === 'lastMonth' ? '그 전 기간' : '그 전 같은 기간';
   const delta = (now: number, before: number | undefined) => {
     if (before === undefined) return null;
-    if (before === 0) return now === 0 ? `${prevLabel} 대비 변화 없음` : `${prevLabel}에는 없었어요`;
+    if (before === 0) return now === 0 ? `${prevLabel} 대비 변화 없음` : `${prevLabel}에는 없었습니다`;
     const pct = Math.round(((now - before) / before) * 100);
     return pct === 0 ? `${prevLabel} 대비 변화 없음` : `${prevLabel} 대비 ${pct > 0 ? '▲' : '▼'} ${Math.abs(pct)}%`;
   };
@@ -172,14 +172,14 @@ export function SalesPage() {
         <span className="meta">{range.from === range.to ? range.from : `${range.from} ~ ${range.to}`}{loading ? ' · 불러오는 중…' : ''}</span>
         <span className="grow" />
         <button type="button" className="btn-outline btn-sm" onClick={exportOrders} disabled={!orders.length}>주문 내역 엑셀</button>
-        <button type="button" className="btn-green btn-sm" disabled={range.from !== range.to || making} title={range.from !== range.to ? '하루를 골라 주세요' : ''} onClick={openReport}>{making ? '만드는 중…' : '보고용 이미지'}</button>
+        <button type="button" className="btn-green btn-sm" disabled={range.from !== range.to || making} title={range.from !== range.to ? '하루를 골라 주십시오' : ''} onClick={openReport}>{making ? '만드는 중…' : '보고용 이미지'}</button>
       </div>
 
       <section className="tiles">
         <div className="tile tile--main"><span>매출</span><strong>{won(s.revenue)}원</strong><small>{delta(s.revenue, prev?.revenue) ?? '완료된 주문 기준'}</small></div>
         <div className="tile"><span>완료 주문</span><strong>{s.completed.length}건</strong><small>객단가 {won(s.avg)}원{prev ? ` · ${delta(s.completed.length, prev.count)}` : ''}</small></div>
         <div className="tile"><span>객실 합산</span><strong>{won(s.roomRevenue)}원</strong><small>카드 {won(s.cardRevenue)}원</small></div>
-        <div className="tile"><span>거절</span><strong>{s.rejected.length}건</strong><small>{s.inProgress.length ? `진행 중 ${s.inProgress.length}건은 매출에서 빠져요` : '진행 중인 주문 없음'}</small></div>
+        <div className="tile"><span>거절</span><strong>{s.rejected.length}건</strong><small>{s.inProgress.length ? `진행 중 ${s.inProgress.length}건은 매출에서 빠집니다` : '진행 중인 주문 없음'}</small></div>
       </section>
 
       <section className="panel">
@@ -201,7 +201,7 @@ export function SalesPage() {
           </select>
         </div>
         {ranking.length === 0 ? (
-          <p className="meta pad">이 기간에 완료된 주문이 없어요</p>
+          <p className="meta pad">이 기간에 완료된 주문이 없습니다</p>
         ) : (
           <div className="tbl-wrap">
             <table className="tbl">
@@ -237,7 +237,7 @@ export function SalesPage() {
                 })}
               </tbody>
             </table>
-            <p className="f-hint">단품: 그 메뉴를 따로 주문한 수량 · 세트로: 세트 구성에서 골라진 수량 · 메뉴 매출은 단품 매출만 넣었어요 (세트 매출은 세트 줄에 있어요)</p>
+            <p className="f-hint">단품: 그 메뉴를 따로 주문한 수량 · 세트로: 세트 구성에서 골라진 수량 · 메뉴 매출은 단품 매출만 넣었습니다 (세트 매출은 세트 줄에 있습니다)</p>
           </div>
         )}
       </section>
@@ -245,8 +245,8 @@ export function SalesPage() {
       <div className="two-col">
         <section className="panel">
           <h2>시간대별 주문</h2>
-          <p className="meta">완료된 주문 수 · 막대에 마우스를 올리면 매출도 보여요</p>
-          {!hasHourly ? <div className="chart-empty">이 기간에 완료된 주문이 없어요</div> : <ColumnChart
+          <p className="meta">완료된 주문 수 · 막대에 마우스를 올리면 매출도 보입니다</p>
+          {!hasHourly ? <div className="chart-empty">이 기간에 완료된 주문이 없습니다</div> : <ColumnChart
             label="시간대별 주문 수"
             data={s.byHour.map((h) => ({ key: String(h.hour), label: `${h.hour}시` }))}
             valueOf={(i) => s.byHour[i].orders}
@@ -258,7 +258,7 @@ export function SalesPage() {
           <section className="panel">
             <h2>일별 매출</h2>
             <p className="meta">완료된 주문 기준</p>
-            {!hasDaily ? <div className="chart-empty">이 기간에 매출이 없어요</div> : <ColumnChart
+            {!hasDaily ? <div className="chart-empty">이 기간에 매출이 없습니다</div> : <ColumnChart
               label="일별 매출"
               data={s.byDay.map((d) => ({ key: d.day, label: d.day.slice(5).replace('-', '/') }))}
               valueOf={(i) => s.byDay[i].revenue}
@@ -274,9 +274,9 @@ export function SalesPage() {
           <h2>투숙객 후불 진행 현황</h2>
           <label className="check-inline"><input type="checkbox" checked={onlyUnsettled} onChange={(e) => setOnlyUnsettled(e.target.checked)} /> 퇴실 결제 끝난 건 숨기기</label>
         </div>
-        <p className="meta">보테가 WINGS 입력 → 프런트 객실 반영 확인 → 프런트 퇴실 결제 완료 순서로 진행돼요. WINGS 입력은 주문판 오른쪽 'WINGS 입력 대기'에서 해요.</p>
+        <p className="meta">보테가 WINGS 입력 → 프런트 객실 반영 확인 → 프런트 퇴실 결제 완료 순서로 진행됩니다. WINGS 입력은 주문판 오른쪽 'WINGS 입력 대기'에서 합니다.</p>
         {roomGroups.length === 0 ? (
-          <p className="meta pad">{onlyUnsettled ? '진행 중인 투숙객 후불 주문이 없어요' : '이 기간에 투숙객 후불 주문이 없어요'}</p>
+          <p className="meta pad">{onlyUnsettled ? '진행 중인 투숙객 후불 주문이 없습니다' : '이 기간에 투숙객 후불 주문이 없습니다'}</p>
         ) : (
           <div className="tbl-wrap">
             <table className="tbl">
@@ -305,7 +305,7 @@ export function SalesPage() {
           <button type="button" className="modal-backdrop" aria-label="닫기" onClick={() => setPicking(false)} />
           <div className="modal" role="dialog" aria-modal="true" aria-labelledby="pick-t">
             <h2 id="pick-t">보고 담당자</h2>
-            <p className="meta">보고용 이미지에 담당자로 들어가요.</p>
+            <p className="meta">보고용 이미지에 담당자로 들어갑니다.</p>
             <label className="f-label" htmlFor="step-staff">담당자 <span className="req">필수</span></label>
             <StaffPicker staff={bottegaStaff.active} value={reporter} onChange={setReporter} />
             <div className="row-btns">
@@ -320,8 +320,8 @@ export function SalesPage() {
           <button type="button" className="modal-backdrop" aria-label="닫기" onClick={closeReport} />
           <div className="modal report-modal" role="dialog" aria-modal="true" aria-labelledby="rep-t">
             <h2 id="rep-t">보고용 이미지</h2>
-            <p className="meta">완료된 주문 기준이에요. 보고 담당 <b>{reporter}</b> · <button type="button" className="link" onClick={() => { closeReport(); setPicking(true); }}>담당자 바꾸기</button></p>
-            <p className="meta">아래 방법 중 하나로 카톡에 보내 주세요.</p>
+            <p className="meta">완료된 주문 기준입니다. 보고 담당 <b>{reporter}</b> · <button type="button" className="link" onClick={() => { closeReport(); setPicking(true); }}>담당자 바꾸기</button></p>
+            <p className="meta">아래 방법 중 하나로 카톡에 보내 주십시오.</p>
             <div className="report-preview"><img src={report.url} alt="룸서비스 일일 보고 이미지" /></div>
             <div className="report-btns">
               {canShare && <button type="button" className="btn-green" onClick={() => void shareReport()}>카톡으로 공유</button>}

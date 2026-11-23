@@ -3,7 +3,7 @@ import { supabase } from './supabase';
 import { CONTACT_KEYS, CONTACT_LABEL_KO, EMPTY_CONTACTS, type Contacts } from './contacts';
 import { notifyPreview } from './preview';
 
-/** 관리자 설정 > 손님 '문의하기' 연락처. 비워둔 곳은 손님 화면에 안 나와요. */
+/** 관리자 설정 > 손님 '문의하기' 연락처. 비워둔 곳은 손님 화면에 안 나옵니다. */
 export function ContactsSection({ toast }: { toast: (m: string, bad?: boolean) => void }) {
   const [saved, setSaved] = useState<Contacts | null>(null);
   const [form, setForm] = useState<Contacts>(EMPTY_CONTACTS);
@@ -28,9 +28,9 @@ export function ContactsSection({ toast }: { toast: (m: string, bad?: boolean) =
       if (error) throw new Error(error.message);
       setSaved(v);
       notifyPreview();
-      toast('연락처를 저장했어요');
+      toast('연락처를 저장했습니다');
     } catch (e) {
-      toast('저장하지 못했어요: ' + (e as Error).message, true);
+      toast('저장하지 못했습니다: ' + (e as Error).message, true);
     }
     setBusy(false);
   };
@@ -38,7 +38,7 @@ export function ContactsSection({ toast }: { toast: (m: string, bad?: boolean) =
   return (
     <section className="panel">
       <h2 className="fd-h2">손님 '문의하기' 연락처</h2>
-      <p className="meta">손님 첫 화면의 <b>문의하기</b>를 누르면 나와요. 번호를 누르면 바로 전화가 걸려요. 비워둔 곳은 안 보여요.</p>
+      <p className="meta">손님 첫 화면의 <b>문의하기</b>를 누르면 나옵니다. 번호를 누르면 바로 전화가 걸립니다. 비워둔 곳은 안 보입니다.</p>
       <div className="fd-contacts">
         {CONTACT_KEYS.map((k) => (
           <label key={k} className="fd-contact">

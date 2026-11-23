@@ -38,7 +38,7 @@ export function GuestApp() {
   const cart = useCart();
   const [lang, setLangState] = useState<Lang>(initialLang);
   const [tracked, setTracked] = useState<TrackedOrder | null>(() => (isPreview ? null : loadTracked()));
-  // 이 휴대폰에 기억된 주문이 이제 없으면(삭제된 테스트 주문 등) '주문 현황 보기'를 지워요
+  // 이 휴대폰에 기억된 주문이 이제 없으면(삭제된 테스트 주문 등) '주문 현황 보기'를 지웁니다
   useEffect(() => {
     if (!tracked) return;
     void fetchOrderStatus(tracked.token).then((r) => {
@@ -86,7 +86,7 @@ export function GuestApp() {
 
   const submit = async () => {
     if (isPreview) {
-      setError('미리보기 화면이라 주문이 들어가지 않아요.');
+      setError('미리보기 화면이라 주문이 들어가지 않습니다.');
       return;
     }
     setSubmitting(true);

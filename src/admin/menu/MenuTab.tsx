@@ -27,7 +27,7 @@ export function MenuTab({ menus, cats, labels, reload, toast }: Props) {
       toast(ok);
       await reload();
     } catch (e) {
-      toast('저장하지 못했어요: ' + (e as Error).message, true);
+      toast('저장하지 못했습니다: ' + (e as Error).message, true);
     }
   };
 
@@ -37,7 +37,7 @@ export function MenuTab({ menus, cats, labels, reload, toast }: Props) {
     if (j < 0 || j >= list.length) return;
     const a = list[idx], b = list[j];
     const sa = a.sort_order ?? 0, sb = b.sort_order ?? 0;
-    void run(() => saveOrder([{ id: a.id, sort_order: sb === sa ? sa + dir : sb }, { id: b.id, sort_order: sa }]), '순서를 바꿨어요');
+    void run(() => saveOrder([{ id: a.id, sort_order: sb === sa ? sa + dir : sb }, { id: b.id, sort_order: sa }]), '순서를 바꿨습니다');
   };
 
   return (
@@ -73,14 +73,14 @@ export function MenuTab({ menus, cats, labels, reload, toast }: Props) {
                       label={`${m.name} 판매 상태`}
                       onText="판매 중"
                       offText="품절"
-                      onChange={() => void run(() => saveMenu(m.id, sold ? { is_available: true, sold_out_until: null } : { is_available: false, sold_out_until: nextKstMidnightIso() }), sold ? '판매 중으로 바꿨어요' : '오늘 품절로 바꿨어요 (자정에 자동 해제)')}
+                      onChange={() => void run(() => saveMenu(m.id, sold ? { is_available: true, sold_out_until: null } : { is_available: false, sold_out_until: nextKstMidnightIso() }), sold ? '판매 중으로 바꿨습니다' : '오늘 품절로 바꿨습니다 (자정에 자동 해제)')}
                     />
                     <Toggle
                       on={!m.is_hidden}
                       label={`${m.name} 노출`}
                       onText="보임"
                       offText="숨김"
-                      onChange={() => void run(() => saveMenu(m.id, { is_hidden: !m.is_hidden }), m.is_hidden ? '손님 화면에 다시 보여요' : '손님 화면에서 숨겼어요')}
+                      onChange={() => void run(() => saveMenu(m.id, { is_hidden: !m.is_hidden }), m.is_hidden ? '손님 화면에 다시 보입니다' : '손님 화면에서 숨겼습니다')}
                     />
                     <button type="button" className="edit-btn" onClick={() => setEditing(m)} aria-label={`${m.name} 수정`} title="수정">
                       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20h4L19 9a2.1 2.1 0 0 0-3-3L5 17v3zM14 7l3 3" /></svg>
@@ -144,7 +144,7 @@ function MenuEditor({ menu, cats, labels, nextSort, onClose, onSaved, onError }:
     try {
       set('image_url', await uploadImage(file, 'menus'));
     } catch (e) {
-      onError('사진을 올리지 못했어요: ' + (e as Error).message);
+      onError('사진을 올리지 못했습니다: ' + (e as Error).message);
     }
     setBusy(false);
   };
@@ -160,7 +160,7 @@ function MenuEditor({ menu, cats, labels, nextSort, onClose, onSaved, onError }:
       setF(next);
       setLangOpen(true);
     } catch (e) {
-      onError('자동 번역에 실패했어요: ' + (e as Error).message);
+      onError('자동 번역에 실패했습니다: ' + (e as Error).message);
     }
     setBusy(false);
   };
@@ -176,9 +176,9 @@ function MenuEditor({ menu, cats, labels, nextSort, onClose, onSaved, onError }:
     try {
       if (menu) await saveMenu(menu.id, row);
       else await createMenu({ ...row, sort_order: nextSort, is_available: true, is_hidden: false });
-      await onSaved(menu ? '저장했어요' : '메뉴를 추가했어요');
+      await onSaved(menu ? '저장했습니다' : '메뉴를 추가했습니다');
     } catch (e) {
-      onError('저장하지 못했어요: ' + (e as Error).message);
+      onError('저장하지 못했습니다: ' + (e as Error).message);
       setBusy(false);
     }
   };
@@ -187,9 +187,9 @@ function MenuEditor({ menu, cats, labels, nextSort, onClose, onSaved, onError }:
     setBusy(true);
     try {
       await deleteMenu(menu!.id);
-      await onSaved('메뉴를 삭제했어요');
+      await onSaved('메뉴를 삭제했습니다');
     } catch (e) {
-      onError('삭제하지 못했어요: ' + (e as Error).message);
+      onError('삭제하지 못했습니다: ' + (e as Error).message);
       setBusy(false);
     }
   };
@@ -233,19 +233,19 @@ function MenuEditor({ menu, cats, labels, nextSort, onClose, onSaved, onError }:
           </select>
         </Field>
       </div>
-      <Field label="설명" hint="손님 화면에서 메뉴 이름 아래에 작게 보여요">
+      <Field label="설명" hint="손님 화면에서 메뉴 이름 아래에 작게 보입니다">
         <textarea className="inp" rows={2} value={f.description} onChange={(e) => set('description', e.target.value)} />
       </Field>
 
       <div className="langbox">
         <button type="button" className="langbox-head" aria-expanded={langOpen} onClick={() => setLangOpen(!langOpen)}>
           <span>외국어 (영어 · 일본어 · 중국어)</span>
-          <span className="meta">{f.name_en && f.name_ja && f.name_zh ? '입력됨' : '비어 있는 칸은 한국어로 보여요'} {langOpen ? '▲' : '▼'}</span>
+          <span className="meta">{f.name_en && f.name_ja && f.name_zh ? '입력됨' : '비어 있는 칸은 한국어로 보입니다'} {langOpen ? '▲' : '▼'}</span>
         </button>
         {langOpen && (
           <div className="langbox-body">
             <button type="button" className="btn-outline btn-sm" disabled={busy || !f.name.trim()} onClick={() => void translate()}>빈 칸 자동 번역</button>
-            <p className="f-hint">자동 번역은 틀리는 경우가 많아요. 특히 메뉴 이름은 꼭 확인해 주세요.</p>
+            <p className="f-hint">자동 번역은 틀리는 경우가 많습니다. 특히 메뉴 이름은 꼭 확인해 주십시오.</p>
             {(['en', 'ja', 'zh'] as Lang3[]).map((l) => (
               <div className="f-row" key={l}>
                 <Field label={{ en: '영어 이름', ja: '일본어 이름', zh: '중국어 이름' }[l]}>
@@ -262,7 +262,7 @@ function MenuEditor({ menu, cats, labels, nextSort, onClose, onSaved, onError }:
 
       {confirm === 'price' && menu && (
         <Confirm
-          title="가격을 바꿀까요?"
+          title="가격을 바꾸시겠습니까?"
           body={<p><strong>{menu.name}</strong><br />{won(menu.price)}원 → <strong>{won(price)}원</strong></p>}
           okLabel="가격 바꾸기"
           onCancel={() => setConfirm(null)}
@@ -271,9 +271,9 @@ function MenuEditor({ menu, cats, labels, nextSort, onClose, onSaved, onError }:
       )}
       {confirm === 'delete' && menu && (
         <Confirm
-          title="메뉴를 삭제할까요?"
+          title="메뉴를 삭제하시겠습니까?"
           danger
-          body={<p><strong>{menu.name}</strong>을(를) 삭제하면 되돌릴 수 없어요.<br />잠깐 안 팔 메뉴라면 목록에서 <strong>숨김</strong>을 쓰세요.</p>}
+          body={<p><strong>{menu.name}</strong>을(를) 삭제하면 되돌릴 수 없습니다.<br />잠깐 안 팔 메뉴라면 목록에서 <strong>숨김</strong>을 쓰십시오.</p>}
           okLabel="삭제"
           onCancel={() => setConfirm(null)}
           onOk={() => { setConfirm(null); void remove(); }}

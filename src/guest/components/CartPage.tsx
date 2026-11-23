@@ -40,7 +40,7 @@ export function CartPage({ rooms, t, lines, form, setForm, canOrder, submitting,
   const roomMissing = !form.room.trim();
   const [roomLeft, setRoomLeft] = useState(false);
   const roomBad = !roomMissing && !roomAllowed(rooms, form.room);
-  // 입력하는 중에는 빨간 글씨를 띄우지 않고, 칸을 벗어나거나 주문을 누르면 알려줘요
+  // 입력하는 중에는 빨간 글씨를 띄우지 않고, 칸을 벗어나거나 주문을 누르면 알려 줍니다
   const roomUnknown = roomBad && (touched || roomLeft);
   const nameMissing = form.payment === 'checkout' && !form.guestName.trim();
   const consentMissing = form.payment === 'checkout' && !form.consent;

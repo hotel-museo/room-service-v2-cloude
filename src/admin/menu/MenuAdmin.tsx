@@ -38,10 +38,10 @@ export function MenuAdmin() {
           <button type="button" role="tab" key={k} aria-selected={tab === k} className={tab === k ? 'is-on' : ''} onClick={() => setTab(k)}>{label}</button>
         ))}
         <span className="grow" />
-        <span className="meta">바꾼 내용은 손님 화면에 1분 안에 반영돼요 · 오른쪽 위 '손님 화면'에서 바로 확인</span>
+        <span className="meta">바꾼 내용은 손님 화면에 1분 안에 반영됩니다 · 오른쪽 위 '손님 화면'에서 바로 확인</span>
       </div>
 
-      {err && <p className="alert-bad">불러오지 못했어요: {err}</p>}
+      {err && <p className="alert-bad">불러오지 못했습니다: {err}</p>}
       {!data && !err && <p className="meta pad">불러오는 중…</p>}
       {data && tab === 'menu' && <MenuTab menus={data.menus} cats={cats} labels={data.labels} reload={reload} toast={toast.show} />}
       {data && tab === 'set' && <SetTab sets={data.sets} menus={data.menus} labels={data.labels} reload={reload} toast={toast.show} />}

@@ -129,7 +129,7 @@ export async function renderDailyReport(ymd: string, orders: Order[], rejected: 
   if (!rows.length) {
     ctx.fillStyle = C.sub;
     ctx.font = `500 28px ${FONT}`;
-    ctx.fillText('오늘 완료된 룸서비스가 없어요', PAD, y + 80);
+    ctx.fillText('오늘 완료된 룸서비스가 없습니다', PAD, y + 80);
     y += 140;
   }
   rows.forEach(({ o, lines }, i) => {

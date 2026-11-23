@@ -3,8 +3,8 @@ import type { Lang } from '../lib/types';
 
 /**
  * 관리자 화면 오른쪽에 띄우는 '손님 화면 미리보기'.
- * 실제 손님 화면을 휴대폰 크기로 보여줘요. 미리보기에서는 주문이 들어가지 않아요.
- * 메뉴·카테고리·품절·영업 상태를 바꾸면 미리보기가 바로 새로 불러와요 (lib/preview.ts).
+ * 실제 손님 화면을 휴대폰 크기로 보여 줍니다. 미리보기에서는 주문이 들어가지 않습니다.
+ * 메뉴·카테고리·품절·영업 상태를 바꾸면 미리보기가 바로 새로 불러옵니다 (lib/preview.ts).
  */
 const LANGS: [Lang, string][] = [['ko', '한'], ['en', 'EN'], ['ja', '日'], ['zh', '中']];
 const VIEWS: [string, string][] = [['menu', '메뉴'], ['home', '첫 화면']];
@@ -12,7 +12,7 @@ const VIEWS: [string, string][] = [['menu', '메뉴'], ['home', '첫 화면']];
 export function GuestPreview({ onClose }: { onClose: () => void }) {
   const [lang, setLang] = useState<Lang>('ko');
   const [view, setView] = useState('menu');
-  const [n, setN] = useState(0); // 바꾸면 iframe을 처음부터 다시 불러와요
+  const [n, setN] = useState(0); // 바꾸면 iframe을 처음부터 다시 불러옵니다
 
   const src = `../?preview=1&lang=${lang}${view === 'menu' ? '&view=menu' : ''}`;
 

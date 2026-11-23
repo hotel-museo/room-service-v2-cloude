@@ -5,7 +5,7 @@ import type { Order } from '../lib/types';
 
 /**
  * 주방 영수증 (80mm 감열지 기준).
- * 지금은 브라우저 인쇄 창을 띄웁니다. 매장 PC 크롬을 키오스크 인쇄 모드로 켜면 창 없이 바로 출력돼요.
+ * 지금은 브라우저 인쇄 창을 띄웁니다. 매장 PC 크롬을 키오스크 인쇄 모드로 켜면 창 없이 바로 출력됩니다.
  * 메뉴명은 손님 언어와 상관없이 항상 한국어로 찍힙니다.
  */
 export function printTicket(o: Order) {
@@ -42,7 +42,7 @@ ${o.request_note ? `<div class="note">요청: ${escapeHtml(o.request_note)}</div
 </body></html>`;
   const w = window.open('', '_blank', 'width=420,height=640');
   if (!w) {
-    alert('팝업이 막혀 있어서 인쇄하지 못했어요. 브라우저 주소창 오른쪽에서 팝업을 허용해 주세요.');
+    alert('팝업이 막혀 있어서 인쇄하지 못했습니다. 브라우저 주소창 오른쪽에서 팝업을 허용해 주십시오.');
     return;
   }
   w.document.open();

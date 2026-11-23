@@ -2,10 +2,10 @@ import { useCallback, useEffect, useState, type ReactNode } from 'react';
 import { supabase } from './supabase';
 
 /**
- * 직원 명단 (직급 + 이름). DB front_staff 표에 팀별로 저장해요.
+ * 직원 명단 (직급 + 이름). DB front_staff 표에 팀별로 저장합니다.
  * - front: 호텔 프런트 — 객실 반영 확인·퇴실 결제 완료 담당자
  * - bottega: 보테가 — 보고용 이미지 담당자
- * '관리자 설정'은 팀별 비밀번호로 잠겨 있어요.
+ * '관리자 설정'은 팀별 비밀번호로 잠겨 있습니다.
  */
 export type StaffTeam = 'front' | 'bottega';
 export interface FrontStaff {
@@ -32,7 +32,7 @@ export function useStaff(team: StaffTeam) {
   return { list, active: list.filter((s) => s.active), error, reload: load };
 }
 
-/** 관리자 설정: 비밀번호를 넣어야 들어갈 수 있어요. 다른 탭으로 나가면 다시 잠겨요. */
+/** 관리자 설정: 비밀번호를 넣어야 들어갈 수 있습니다. 다른 탭으로 나가면 다시 잠깁니다. */
 export function AdminSettings(props: { team: StaffTeam; staff: ReturnType<typeof useStaff>; toast: (m: string, bad?: boolean) => void; usedFor: string; children?: ReactNode }) {
   const [unlocked, setUnlocked] = useState(false);
   const [pin, setPin] = useState('');
@@ -44,7 +44,7 @@ export function AdminSettings(props: { team: StaffTeam; staff: ReturnType<typeof
     setBusy(true);
     const { data, error } = await supabase.rpc('check_staff_pin', { team: props.team, p: pin });
     setBusy(false);
-    if (error) return props.toast('확인하지 못했어요: ' + error.message, true);
+    if (error) return props.toast('확인하지 못했습니다: ' + error.message, true);
     if (data === true) { setUnlocked(true); setPin(''); setBad(false); }
     else { setBad(true); setPin(''); }
   };
@@ -54,10 +54,10 @@ export function AdminSettings(props: { team: StaffTeam; staff: ReturnType<typeof
       <div className="fd-lock">
         <section className="panel">
           <h2 className="fd-h2">관리자 설정</h2>
-          <p className="meta">비밀번호를 입력해 주세요.</p>
+          <p className="meta">비밀번호를 입력해 주십시오.</p>
           <input className={`inp fd-pin${bad ? ' is-bad' : ''}`} type="password" inputMode="numeric" autoComplete="off" maxLength={8} placeholder="••••" value={pin} autoFocus
             onChange={(e) => { setPin(e.target.value.replace(/[^0-9]/g, '')); setBad(false); }} onKeyDown={(e) => e.key === 'Enter' && void enter()} aria-label="비밀번호" />
-          {bad && <p className="fd-pin-err">비밀번호가 맞지 않아요</p>}
+          {bad && <p className="fd-pin-err">비밀번호가 맞지 않습니다</p>}
           <button type="button" className="btn-green" disabled={busy || !pin} onClick={() => void enter()}>{busy ? '확인 중…' : '들어가기'}</button>
         </section>
       </div>
@@ -83,9 +83,9 @@ function PinChange({ team, toast }: { team: StaffTeam; toast: (m: string, bad?: 
     setBusy(true);
     const { data, error } = await supabase.rpc('change_staff_pin', { team, old_pin: oldPin, new_pin: newPin });
     setBusy(false);
-    if (error) return toast('바꾸지 못했어요: ' + error.message, true);
-    if (data !== true) return toast('지금 비밀번호가 맞지 않아요', true);
-    toast('비밀번호를 바꿨어요');
+    if (error) return toast('바꾸지 못했습니다: ' + error.message, true);
+    if (data !== true) return toast('지금 비밀번호가 맞지 않습니다', true);
+    toast('비밀번호를 바꿨습니다');
     setOld(''); setNew(''); setAgain('');
   };
   return (
@@ -97,7 +97,7 @@ function PinChange({ team, toast }: { team: StaffTeam; toast: (m: string, bad?: 
         <input className="inp" type="password" inputMode="numeric" maxLength={8} placeholder="새 비밀번호 한 번 더" value={again} onChange={(e) => setAgain(digits(e.target.value))} aria-label="새 비밀번호 확인" />
         <button type="button" className="btn-green" disabled={busy || !ok} onClick={() => void save()}>변경</button>
       </div>
-      {again && newPin !== again && <p className="fd-pin-err">새 비밀번호가 서로 달라요</p>}
+      {again && newPin !== again && <p className="fd-pin-err">새 비밀번호가 서로 다릅니다</p>}
     </section>
   );
 }
@@ -115,8 +115,8 @@ function StaffSettings({ team, staff, toast, usedFor }: { team: StaffTeam; staff
     const next = Math.max(0, ...staff.list.map((s) => s.sort_order)) + 1;
     const { error } = await supabase.from('front_staff').insert({ team, name: name.trim(), rank: rank.trim(), sort_order: next });
     setBusy(false);
-    if (error) return toast('추가하지 못했어요: ' + error.message, true);
-    toast(`${staffLabel({ name, rank })}님을 추가했어요`);
+    if (error) return toast('추가하지 못했습니다: ' + error.message, true);
+    toast(`${staffLabel({ name, rank })}님을 추가했습니다`);
     setName('');
     setRank('');
     void staff.reload();
@@ -124,7 +124,7 @@ function StaffSettings({ team, staff, toast, usedFor }: { team: StaffTeam; staff
 
   const patch = async (id: number, p: Partial<FrontStaff>, msg?: string) => {
     const { error } = await supabase.from('front_staff').update(p).eq('id', id);
-    if (error) return toast('저장하지 못했어요: ' + error.message, true);
+    if (error) return toast('저장하지 못했습니다: ' + error.message, true);
     if (msg) toast(msg);
     void staff.reload();
   };
@@ -141,10 +141,10 @@ function StaffSettings({ team, staff, toast, usedFor }: { team: StaffTeam; staff
   };
 
   const remove = async (s: FrontStaff) => {
-    if (!window.confirm(`${staffLabel(s)}님을 명단에서 지울까요?\n이미 처리한 기록의 담당자 이름은 그대로 남아요.`)) return;
+    if (!window.confirm(`${staffLabel(s)}님을 명단에서 지우시겠습니까?\n이미 처리한 기록의 담당자 이름은 그대로 남습니다.`)) return;
     const { error } = await supabase.from('front_staff').delete().eq('id', s.id);
-    if (error) return toast('지우지 못했어요: ' + error.message, true);
-    toast(`${staffLabel(s)}님을 지웠어요`);
+    if (error) return toast('지우지 못했습니다: ' + error.message, true);
+    toast(`${staffLabel(s)}님을 지웠습니다`);
     void staff.reload();
   };
 
@@ -152,10 +152,10 @@ function StaffSettings({ team, staff, toast, usedFor }: { team: StaffTeam; staff
     <>
       <div className="fd-sum">
         <div><span>등록된 직원</span><strong>{staff.active.length}명</strong></div>
-        <p className="meta">여기 등록한 직원은 <b>{usedFor}</b> 때 담당자 목록에 나와요. 쉬는 직원은 '숨김'으로 두면 버튼에서 빠지고, 다시 켜면 돌아와요.</p>
+        <p className="meta">여기 등록한 직원은 <b>{usedFor}</b> 때 담당자 목록에 나옵니다. 쉬는 직원은 '숨김'으로 두면 버튼에서 빠지고, 다시 켜면 돌아옵니다.</p>
       </div>
 
-      {staff.error && <p className="alert-bad">직원 명단을 불러오지 못했어요: {staff.error}</p>}
+      {staff.error && <p className="alert-bad">직원 명단을 불러오지 못했습니다: {staff.error}</p>}
 
       <section className="panel">
         <h2 className="fd-h2">직원 추가</h2>
@@ -175,7 +175,7 @@ function StaffSettings({ team, staff, toast, usedFor }: { team: StaffTeam; staff
       <section className="panel">
         <h2 className="fd-h2">직원 명단</h2>
         {staff.list.length === 0 ? (
-          <p className="meta">아직 등록된 직원이 없어요. 위에서 추가해 주세요.</p>
+          <p className="meta">아직 등록된 직원이 없습니다. 위에서 추가해 주십시오.</p>
         ) : (
           <ul className="fd-staff-list">
             {staff.list.map((s, i) => (
@@ -190,7 +190,7 @@ function StaffSettings({ team, staff, toast, usedFor }: { team: StaffTeam; staff
                     <input className="inp inp--sm" value={editing.rank} onChange={(e) => setEditing({ ...editing, rank: e.target.value })} maxLength={20} aria-label="직급" list="fd-ranks" />
                     <span className="grow" />
                     <button type="button" className="link" onClick={() => setEditing(null)}>취소</button>
-                    <button type="button" className="btn-green btn-sm" disabled={!editing.name.trim()} onClick={() => { void patch(s.id, { name: editing.name.trim(), rank: editing.rank.trim() }, '수정했어요'); setEditing(null); }}>저장</button>
+                    <button type="button" className="btn-green btn-sm" disabled={!editing.name.trim()} onClick={() => { void patch(s.id, { name: editing.name.trim(), rank: editing.rank.trim() }, '수정했습니다'); setEditing(null); }}>저장</button>
                   </>
                 ) : (
                   <>
@@ -199,7 +199,7 @@ function StaffSettings({ team, staff, toast, usedFor }: { team: StaffTeam; staff
                     {!s.active && <span className="meta">숨김</span>}
                     <span className="grow" />
                     <button type="button" className="link" onClick={() => setEditing(s)}>수정</button>
-                    <button type="button" className="link" onClick={() => void patch(s.id, { active: !s.active }, s.active ? `${staffLabel(s)}님을 숨겼어요` : `${staffLabel(s)}님을 다시 보이게 했어요`)}>{s.active ? '숨김' : '보이기'}</button>
+                    <button type="button" className="link" onClick={() => void patch(s.id, { active: !s.active }, s.active ? `${staffLabel(s)}님을 숨겼습니다` : `${staffLabel(s)}님을 다시 보이게 했습니다`)}>{s.active ? '숨김' : '보이기'}</button>
                     <button type="button" className="link danger" onClick={() => void remove(s)}>삭제</button>
                   </>
                 )}
@@ -212,7 +212,7 @@ function StaffSettings({ team, staff, toast, usedFor }: { team: StaffTeam; staff
   );
 }
 
-/** 담당자 고르기: '직원 선택'을 누르면 아래로 명단이 펼쳐져요 (명단에 없으면 직접 입력) */
+/** 담당자 고르기: '직원 선택'을 누르면 아래로 명단이 펼쳐집니다 (명단에 없으면 직접 입력) */
 export function StaffPicker({ staff, value, onChange }: { staff: FrontStaff[]; value: string; onChange: (v: string) => void }) {
   const labels = staff.map(staffLabel);
   const [typing, setTyping] = useState(() => !!value && !labels.includes(value));
@@ -224,7 +224,7 @@ export function StaffPicker({ staff, value, onChange }: { staff: FrontStaff[]; v
         {staff.length > 0 ? (
           <button type="button" className="link fd-picker-toggle" onClick={() => { setTyping(false); onChange(''); }}>등록된 직원에서 고르기</button>
         ) : (
-          <p className="f-hint">위쪽 '관리자 설정'에서 직원을 등록하면 다음부터 버튼으로 바로 고를 수 있어요.</p>
+          <p className="f-hint">위쪽 '관리자 설정'에서 직원을 등록하면 다음부터 버튼으로 바로 고를 수 있습니다.</p>
         )}
       </>
     );

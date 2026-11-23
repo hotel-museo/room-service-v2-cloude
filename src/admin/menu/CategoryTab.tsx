@@ -63,7 +63,7 @@ export function CategoryTab({ cats, menus, labels, reload, toast }: Props) {
         zh: r.zh || (await autoTranslate(r.ko, 'zh')),
       });
     } catch (e) {
-      toast('자동 번역에 실패했어요: ' + (e as Error).message, true);
+      toast('자동 번역에 실패했습니다: ' + (e as Error).message, true);
     }
     setBusy(false);
   };
@@ -80,10 +80,10 @@ export function CategoryTab({ cats, menus, labels, reload, toast }: Props) {
       await saveSetting('category_translations', nextLabels);
       await saveSetting('category_order', { order: rows.map((r) => r.code) });
       setDirty(false);
-      toast('카테고리를 저장했어요');
+      toast('카테고리를 저장했습니다');
       await reload();
     } catch (e) {
-      toast('저장하지 못했어요: ' + (e as Error).message, true);
+      toast('저장하지 못했습니다: ' + (e as Error).message, true);
     }
     setBusy(false);
   };
@@ -91,7 +91,7 @@ export function CategoryTab({ cats, menus, labels, reload, toast }: Props) {
   return (
     <div className="mtab">
       <div className="mtab-bar">
-        <p className="meta">순서는 손님 화면의 카테고리 순서예요. 메뉴가 없는 카테고리는 손님 화면에 안 보여요.</p>
+        <p className="meta">순서는 손님 화면의 카테고리 순서입니다. 메뉴가 없는 카테고리는 손님 화면에 안 보입니다.</p>
         <button type="button" className="btn-green" onClick={add}>+ 카테고리 추가</button>
       </div>
 
@@ -121,7 +121,7 @@ export function CategoryTab({ cats, menus, labels, reload, toast }: Props) {
                   type="button"
                   className="btn-outline btn-sm danger"
                   disabled={n > 0}
-                  title={n > 0 ? '메뉴를 다른 카테고리로 옮긴 뒤 지울 수 있어요' : undefined}
+                  title={n > 0 ? '메뉴를 다른 카테고리로 옮긴 뒤 지울 수 있습니다' : undefined}
                   onClick={() => setDel(r)}
                 >
                   삭제
@@ -140,19 +140,19 @@ export function CategoryTab({ cats, menus, labels, reload, toast }: Props) {
         })}
       </div>
 
-      <p className="f-hint">메뉴를 다른 카테고리로 옮기려면 '단품 메뉴'에서 메뉴를 열고 카테고리를 바꾸세요. 메뉴가 있는 카테고리는 지울 수 없어요.</p>
+      <p className="f-hint">메뉴를 다른 카테고리로 옮기려면 '단품 메뉴'에서 메뉴를 열고 카테고리를 바꾸십시오. 메뉴가 있는 카테고리는 지울 수 없습니다.</p>
 
       <div className="hours-save">
         <button type="button" className="btn-green" disabled={!valid || busy || !dirty} onClick={() => void save()}>{busy ? '저장 중…' : '저장'}</button>
-        {dirty && <span className="meta">저장하지 않은 변경이 있어요</span>}
-        {!valid && <span className="meta danger-txt">이름이 빈 카테고리가 있어요</span>}
+        {dirty && <span className="meta">저장하지 않은 변경이 있습니다</span>}
+        {!valid && <span className="meta danger-txt">이름이 빈 카테고리가 있습니다</span>}
       </div>
 
       {del && (
         <Confirm
-          title="카테고리를 지울까요?"
+          title="카테고리를 지우시겠습니까?"
           danger
-          body={<p><strong>{del.ko || '이름 없는 카테고리'}</strong>를 목록에서 지워요. 저장을 눌러야 반영돼요.</p>}
+          body={<p><strong>{del.ko || '이름 없는 카테고리'}</strong>를 목록에서 지웁니다. 저장을 눌러야 반영됩니다.</p>}
           okLabel="지우기"
           onCancel={() => setDel(null)}
           onOk={() => {

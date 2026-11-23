@@ -26,10 +26,10 @@ export function HoursTab({ hours, labels, cats, reload, toast }: Props) {
     try {
       const cleanCut = Object.fromEntries(Object.entries(cutoffs).filter(([, v]) => v));
       await saveSetting('business_hours', { ...hours, slots, categoryCutoffs: cleanCut });
-      toast('영업시간을 저장했어요');
+      toast('영업시간을 저장했습니다');
       await reload();
     } catch (e) {
-      toast('저장하지 못했어요: ' + (e as Error).message, true);
+      toast('저장하지 못했습니다: ' + (e as Error).message, true);
     }
     setBusy(false);
   };
@@ -38,7 +38,7 @@ export function HoursTab({ hours, labels, cats, reload, toast }: Props) {
     <div className="mtab hours">
       <section className="panel">
         <h2>주문 받는 시간</h2>
-        <p className="meta">이 시간에만 손님이 주문할 수 있어요. 마감 30분 전부터 손님 화면에 남은 시간이 보여요. 임시로 쉬는 날은 주문판 위쪽의 '마감'을 누르세요.</p>
+        <p className="meta">이 시간에만 손님이 주문할 수 있습니다. 마감 30분 전부터 손님 화면에 남은 시간이 보입니다. 임시로 쉬는 날은 주문판 위쪽의 '마감'을 누르십시오.</p>
         {slots.map(([a, b], i) => (
           <div className="slot" key={i}>
             <input className="inp inp--time" type="time" value={a} aria-label="시작" onChange={(e) => setSlots((p) => p.map((s, j) => (j === i ? [e.target.value, s[1]] : s)))} />
@@ -52,7 +52,7 @@ export function HoursTab({ hours, labels, cats, reload, toast }: Props) {
 
       <section className="panel">
         <h2>메뉴별 주문 마감</h2>
-        <p className="meta">특정 카테고리만 더 일찍 막고 싶을 때 써요. 비워두면 위 시간과 같아요.</p>
+        <p className="meta">특정 카테고리만 더 일찍 막고 싶을 때 씁니다. 비워두면 위 시간과 같습니다.</p>
         {cats.map((c) => (
           <Field key={c} label={labels[c]?.ko || c}>
             <div className="slot">
@@ -65,7 +65,7 @@ export function HoursTab({ hours, labels, cats, reload, toast }: Props) {
 
       <div className="hours-save">
         <button type="button" className="btn-green" disabled={!ok || busy} onClick={() => void save()}>{busy ? '저장 중…' : '저장'}</button>
-        {!ok && <span className="danger-txt meta">시간을 확인해 주세요 (시작이 마감보다 빨라야 해요)</span>}
+        {!ok && <span className="danger-txt meta">시간을 확인해 주십시오 (시작이 마감보다 빨라야 합니다)</span>}
       </div>
     </div>
   );

@@ -1,7 +1,7 @@
-// 호텔 뮤제오 룸서비스 윈도우 프로그램 (하나의 코드로 두 가지를 만들어요)
-// - admin: PASTA HOUSE 주문 (보테가 관리자) — 새 주문이 오면 창을 자동으로 띄우고 30초마다 다시 알려요
-// - front: HOTEL MUSEO 프런트 — 객실 반영 확인할 건이 생기면 아이콘 숫자·깜빡임·알림만 (창 자동 띄우기는 메뉴에서 켤 수 있어요)
-// 공통: 웹페이지를 그대로 띄워서 웹을 고치면 다시 설치할 필요 없어요. 창을 닫아도 트레이에 계속 떠 있어요.
+// 호텔 뮤제오 룸서비스 윈도우 프로그램 (하나의 코드로 두 가지를 만듭니다)
+// - admin: PASTA HOUSE 주문 (보테가 관리자) — 새 주문이 오면 창을 자동으로 띄우고 30초마다 다시 알립니다
+// - front: HOTEL MUSEO 프런트 — 객실 반영 확인할 건이 생기면 아이콘 숫자·깜빡임·알림만 (창 자동 띄우기는 메뉴에서 켤 수 있습니다)
+// 공통: 웹페이지를 그대로 띄워서 웹을 고치면 다시 설치할 필요 없습니다. 창을 닫아도 트레이에 계속 떠 있습니다.
 const { app, BrowserWindow, Tray, Menu, nativeImage, ipcMain, Notification, dialog, shell, session, net } = require('electron');
 const path = require('path');
 const fs = require('fs');
@@ -16,8 +16,8 @@ const VARIANTS = {
     remind: true,
     countTitle: (n) => `(${n}) 새 주문 · PASTA HOUSE`,
     tip: (n) => (n ? `PASTA HOUSE 주문 · 새 주문 ${n}건` : 'PASTA HOUSE 주문 · 새 주문 없음'),
-    note: (n) => ({ title: `새 주문 ${n}건`, body: '룸서비스 주문이 들어왔어요. 주문판에서 접수해 주세요.' }),
-    quitWarn: '종료하면 새 주문 알림을 받지 못해요.',
+    note: (n) => ({ title: `새 주문 ${n}건`, body: '룸서비스 주문이 들어왔습니다. 주문판에서 접수해 주십시오.' }),
+    quitWarn: '종료하면 새 주문 알림을 받지 못합니다.',
     pages: [['주문판 열기', '#orders'], ['메뉴 관리', '#menu'], ['매출 · 정산', '#sales']],
   },
   front: {
@@ -28,21 +28,21 @@ const VARIANTS = {
     remind: false,
     countTitle: (n) => `(${n}) 객실 반영 확인 · 프런트`,
     tip: (n) => (n ? `프런트 · 객실 반영 확인 ${n}건` : '프런트 · 확인할 건 없음'),
-    note: (n) => ({ title: `객실 반영 확인 ${n}건`, body: '보테가에서 WINGS 입력을 마친 룸서비스 후불 건이에요. 틈날 때 확인해 주세요.' }),
-    quitWarn: '종료하면 확인할 건이 생겨도 알림을 받지 못해요.',
+    note: (n) => ({ title: `객실 반영 확인 ${n}건`, body: '보테가에서 WINGS 입력을 마친 룸서비스 후불 건입니다. 틈날 때 확인해 주십시오.' }),
+    quitWarn: '종료하면 확인할 건이 생겨도 알림을 받지 못합니다.',
     pages: [['프런트 화면 열기', '']],
   },
 };
 const VARIANT = require('./package.json').phVariant === 'front' || process.argv.includes('--front') ? 'front' : 'admin';
 const V = VARIANTS[VARIANT];
 
-// PH_ADMIN_URL은 개발 중 시험용 (평소엔 비워둬요)
+// PH_ADMIN_URL은 개발 중 시험용 (평소엔 비워 둡니다)
 const BASE = process.env.PH_ADMIN_URL || V.url.split('#')[0];
 const START = process.env.PH_ADMIN_URL || V.url;
 const ORIGIN = new URL(BASE).origin;
 const APP_ID = V.appId;
 const BLINK_MS = 450; // 트레이 깜빡임 속도
-const REMIND_MS = 30_000; // (관리자) 접수 대기가 남아 있는데 창을 닫아두면 30초마다 다시 띄워요
+const REMIND_MS = 30_000; // (관리자) 접수 대기가 남아 있는데 창을 닫아두면 30초마다 다시 띄웁니다
 const ICON = path.join(__dirname, 'build', `icon-${VARIANT}.png`);
 const UPDATE_CHECK_MS = 3 * 60_000; // 3분마다 웹 화면이 새로 올라왔는지 확인
 
@@ -100,7 +100,7 @@ function createWindow() {
     updateTitle();
   });
 
-  // X를 눌러도 종료하지 않고 트레이로 숨겨요
+  // X를 눌러도 종료하지 않고 트레이로 숨깁니다
   win.on('close', (e) => {
     if (quitting) return;
     e.preventDefault();
@@ -110,7 +110,7 @@ function createWindow() {
       tray.displayBalloon({
         iconType: 'info',
         title: V.title,
-        content: '창을 닫아도 계속 켜져 있어요. 새 건이 생기면 아이콘으로 알려드려요.\n완전히 끄려면 시계 옆 아이콘 → 종료',
+        content: '창을 닫아도 계속 켜져 있습니다. 새 건이 생기면 아이콘으로 알려 드립니다.\n완전히 끄려면 시계 옆 아이콘 → 종료',
       });
     }
   });
@@ -124,7 +124,7 @@ function createWindow() {
     }
   });
 
-  // 직원이 창을 누르면 작업표시줄 깜빡임은 멈춰요 (숫자·트레이 깜빡임은 접수할 때까지 유지)
+  // 직원이 창을 누르면 작업표시줄 깜빡임은 멈춥니다 (숫자·트레이 깜빡임은 접수할 때까지 유지)
   win.on('focus', () => win.flashFrame(false));
 
   // 영수증 인쇄 창(about:blank)과 같은 사이트 창은 열어주고, 바깥 링크는 기본 브라우저로
@@ -148,7 +148,7 @@ function go(hash) {
   if (hash) win.webContents.executeJavaScript(`location.hash = ${JSON.stringify(hash)}`).catch(() => undefined);
 }
 
-/** 창 띄우기. focus=false면 하던 일(유튜브 등)을 뺏지 않고 맨 앞에만 보여줘요 */
+/** 창 띄우기. focus=false면 하던 일(유튜브 등)을 뺏지 않고 맨 앞에만 보여 줍니다 */
 function showWindow(focus) {
   if (!win) return;
   if (win.isMinimized()) win.restore();
@@ -221,7 +221,7 @@ function setPending(n) {
   startBlink();
   if (pending > prev) alertNewOrders(pending);
 
-  // (관리자) 접수 안 하고 창을 닫아두면 30초마다 다시 띄워요
+  // (관리자) 접수 안 하고 창을 닫아두면 30초마다 다시 띄웁니다
   if (V.remind && !remindTimer) {
     remindTimer = setInterval(() => {
       if (pending > 0 && win && (!win.isVisible() || win.isMinimized())) {
@@ -234,8 +234,8 @@ function setPending(n) {
 
 /**
  * 웹 화면 새 버전 자동 적용.
- * 사이트에 새로 올리면 화면 파일 이름(assets/…-해시.js)이 바뀌어요. 지금 띄운 것과 다르면 새로 불러와요.
- * 직원이 입력 중일 수 있으니 창이 열려 있고 팝업(.modal)이 떠 있으면 다음 확인 때로 미뤄요.
+ * 사이트에 새로 올리면 화면 파일 이름(assets/…-해시.js)이 바뀝니다. 지금 띄운 것과 다르면 새로 불러옵니다.
+ * 직원이 입력 중일 수 있으니 창이 열려 있고 팝업(.modal)이 떠 있으면 다음 확인 때로 미룹니다.
  */
 async function checkWebUpdate() {
   if (!win || win.webContents.isLoading()) return;
@@ -290,7 +290,7 @@ function buildTrayMenu() {
           cancelId: 0,
           title: V.title,
           message: V.quitWarn,
-          detail: '그래도 종료할까요?',
+          detail: '그래도 종료하시겠습니까?',
         });
         if (r.response === 1) {
           quitting = true;
@@ -301,7 +301,7 @@ function buildTrayMenu() {
   ]);
 }
 
-// 웹페이지(관리자 주문판)가 접수 대기 건수를 알려줘요
+// 웹페이지(관리자 주문판)가 접수 대기 건수를 알려 줍니다
 ipcMain.on('ph:pending', (event, n) => {
   const url = event.senderFrame ? event.senderFrame.url : '';
   if (!url.startsWith(ORIGIN)) return; // 우리 사이트에서 온 것만
@@ -311,7 +311,7 @@ ipcMain.on('ph:pending', (event, n) => {
 app.on('second-instance', () => showWindow(true));
 
 app.whenReady().then(async () => {
-  // 처음 한 번만: 컴퓨터 켤 때 자동 실행 켜기 (트레이 메뉴에서 끌 수 있어요)
+  // 처음 한 번만: 컴퓨터 켤 때 자동 실행 켜기 (트레이 메뉴에서 끌 수 있습니다)
   const flag = path.join(app.getPath('userData'), 'first-run-done');
   if (!fs.existsSync(flag)) {
     app.setLoginItemSettings({ openAtLogin: true });
@@ -332,4 +332,4 @@ app.whenReady().then(async () => {
 });
 
 app.on('before-quit', () => { quitting = true; });
-app.on('window-all-closed', () => { /* 트레이에 남아 있어요 */ });
+app.on('window-all-closed', () => { /* 트레이에 남아 있습니다 */ });
