@@ -2,7 +2,6 @@ import { useEffect, useMemo, useState } from 'react';
 import { isSoldOut, visibleMenus, won } from '../lib/menu';
 import { supabase } from '../lib/supabase';
 import type { Order, ServiceStatus } from '../lib/types';
-import { audioReady, chime, unlockAudio } from './alarm';
 import { MenuAdmin } from './menu/MenuAdmin';
 import { SalesPage } from './sales/SalesPage';
 import { printTicket } from './print';
@@ -55,7 +54,6 @@ export function Board() {
   const b = useBoard();
   const page = usePage();
   const [now, setNow] = useState(Date.now());
-  const [sound, setSound] = useState(false);
   const [rejecting, setRejecting] = useState<Order | null>(null);
   const [reason, setReason] = useState('');
   const [query, setQuery] = useState('');
@@ -81,14 +79,6 @@ export function Board() {
   const cooking = b.orders.filter((o) => o.status === 'cooking');
   const finished = b.orders.filter((o) => o.status === 'completed' || o.status === 'rejected').sort((a, c) => (c.completed_at || c.rejected_at || '').localeCompare(a.completed_at || a.rejected_at || ''));
 
-  // 접수 대기 주문이 있으면 7초마다 알림음
-  useEffect(() => {
-    if (!sound || pending.length === 0) return;
-    chime();
-    const id = window.setInterval(chime, 7000);
-    return () => window.clearInterval(id);
-  }, [sound, pending.length]);
-
   // 윈도우 프로그램(PASTA HOUSE 주문)으로 열었으면 접수 대기 건수를 알려줘요 → 아이콘 숫자·깜빡임·창 자동 띄우기
   useEffect(() => {
     window.phDesktop?.setPending(pending.length);
@@ -106,11 +96,6 @@ export function Board() {
   const menus = useMemo(() => visibleMenus(b.menus), [b.menus]);
   const filtered = menus.filter((m) => !query.trim() || m.name.includes(query.trim()));
   const soldCount = menus.filter((m) => isSoldOut(m)).length;
-
-  const enableSound = () => {
-    unlockAudio();
-    window.setTimeout(() => setSound(audioReady()), 200);
-  };
 
   const ageChip = (min: number) => (min >= 10 ? 'chip chip--red' : min >= 5 ? 'chip chip--amber' : 'chip');
 
@@ -135,10 +120,6 @@ export function Board() {
           ))}
         </div>
         <div className="tools">
-          <button type="button" className={`tool${sound ? ' is-on' : ' is-warn'}`} onClick={sound ? undefined : enableSound} aria-pressed={sound} title={sound ? '새 주문 알림음이 켜져 있어요' : '눌러서 알림음 켜기'}>
-            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 16V11a6 6 0 0 1 12 0v5l1.5 2h-15zM10 20.5a2 2 0 0 0 4 0" /></svg>
-            <span>{sound ? '알림 켜짐' : '알림 켜기'}</span>
-          </button>
           <button type="button" className={`tool${autoPrint ? ' is-on' : ''}`} onClick={toggleAutoPrint} aria-pressed={autoPrint} title="주문을 접수하면 주방 영수증을 자동으로 인쇄해요">
             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 9V4h10v5M7 17H5a1 1 0 0 1-1-1v-5a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v5a1 1 0 0 1-1 1h-2M7 14h10v6H7z" /></svg>
             <span>자동 인쇄 {autoPrint ? '켜짐' : '꺼짐'}</span>
@@ -162,7 +143,6 @@ export function Board() {
         <div className="a-banner" role="status">
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9" /><path d="M10.3 21a1.9 1.9 0 0 0 3.4 0" /></svg>
           새 주문 {pending.length}건이 접수를 기다리고 있어요
-          {!sound && <button type="button" className="banner-btn" onClick={enableSound}>알림음 켜기</button>}
           {page !== 'orders' && <a className="banner-btn" href="#orders">주문판 보기</a>}
         </div>
       )}
