@@ -1,7 +1,7 @@
 {
   "name": "pasta-house-order",
   "productName": "PASTA HOUSE Order",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "PASTA HOUSE 룸서비스 새 주문 알림 (보테가 관리자용)",
   "author": "Hotel Museo",
   "main": "main.js",

@@ -2,7 +2,7 @@
 // - admin: PASTA HOUSE 주문 (보테가 관리자) — 새 주문이 오면 창을 자동으로 띄우고 30초마다 다시 알려요
 // - front: HOTEL MUSEO 프런트 — 객실 반영 확인할 건이 생기면 아이콘 숫자·깜빡임·알림만 (창 자동 띄우기는 메뉴에서 켤 수 있어요)
 // 공통: 웹페이지를 그대로 띄워서 웹을 고치면 다시 설치할 필요 없어요. 창을 닫아도 트레이에 계속 떠 있어요.
-const { app, BrowserWindow, Tray, Menu, nativeImage, ipcMain, Notification, dialog, shell } = require('electron');
+const { app, BrowserWindow, Tray, Menu, nativeImage, ipcMain, Notification, dialog, shell, session, net } = require('electron');
 const path = require('path');
 const fs = require('fs');
 
@@ -44,6 +44,7 @@ const APP_ID = V.appId;
 const BLINK_MS = 450; // 트레이 깜빡임 속도
 const REMIND_MS = 30_000; // (관리자) 접수 대기가 남아 있는데 창을 닫아두면 30초마다 다시 띄워요
 const ICON = path.join(__dirname, 'build', `icon-${VARIANT}.png`);
+const UPDATE_CHECK_MS = 3 * 60_000; // 3분마다 웹 화면이 새로 올라왔는지 확인
 
 // 설정 (창 자동 띄우기 켬/끔) — 사용자 폴더에 저장
 const settingsFile = () => path.join(app.getPath('userData'), 'settings.json');
@@ -111,6 +112,15 @@ function createWindow() {
         title: V.title,
         content: '창을 닫아도 계속 켜져 있어요. 새 건이 생기면 아이콘으로 알려드려요.\n완전히 끄려면 시계 옆 아이콘 → 종료',
       });
+    }
+  });
+
+  // F5 / Ctrl+R: 새로 불러오기 (메뉴줄이 없어서 직접 연결)
+  win.webContents.on('before-input-event', (e, input) => {
+    if (input.type !== 'keyDown') return;
+    if (input.key === 'F5' || ((input.control || input.meta) && input.key.toLowerCase() === 'r')) {
+      e.preventDefault();
+      void session.defaultSession.clearCache().then(() => win.webContents.reloadIgnoringCache());
     }
   });
 
@@ -222,6 +232,32 @@ function setPending(n) {
   }
 }
 
+/**
+ * 웹 화면 새 버전 자동 적용.
+ * 사이트에 새로 올리면 화면 파일 이름(assets/…-해시.js)이 바뀌어요. 지금 띄운 것과 다르면 새로 불러와요.
+ * 직원이 입력 중일 수 있으니 창이 열려 있고 팝업(.modal)이 떠 있으면 다음 확인 때로 미뤄요.
+ */
+async function checkWebUpdate() {
+  if (!win || win.webContents.isLoading()) return;
+  try {
+    const res = await net.fetch(BASE + '?_=' + Date.now(), { cache: 'no-store' });
+    if (!res.ok) return;
+    const html = await res.text();
+    const latest = (html.match(/assets\/[^"']+\.js/) || [])[0];
+    if (!latest) return;
+    const current = await win.webContents.executeJavaScript(
+      "Array.from(document.querySelectorAll('script[src]')).map((s) => s.getAttribute('src')).join(' ')",
+    );
+    if (current.includes(latest)) return;
+    const busy = await win.webContents.executeJavaScript("!!document.querySelector('.modal, input:focus, textarea:focus')");
+    if (busy && win.isVisible()) return;
+    await session.defaultSession.clearCache();
+    win.webContents.reloadIgnoringCache();
+  } catch {
+    /* 인터넷이 잠깐 끊겨도 다음에 다시 확인 */
+  }
+}
+
 function autoStartOn() {
   return app.getLoginItemSettings().openAtLogin;
 }
@@ -236,7 +272,7 @@ function buildTrayMenu() {
       checked: popupOn(),
       click: (item) => writeSettings({ popup: item.checked }),
     },
-    { label: '새로 불러오기', click: () => { showWindow(true); win.webContents.reloadIgnoringCache(); } },
+    { label: '새로 불러오기 (최신 화면)', click: async () => { showWindow(true); await session.defaultSession.clearCache(); win.webContents.reloadIgnoringCache(); } },
     {
       label: '컴퓨터 켤 때 자동 실행',
       type: 'checkbox',
@@ -274,13 +310,17 @@ ipcMain.on('ph:pending', (event, n) => {
 
 app.on('second-instance', () => showWindow(true));
 
-app.whenReady().then(() => {
+app.whenReady().then(async () => {
   // 처음 한 번만: 컴퓨터 켤 때 자동 실행 켜기 (트레이 메뉴에서 끌 수 있어요)
   const flag = path.join(app.getPath('userData'), 'first-run-done');
   if (!fs.existsSync(flag)) {
     app.setLoginItemSettings({ openAtLogin: true });
     try { fs.writeFileSync(flag, '1'); } catch { /* 무시 */ }
   }
+
+  // 켤 때마다 예전 화면 기억을 지우고 최신 화면으로 시작
+  await session.defaultSession.clearCache().catch(() => undefined);
+  setInterval(() => void checkWebUpdate(), UPDATE_CHECK_MS);
 
   tray = new Tray(asset('tray.png'));
   trayIdle();
