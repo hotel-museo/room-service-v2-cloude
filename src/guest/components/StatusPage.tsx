@@ -12,6 +12,8 @@ interface Props {
   order: TrackedOrder;
   onMenu: () => void;
   onNewOrder: () => void;
+  /** 주문이 없어졌을 때 (삭제된 주문) */
+  onGone: () => void;
 }
 
 const POLL_MS = 8000;
@@ -21,19 +23,21 @@ function timeText(d: Date, lang: Lang) {
   return d.toLocaleTimeString(loc, { hour: 'numeric', minute: '2-digit', timeZone: 'Asia/Seoul' });
 }
 
-export function StatusPage({ lang, t, order, onMenu, onNewOrder }: Props) {
+export function StatusPage({ lang, t, order, onMenu, onNewOrder, onGone }: Props) {
   const [row, setRow] = useState<OrderStatusRow | null>(null);
 
   useEffect(() => {
     let alive = true;
     const tick = async () => {
       const r = await fetchOrderStatus(order.token);
-      if (alive && r) setRow(r);
+      if (!alive) return;
+      if (r === 'gone') onGone();
+      else if (r) setRow(r);
     };
     void tick();
     const id = window.setInterval(tick, POLL_MS);
     return () => { alive = false; window.clearInterval(id); };
-  }, [order.token]);
+  }, [order.token]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const status = row?.status ?? 'pending';
   let title = t('st_pending_t');

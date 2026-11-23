@@ -12,7 +12,7 @@ import { MenuSheet } from './components/MenuSheet';
 import { SetSheet } from './components/SetSheet';
 import { Sheet } from './components/Sheet';
 import { StatusPage } from './components/StatusPage';
-import { loadTracked, placeOrder, saveTracked, type TrackedOrder } from './orders';
+import { fetchOrderStatus, loadTracked, placeOrder, saveTracked, type TrackedOrder } from './orders';
 import { useGuestData } from './useGuestData';
 import { isPreview } from '../lib/preview';
 
@@ -38,6 +38,13 @@ export function GuestApp() {
   const cart = useCart();
   const [lang, setLangState] = useState<Lang>(initialLang);
   const [tracked, setTracked] = useState<TrackedOrder | null>(() => (isPreview ? null : loadTracked()));
+  // 이 휴대폰에 기억된 주문이 이제 없으면(삭제된 테스트 주문 등) '주문 현황 보기'를 지워요
+  useEffect(() => {
+    if (!tracked) return;
+    void fetchOrderStatus(tracked.token).then((r) => {
+      if (r === 'gone') { saveTracked(null); setTracked(null); }
+    });
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
   const [view, setView] = useState<View>(() => (new URLSearchParams(location.search).get('view') === 'menu' ? 'menu' : 'home'));
   const [menuId, setMenuId] = useState<number | null>(null);
   const [setId, setSetId] = useState<number | null>(null);
@@ -138,6 +145,7 @@ export function GuestApp() {
         order={tracked}
         onMenu={() => setView('menu')}
         onNewOrder={() => { saveTracked(null); setTracked(null); setView('menu'); }}
+        onGone={() => { saveTracked(null); setTracked(null); setView('home'); }}
       />
     );
   }
