@@ -160,7 +160,7 @@ export interface Order {
   payment_method: PaymentMethod | null;
   disposable_cutlery_qty: number | null;
   /** 배달 방법 (lib/delivery.ts) */
-  delivery_pref?: 'knock' | 'door' | 'quiet' | null;
+  delivery_pref?: 'knock' | 'door' | null;
   order_token: string | null;
 }
 

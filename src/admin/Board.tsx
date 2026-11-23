@@ -319,10 +319,10 @@ export function Board() {
 }
 
 
-/** 배달 방법: 기본(노크하고 전달)은 표시 안 하고, 문 앞에 두기는 눈에 띄게 */
+/** 배달 방법: 기본(직접 전달)은 표시 안 하고, 문 앞에 두기만 눈에 띄게 */
 function DeliveryTag({ pref }: { pref?: string | null }) {
-  if (pref !== 'door' && pref !== 'quiet') return null;
-  return <div className={`dtag${pref === 'quiet' ? ' dtag--quiet' : ''}`}>{pref === 'quiet' ? '🔕 ' : '🚪 '}{DELIVERY_KO[pref]}</div>;
+  if (pref !== 'door') return null;
+  return <div className="dtag">🚪 {DELIVERY_KO.door}</div>;
 }
 
 /** 오늘 기준 며칠 지났는지 (한국 날짜) */

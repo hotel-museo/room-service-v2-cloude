@@ -486,8 +486,7 @@ td.bar-col { display: flex; align-items: center; gap: 8px; }
 .inp--warn { border-color: var(--red-2); background: #fff8f7; }
 .tr-warn { font-size: 12px; font-weight: 700; color: var(--red); }
 
-/* 주문판: 배달 방법 (문 앞에 두기) */
+/* 주문판: 배달 방법 (벨 후 문 앞에 두기) */
 .dtag { margin-top: 8px; padding: 8px 12px; border-radius: 10px; background: var(--amber-bg); color: var(--amber); font-weight: 800; font-size: 15px; }
-.dtag--quiet { background: var(--red-bg); color: var(--red); }
 .eta-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 6px 0; }
 .eta-inp { width: 72px; text-align: center; }
