@@ -29,3 +29,9 @@ export function parseRooms(text: string): { rooms: string[]; bad: string[] } {
 }
 
 export const roomAllowed = (list: string[], room: string) => !list.length || list.includes(normRoom(room));
+
+/** 등록된 객실 번호를 끝까지 입력했는지 (그 번호로 시작하는 더 긴 번호가 없을 때) — 키패드 자동으로 내리기용 */
+export const roomComplete = (list: string[], room: string) => {
+  const r = normRoom(room);
+  return !!r && list.includes(r) && !list.some((x) => x !== r && x.startsWith(r));
+};

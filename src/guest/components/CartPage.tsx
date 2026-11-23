@@ -1,4 +1,5 @@
-import { roomAllowed } from '../../lib/rooms';
+import { roomAllowed, roomComplete } from '../../lib/rooms';
+import type { KeyboardEvent } from 'react';
 import { useEffect, useRef, useState } from 'react';
 import { won } from '../../lib/menu';
 import type { Lang, PaymentMethod } from '../../lib/types';
@@ -33,6 +34,11 @@ interface Props {
   onBack: () => void;
   onSubmit: () => void;
 }
+
+/** 휴대폰 키패드의 '완료/엔터'를 누르면 다음 칸으로 넘어가지 않고 키패드만 내려요 */
+const doneOnEnter = (e: KeyboardEvent<HTMLInputElement>) => {
+  if (e.key === 'Enter') { e.preventDefault(); e.currentTarget.blur(); }
+};
 
 export function CartPage({ rooms, t, lines, form, setForm, canOrder, submitting, error, onQty, onBack, onSubmit }: Props) {
   const [touched, setTouched] = useState(false);
@@ -82,7 +88,15 @@ export function CartPage({ rooms, t, lines, form, setForm, canOrder, submitting,
               placeholder={t('roomPlaceholder')}
               value={form.room}
               maxLength={6}
-              onChange={(e) => { setRoomLeft(false); set('room', e.target.value.replace(/[^0-9A-Za-z-]/g, '')); }}
+              enterKeyHint="done"
+              onKeyDown={doneOnEnter}
+              onChange={(e) => {
+                setRoomLeft(false);
+                const v = e.target.value.replace(/[^0-9A-Za-z-]/g, '');
+                set('room', v);
+                // 등록된 객실 번호를 끝까지 입력하면 키패드를 내려요 (더 긴 번호가 없을 때만)
+                if (roomComplete(rooms, v)) e.currentTarget.blur();
+              }}
               onBlur={() => setRoomLeft(true)}
             />
             {t('roomSuffix') && <span className="room-suffix">{t('roomSuffix')}</span>}
@@ -127,7 +141,7 @@ export function CartPage({ rooms, t, lines, form, setForm, canOrder, submitting,
           {form.payment === 'checkout' && (
             <div className="field">
               <label htmlFor="guest" className="label">{t('guestName')}</label>
-              <input id="guest" className={`input${touched && nameMissing ? ' is-error' : ''}`} placeholder={t('guestNamePlaceholder')} value={form.guestName} onChange={(e) => set('guestName', e.target.value)} />
+              <input id="guest" className={`input${touched && nameMissing ? ' is-error' : ''}`} placeholder={t('guestNamePlaceholder')} value={form.guestName} onChange={(e) => set('guestName', e.target.value)} enterKeyHint="done" onKeyDown={doneOnEnter} autoComplete="name" />
               {touched && nameMissing && <p className="help is-error">{t('errName')}</p>}
             </div>
           )}
@@ -184,7 +198,7 @@ export function CartPage({ rooms, t, lines, form, setForm, canOrder, submitting,
           </div>
           <div className="field">
             <label htmlFor="phone" className="label">{t('phone')}</label>
-            <input id="phone" className="input" inputMode="tel" value={form.phone} onChange={(e) => set('phone', e.target.value)} />
+            <input id="phone" className="input" inputMode="tel" value={form.phone} onChange={(e) => set('phone', e.target.value)} enterKeyHint="done" onKeyDown={doneOnEnter} />
           </div>
         </section>
 
