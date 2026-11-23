@@ -47,7 +47,6 @@ export function HomePage({ lang, t, room, hasOrder, onRoomService, onMyOrder, on
   const [idx, setIdx] = useState(0);
   const [toast, setToast] = useState('');
   const [contactOpen, setContactOpen] = useState(false);
-  const [tourOpen, setTourOpen] = useState(false);
   const [contacts, setContacts] = useState<Contacts>(EMPTY_CONTACTS);
 
   useEffect(() => {
@@ -74,7 +73,7 @@ export function HomePage({ lang, t, room, hasOrder, onRoomService, onMyOrder, on
 
   const soon = (label: string) => setToast(`${label} · ${t('home_soon')}`);
   const items: { no: string; label: string; icon: JSX.Element; onClick: () => void }[] = [
-    { no: '02', label: t('home_tour'), icon: ICON.tour, onClick: () => setTourOpen(true) },
+    { no: '02', label: t('home_tour'), icon: ICON.tour, onClick: () => soon(t('home_tour')) },
     { no: '03', label: t('home_contact'), icon: ICON.phone, onClick: () => setContactOpen(true) },
     { no: '04', label: t('home_house'), icon: ICON.house, onClick: () => soon(t('home_house')) },
   ];
@@ -136,26 +135,6 @@ export function HomePage({ lang, t, room, hasOrder, onRoomService, onMyOrder, on
       </nav>
 
       {toast && <div className="home-toast" role="status">{toast}</div>}
-
-      {tourOpen && (
-        <div className="tour" role="dialog" aria-modal="true" aria-label={t('home_tour')}>
-          <header className="tour-top">
-            <span className="home-mark">HOTEL MUSEO</span>
-            <button type="button" className="tour-close" onClick={() => setTourOpen(false)} aria-label={t('close')}>
-              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" /></svg>
-            </button>
-          </header>
-          <h2 className="tour-title">{t('home_tour')}</h2>
-          <div className="tour-list">
-            {photos.map((p, i) => (
-              <figure key={i} className="tour-item" style={{ background: p.tone }}>
-                {p.url && <img src={p.url} alt={p.caption} loading={i ? 'lazy' : 'eager'} decoding="async" />}
-                <figcaption><span>{pad2(i + 1)}</span>{p.caption}</figcaption>
-              </figure>
-            ))}
-          </div>
-        </div>
-      )}
 
       <Sheet open={contactOpen} onClose={() => setContactOpen(false)} label={t('home_contact')} closeLabel={t('close')}>
         <div className="sheet-body">

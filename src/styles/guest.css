@@ -424,15 +424,3 @@ img { display: block; }
 .contact-name { font-size: 16px; font-weight: 700; color: #1f1b16; }
 .contact-num { font-size: 14px; color: #6b645a; letter-spacing: 0.02em; }
 
-/* 첫 화면 '호텔 둘러보기' (사진 크게 세로로) */
-.tour { position: fixed; inset: 0; z-index: 60; background: #0f0d0b; color: #f4efe6; overflow-y: auto; -webkit-overflow-scrolling: touch; animation: tour-in 0.25s ease; }
-@keyframes tour-in { from { opacity: 0; } to { opacity: 1; } }
-.tour-top { position: sticky; top: 0; z-index: 2; display: flex; align-items: center; justify-content: space-between; padding: 18px 20px; background: linear-gradient(#0f0d0b 60%, rgba(15, 13, 11, 0)); }
-.tour-close { width: 40px; height: 40px; border-radius: 50%; border: 1px solid rgba(255, 255, 255, 0.3); background: transparent; color: #fff; display: grid; place-items: center; cursor: pointer; }
-.tour-close svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 1.8; }
-.tour-title { margin: 4px 24px 18px; font-family: var(--serif, Georgia, serif); font-weight: 400; font-size: 28px; letter-spacing: 0.02em; }
-.tour-list { display: flex; flex-direction: column; gap: 14px; padding: 0 0 40px; }
-.tour-item { position: relative; margin: 0; aspect-ratio: 4 / 5; overflow: hidden; }
-.tour-item img { width: 100%; height: 100%; object-fit: cover; display: block; }
-.tour-item figcaption { position: absolute; left: 20px; bottom: 18px; display: flex; gap: 12px; align-items: baseline; font-size: 12px; letter-spacing: 0.32em; text-transform: uppercase; color: rgba(255, 255, 255, 0.92); text-shadow: 0 1px 8px rgba(0, 0, 0, 0.5); }
-.tour-item figcaption span { font-size: 11px; color: rgba(255, 255, 255, 0.6); letter-spacing: 0.1em; }
