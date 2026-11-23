@@ -288,6 +288,7 @@ img { display: block; }
 .allergy-toggle.is-on .box { background: var(--danger); border-color: var(--danger); }
 .notice--soft { background: var(--terracotta-soft); color: var(--terracotta-ink); }
 .hours-line { margin: 10px 22px 0; font-size: 12px; color: var(--muted); }
+.hours-line--note { margin-top: 4px; }
 .cline-bad { font-size: 12px; font-weight: 700; color: var(--danger); }
 .reject-box { border-color: #e9c9bd; background: var(--terracotta-soft); gap: 6px; }
 .reject-label { font-size: 12px; font-weight: 700; letter-spacing: 0.04em; color: var(--terracotta-ink); }

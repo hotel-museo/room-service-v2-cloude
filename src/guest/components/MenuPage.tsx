@@ -193,6 +193,7 @@ export function MenuPage({ skipIntro, lang, t, menus, sets, labels, service, hou
       {hours.slots.length > 0 && (
         <p className="hours-line">{t('hoursLabel')} {hoursText(hours)}</p>
       )}
+      <p className="hours-line hours-line--note">{t('disposableNote')}</p>
 
       {picks.length > 0 && (
         <section className="picks" aria-label={t('chefsPicks')}>

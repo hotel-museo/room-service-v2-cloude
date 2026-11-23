@@ -2,6 +2,7 @@ import type { Lang } from '../lib/types';
 
 const ko = {
   hoursLabel: '주문 가능 시간',
+  disposableNote: '룸서비스는 일회용 용기에 담아 배달해 드려요',
   closedNow: '지금은 주문 시간이 아니에요',
   nextOpen: '{time}부터 주문할 수 있어요',
   lastOrder: '주문 마감까지 {n}분 남았어요',
@@ -111,6 +112,7 @@ type Dict = typeof ko;
 
 const en: Dict = {
   hoursLabel: 'Ordering hours',
+  disposableNote: 'In-room dining is delivered in disposable containers.',
   closedNow: 'We are not taking orders right now',
   nextOpen: 'Ordering opens at {time}',
   lastOrder: 'Last orders in {n} min',
@@ -218,6 +220,7 @@ const en: Dict = {
 
 const ja: Dict = {
   hoursLabel: 'ご注文受付時間',
+  disposableNote: 'ルームサービスは使い捨て容器でお届けします。',
   closedNow: 'ただいまご注文受付時間外です',
   nextOpen: '{time}からご注文いただけます',
   lastOrder: 'ラストオーダーまで{n}分',
@@ -325,6 +328,7 @@ const ja: Dict = {
 
 const zh: Dict = {
   hoursLabel: '点餐时间',
+  disposableNote: '客房送餐使用一次性餐盒配送。',
   closedNow: '现在不是点餐时间',
   nextOpen: '{time}开始可以点餐',
   lastOrder: '距离截单还有{n}分钟',
