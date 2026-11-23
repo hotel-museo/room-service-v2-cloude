@@ -3,7 +3,7 @@ import type { Order } from '../../lib/types';
 
 /**
  * 대표님께 카톡으로 보낼 "룸서비스 일일 보고" 이미지 (캔버스로 직접 그림).
- * 내용: 룸서비스 건수, 총매출, 주문마다 시간·객실·성함·결제방법·금액·메뉴.
+ * 내용: 룸서비스 건수, 총매출, 투숙객 후불·카드 결제 건수와 금액, 주문마다 시간·객실·성함·결제방법·금액·메뉴.
  */
 const W = 1080;
 const PAD = 64;
@@ -44,7 +44,7 @@ export async function renderDailyReport(ymd: string, orders: Order[]): Promise<B
   const rows = list.map((o) => ({ o, lines: wrap(probe, menuText(o), menuW) }));
   const rowH = (n: number) => 32 + 44 + n * 40 + 30;
   const listH = rows.reduce((a, r) => a + rowH(r.lines.length), 0) || 140;
-  const H = 640 + listH + 220;
+  const H = 640 + 160 + listH + 220;
 
   const cv = document.createElement('canvas');
   cv.width = W;
@@ -85,7 +85,32 @@ export async function renderDailyReport(ymd: string, orders: Order[]): Promise<B
   };
   box(PAD, '룸서비스 총 매출', `${won(total)}원`);
   box(PAD + half + 24, '룸서비스', `${list.length}건`);
-  y += 190 + 70;
+  y += 190 + 24;
+
+  // 결제 방법별: 투숙객 후불 / 카드 결제
+  const checkout = list.filter((o) => o.payment_method === 'checkout');
+  const card = list.filter((o) => o.payment_method !== 'checkout');
+  const sumOf = (l: Order[]) => l.reduce((a, o) => a + (o.total_amount ?? 0), 0);
+  const payBox = (x: number, label: string, l: Order[], color: string, bg: string) => {
+    ctx.fillStyle = bg;
+    ctx.beginPath();
+    ctx.roundRect(x, y, half, 120, 24);
+    ctx.fill();
+    ctx.fillStyle = color;
+    ctx.font = `700 26px ${FONT}`;
+    ctx.fillText(label, x + 36, y + 50);
+    ctx.fillStyle = C.ink;
+    ctx.font = `900 44px ${FONT}`;
+    const cnt = `${l.length}건`;
+    ctx.fillText(cnt, x + 36, y + 100);
+    const cw = ctx.measureText(cnt).width;
+    ctx.fillStyle = C.sub;
+    ctx.font = `700 26px ${FONT}`;
+    ctx.fillText(`${won(sumOf(l))}원`, x + 36 + cw + 18, y + 98);
+  };
+  payBox(PAD, '투숙객 후불', checkout, C.green, '#e8f0eb');
+  payBox(PAD + half + 24, '카드 결제', card, C.terra, '#f6ebe5');
+  y += 120 + 70;
 
   // 주문 목록
   ctx.fillStyle = C.ink;
@@ -131,7 +156,7 @@ export async function renderDailyReport(ymd: string, orders: Order[]): Promise<B
     const amt = `${won(o.total_amount ?? 0)}원`;
     ctx.fillText(amt, W - PAD, y + 34);
     const amtW = ctx.measureText(amt).width;
-    const pay = o.payment_method === 'checkout' ? '객실 후불' : '카드';
+    const pay = o.payment_method === 'checkout' ? '투숙객 후불' : '카드';
     ctx.font = `700 22px ${FONT}`;
     const pw = ctx.measureText(pay).width + 28;
     const px = W - PAD - amtW - 20 - pw;
