@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { LANGS, translate, type StringKey } from '../i18n/strings';
 import { cutoffFor, hoursState } from '../lib/hours';
 import { won } from '../lib/menu';
@@ -46,6 +46,9 @@ export function GuestApp() {
     });
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
   const [view, setView] = useState<View>(() => (new URLSearchParams(location.search).get('view') === 'menu' ? 'menu' : 'home'));
+  // 메뉴로 갈 때 로고 인트로를 건너뛸지 (장바구니·주문 현황에서 돌아올 때만 건너뜀)
+  const skipIntro = useRef(false);
+  const goMenu = (fromInside: boolean) => { skipIntro.current = fromInside; setView('menu'); };
   const [menuId, setMenuId] = useState<number | null>(null);
   const [setId, setSetId] = useState<number | null>(null);
   const [langOpen, setLangOpen] = useState(false);
@@ -131,7 +134,7 @@ export function GuestApp() {
   if (view === 'home') {
     return (
       <>
-        <HomePage lang={lang} t={t} room={form.room} hasOrder={!!tracked} onRoomService={() => setView('menu')} onMyOrder={() => setView('status')} onOpenLang={() => setLangOpen(true)} />
+        <HomePage lang={lang} t={t} room={form.room} hasOrder={!!tracked} onRoomService={() => goMenu(false)} onMyOrder={() => setView('status')} onOpenLang={() => setLangOpen(true)} />
         {langSheet}
       </>
     );
@@ -143,8 +146,8 @@ export function GuestApp() {
         lang={lang}
         t={t}
         order={tracked}
-        onMenu={() => setView('menu')}
-        onNewOrder={() => { saveTracked(null); setTracked(null); setView('menu'); }}
+        onMenu={() => goMenu(true)}
+        onNewOrder={() => { saveTracked(null); setTracked(null); goMenu(true); }}
         onGone={() => { saveTracked(null); setTracked(null); setView('home'); }}
       />
     );
@@ -163,7 +166,7 @@ export function GuestApp() {
         submitting={submitting}
         error={error}
         onQty={cart.setQty}
-        onBack={() => setView('menu')}
+        onBack={() => goMenu(true)}
         onSubmit={submit}
       />
     );
@@ -178,6 +181,7 @@ export function GuestApp() {
         <div className="loading" aria-busy="true">PASTA HOUSE</div>
       ) : (
         <MenuPage
+          skipIntro={skipIntro.current}
           lang={lang}
           t={t}
           menus={data.menus}

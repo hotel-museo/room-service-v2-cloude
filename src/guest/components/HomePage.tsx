@@ -59,6 +59,12 @@ export function HomePage({ lang, t, room, hasOrder, onRoomService, onMyOrder, on
     });
   }, []);
 
+  // 첫 화면에 있는 동안만 페이지 스크롤을 막고 배경을 어둡게 (메뉴로 가면 원래대로)
+  useEffect(() => {
+    document.documentElement.classList.add('on-home');
+    return () => document.documentElement.classList.remove('on-home');
+  }, []);
+
   useEffect(() => {
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
     const id = window.setInterval(() => setIdx((i) => (i + 1) % photos.length), SLIDE_MS);

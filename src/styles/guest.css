@@ -298,7 +298,9 @@ img { display: block; }
 /* ---------- 호텔 첫 화면 ---------- */
 .hero-top-l { display: flex; gap: 8px; }
 .pill--icon { width: 40px; padding: 0; justify-content: center; }
-.home { position: relative; height: 100vh; height: 100svh; min-height: 640px; overflow: hidden; color: #f4efe6; background: #08190f; font-family: var(--sans); }
+/* 호텔 첫 화면은 화면에 딱 고정 — 스크롤해도 뒤의 PASTA HOUSE 배경이 보이지 않게 */
+html.on-home, html.on-home body { background: #08190f; overflow: hidden; overscroll-behavior: none; }
+.home { position: fixed; inset: 0; overflow: hidden; color: #f4efe6; background: #08190f; font-family: var(--sans); }
 .home-slides { position: absolute; inset: 0; }
 .home-slide { position: absolute; inset: 0; opacity: 0; transition: opacity 1.6s cubic-bezier(.4,0,.2,1); }
 .home-slide.is-on { opacity: 1; }

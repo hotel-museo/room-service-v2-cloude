@@ -11,6 +11,8 @@ import { Back, Globe } from './Icons';
 const PICK_IDS = [117, 102, 124, 107, 114, 109];
 
 interface Props {
+  /** true면 로고 인트로를 건너뛰고 바로 메뉴 위치로 */
+  skipIntro: boolean;
   lang: Lang;
   t: (k: StringKey, v?: Record<string, string | number>) => string;
   menus: Menu[];
@@ -28,7 +30,7 @@ interface Props {
   onHome: () => void;
 }
 
-export function MenuPage({ lang, t, menus, sets, labels, service, hours, catOrder, hoursNow, isCut, qtyByMenu, onOpenMenu, onOpenSet, onOpenLang, onHome }: Props) {
+export function MenuPage({ skipIntro, lang, t, menus, sets, labels, service, hours, catOrder, hoursNow, isCut, qtyByMenu, onOpenMenu, onOpenSet, onOpenLang, onHome }: Props) {
   const list = useMemo(() => visibleMenus(menus), [menus]);
   const setList = useMemo(() => visibleSets(sets), [sets]);
 
@@ -69,10 +71,10 @@ export function MenuPage({ lang, t, menus, sets, labels, service, hours, catOrde
   const logoRef = useRef<HTMLDivElement>(null);
   // 처음 들어왔을 때만 로고 인트로를 보여주고, 장바구니 등에서 돌아오면 바로 메뉴 위치로
   // 관리자 미리보기는 인트로를 건너뛰고 바로 메뉴부터
-  const [introSeen] = useState(() => { if (isPreview) return true; try { return sessionStorage.getItem('ph-intro') === '1'; } catch { return false; } });
+  // 첫 화면에서 '룸서비스'를 누르면 항상 로고 인트로부터, 장바구니·주문 현황에서 돌아올 때만 바로 메뉴로 (관리자 미리보기도 바로 메뉴)
+  const [introSeen] = useState(() => isPreview || skipIntro);
 
   useEffect(() => {
-    try { sessionStorage.setItem('ph-intro', '1'); } catch { /* 무시 */ }
     if (introSeen && brandRef.current) {
       const h = brandRef.current.offsetHeight;
       requestAnimationFrame(() => window.scrollTo(0, h));
@@ -99,7 +101,7 @@ export function MenuPage({ lang, t, menus, sets, labels, service, hours, catOrde
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const skipIntro = () => { const h = brandRef.current?.offsetHeight ?? 0; window.scrollTo({ top: h, behavior: 'smooth' }); };
+  const scrollToMenu = () => { const h = brandRef.current?.offsetHeight ?? 0; window.scrollTo({ top: h, behavior: 'smooth' }); };
   const letters = (w: string, start: number) => [...w].map((ch, i) => <span key={i} style={{ animationDelay: `${start + i * 70}ms` }}>{ch}</span>);
 
   useEffect(() => {
@@ -158,7 +160,7 @@ export function MenuPage({ lang, t, menus, sets, labels, service, hours, catOrde
             <div className="hero-by" aria-hidden="true">BY BOTTEGA</div>
             <div className="hero-rule" />
           </div>
-          <button type="button" className="hero-cue" onClick={skipIntro} aria-label="Menu">
+          <button type="button" className="hero-cue" onClick={scrollToMenu} aria-label="Menu">
             <span>MENU</span>
             <i />
           </button>
