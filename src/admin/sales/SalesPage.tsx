@@ -108,7 +108,7 @@ export function SalesPage() {
     if (!report) return;
     try {
       await navigator.clipboard.write([new ClipboardItem({ 'image/png': report.blob })]);
-      toast.show('복사했어요. 카톡 대표님 채팅방에서 Ctrl+V 하세요');
+      toast.show('복사했어요. 카톡 채팅방에서 Ctrl+V 하세요');
     } catch {
       toast.show('복사가 안 돼요. "이미지 저장"으로 받아서 보내 주세요', true);
     }
@@ -157,7 +157,7 @@ export function SalesPage() {
         <span className="meta">{range.from === range.to ? range.from : `${range.from} ~ ${range.to}`}{loading ? ' · 불러오는 중…' : ''}</span>
         <span className="grow" />
         <button type="button" className="btn-outline btn-sm" onClick={exportOrders} disabled={!orders.length}>주문 내역 엑셀</button>
-        <button type="button" className="btn-green btn-sm" disabled={range.from !== range.to || making} title={range.from !== range.to ? '하루를 골라 주세요' : ''} onClick={() => void makeReport()}>{making ? '만드는 중…' : '대표님께 보고'}</button>
+        <button type="button" className="btn-green btn-sm" disabled={range.from !== range.to || making} title={range.from !== range.to ? '하루를 골라 주세요' : ''} onClick={() => void makeReport()}>{making ? '만드는 중…' : '보고용 이미지'}</button>
       </div>
 
       <section className="tiles">
@@ -289,7 +289,7 @@ export function SalesPage() {
         <div className="modal-layer">
           <button type="button" className="modal-backdrop" aria-label="닫기" onClick={closeReport} />
           <div className="modal report-modal" role="dialog" aria-modal="true" aria-labelledby="rep-t">
-            <h2 id="rep-t">대표님께 보낼 보고 이미지</h2>
+            <h2 id="rep-t">보고용 이미지</h2>
             <p className="meta">완료된 주문 기준이에요. 아래 방법 중 하나로 카톡에 보내 주세요.</p>
             <div className="report-preview"><img src={report.url} alt="룸서비스 일일 보고 이미지" /></div>
             <div className="report-btns">
