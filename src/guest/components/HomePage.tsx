@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react';
 import type { StringKey } from '../../i18n/strings';
 import type { Lang } from '../../lib/types';
 import { supabase } from '../../lib/supabase';
+import { CONTACT_KEYS, EMPTY_CONTACTS, telHref, type Contacts } from '../../lib/contacts';
+import { Sheet } from './Sheet';
 
 /**
  * 호텔 뮤제오 첫 화면 (QR로 들어오면 처음 보는 곳).
@@ -28,7 +30,7 @@ const LANG_SHORT: Record<Lang, string> = { ko: 'KO', en: 'EN', ja: 'JA', zh: 'ZH
 const ICON = {
   dine: <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3.5 17.5h17M5.5 17.5a6.5 6.5 0 0 1 13 0M12 11V9.2M10.6 9.2h2.8M4 20.5h16" /></svg>,
   eat: <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7.5 3.5v6.2a1.8 1.8 0 0 0 1.8 1.8v9M11.1 3.5v6.2a1.8 1.8 0 0 1-1.8 1.8M9.3 3.5v5M16.5 20.5v-17c-1.9 1.2-2.9 3.6-2.9 6.6v3h2.9" /></svg>,
-  play: <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5" /><path d="M15.2 8.8l-1.9 4.5-4.5 1.9 1.9-4.5 4.5-1.9z" /></svg>,
+  phone: <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6.6 3.5h2.6l1.5 4-2 1.3a10.5 10.5 0 0 0 6.5 6.5l1.3-2 4 1.5v2.6a2 2 0 0 1-2.1 2A16.5 16.5 0 0 1 4.6 5.6a2 2 0 0 1 2-2.1z" /></svg>,
   house: <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12.5l8-6.5 8 6.5M6 11v8.5h12V11M10 19.5v-4.5h4v4.5" /></svg>,
 };
 
@@ -44,11 +46,16 @@ export function HomePage({ lang, t, room, hasOrder, onRoomService, onMyOrder, on
   const [photos, setPhotos] = useState<Photo[]>(HOTEL_PHOTOS);
   const [idx, setIdx] = useState(0);
   const [toast, setToast] = useState('');
+  const [contactOpen, setContactOpen] = useState(false);
+  const [contacts, setContacts] = useState<Contacts>(EMPTY_CONTACTS);
 
   useEffect(() => {
     void supabase.from('site_settings').select('settings').eq('key', 'hotel_portal').maybeSingle().then(({ data }) => {
       const list = (data?.settings as { photos?: { url: string; caption?: string }[] } | null)?.photos ?? [];
       if (list.length) setPhotos(list.slice(0, 5).map((p, i) => ({ url: p.url, caption: p.caption ?? '', tone: PLACEHOLDER[i % 3].tone })));
+    });
+    void supabase.from('site_settings').select('settings').eq('key', 'contacts').maybeSingle().then(({ data }) => {
+      if (data?.settings) setContacts({ ...EMPTY_CONTACTS, ...(data.settings as Partial<Contacts>) });
     });
   }, []);
 
@@ -67,7 +74,7 @@ export function HomePage({ lang, t, room, hasOrder, onRoomService, onMyOrder, on
   const soon = (label: string) => setToast(`${label} · ${t('home_soon')}`);
   const items: { no: string; label: string; icon: JSX.Element; onClick: () => void }[] = [
     { no: '02', label: t('home_eat'), icon: ICON.eat, onClick: () => soon(t('home_eat')) },
-    { no: '03', label: t('home_play'), icon: ICON.play, onClick: () => soon(t('home_play')) },
+    { no: '03', label: t('home_contact'), icon: ICON.phone, onClick: () => setContactOpen(true) },
     { no: '04', label: t('home_house'), icon: ICON.house, onClick: () => soon(t('home_house')) },
   ];
   const pad2 = (n: number) => String(n).padStart(2, '0');
@@ -128,6 +135,28 @@ export function HomePage({ lang, t, room, hasOrder, onRoomService, onMyOrder, on
       </nav>
 
       {toast && <div className="home-toast" role="status">{toast}</div>}
+
+      <Sheet open={contactOpen} onClose={() => setContactOpen(false)} label={t('home_contact')} closeLabel={t('close')}>
+        <div className="sheet-body">
+          <h2 className="contact-title">{t('home_contact')}</h2>
+          {CONTACT_KEYS.some((k) => contacts[k].trim()) ? (
+            <>
+              <p className="contact-hint">{t('contact_hint')}</p>
+              {CONTACT_KEYS.filter((k) => contacts[k].trim()).map((k) => (
+                <a key={k} className="contact-row" href={telHref(contacts[k])}>
+                  <span className="contact-ico">{ICON.phone}</span>
+                  <span className="contact-txt">
+                    <span className="contact-name">{t(`contact_${k}` as StringKey)}</span>
+                    <span className="contact-num">{contacts[k]}</span>
+                  </span>
+                </a>
+              ))}
+            </>
+          ) : (
+            <p className="contact-hint">{t('contact_empty')}</p>
+          )}
+        </div>
+      </Sheet>
     </main>
   );
 }

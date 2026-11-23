@@ -487,3 +487,5 @@ td.bar-col { display: flex; align-items: center; gap: 8px; }
 .fd-rooms { display: flex; flex-direction: column; gap: 6px; }
 .fd-room-chips { display: flex; flex-wrap: wrap; gap: 4px; max-height: 160px; overflow-y: auto; }
 .fd-room-chips .chip { height: 26px; font-size: 12px; padding: 0 9px; }
+.fd-contacts { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+.fd-contact { display: flex; flex-direction: column; gap: 6px; }

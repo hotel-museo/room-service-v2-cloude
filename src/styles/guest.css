@@ -412,3 +412,14 @@ img { display: block; }
 
 /* 관리자 미리보기 표시 */
 .preview-badge { position: fixed; top: 8px; left: 50%; transform: translateX(-50%); z-index: 9999; pointer-events: none; padding: 4px 10px; border-radius: 999px; background: rgba(17, 24, 39, 0.78); color: #fff; font-size: 11px; font-weight: 700; letter-spacing: 0.02em; white-space: nowrap; }
+
+/* 첫 화면 '문의하기' */
+.contact-title { margin: 0; font-size: 20px; font-weight: 700; color: #1f1b16; }
+.contact-hint { margin: 0 0 6px; font-size: 13px; color: #6b645a; }
+.contact-row { display: flex; align-items: center; gap: 14px; padding: 14px 16px; border-radius: 14px; border: 1px solid #ddd5c9; background: #fff; color: inherit; text-decoration: none; }
+.contact-row:active { background: var(--terracotta-soft); }
+.contact-ico { width: 40px; height: 40px; flex: none; display: grid; place-items: center; border-radius: 50%; background: var(--terracotta-soft); color: var(--terracotta-ink); }
+.contact-ico svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linejoin: round; }
+.contact-txt { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.contact-name { font-size: 16px; font-weight: 700; color: #1f1b16; }
+.contact-num { font-size: 14px; color: #6b645a; letter-spacing: 0.02em; }
