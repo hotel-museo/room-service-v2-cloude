@@ -1,8 +1,7 @@
 import { useEffect, useState } from 'react';
-import { supabase } from '../lib/supabase';
-import { CONTACT_KEYS, CONTACT_LABEL_KO, EMPTY_CONTACTS, type Contacts } from '../lib/contacts';
-import { saveSetting } from './menu/api';
-import { notifyPreview } from '../lib/preview';
+import { supabase } from './supabase';
+import { CONTACT_KEYS, CONTACT_LABEL_KO, EMPTY_CONTACTS, type Contacts } from './contacts';
+import { notifyPreview } from './preview';
 
 /** 관리자 설정 > 손님 '문의하기' 연락처. 비워둔 곳은 손님 화면에 안 나와요. */
 export function ContactsSection({ toast }: { toast: (m: string, bad?: boolean) => void }) {
@@ -25,7 +24,8 @@ export function ContactsSection({ toast }: { toast: (m: string, bad?: boolean) =
     setBusy(true);
     try {
       const v = Object.fromEntries(CONTACT_KEYS.map((k) => [k, form[k].trim()])) as unknown as Contacts;
-      await saveSetting('contacts', v);
+      const { error } = await supabase.from('site_settings').upsert({ key: 'contacts', settings: v, updated_at: new Date().toISOString() });
+      if (error) throw new Error(error.message);
       setSaved(v);
       notifyPreview();
       toast('연락처를 저장했어요');

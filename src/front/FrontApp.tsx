@@ -8,6 +8,7 @@ import { addDays, kstDayStart, kstYmd } from '../admin/sales/aggregate';
 import { printFolio } from './folio';
 import { printPaidReport } from './report';
 import { downloadPaidXlsx } from './excel';
+import { ContactsSection } from '../lib/ContactsSection';
 import { AdminSettings, StaffPicker, staffLabel, useStaff, type FrontStaff } from '../lib/staff';
 
 /**
@@ -270,7 +271,11 @@ export function FrontApp() {
             )}
           </>
         )}
-        {tab === 'staff' && <AdminSettings team="front" usedFor="객실 반영 확인·퇴실 결제 완료" staff={staff} toast={toast.show} />}
+        {tab === 'staff' && (
+          <AdminSettings team="front" usedFor="객실 반영 확인·퇴실 결제 완료" staff={staff} toast={toast.show}>
+            <ContactsSection toast={toast.show} />
+          </AdminSettings>
+        )}
       </main>
 
       {acting && <StepModal g={acting.g} step={acting.step} staff={staff.active} onClose={() => setActing(null)} onSave={save} />}

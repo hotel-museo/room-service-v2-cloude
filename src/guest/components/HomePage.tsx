@@ -29,7 +29,7 @@ const LANG_SHORT: Record<Lang, string> = { ko: 'KO', en: 'EN', ja: 'JA', zh: 'ZH
 
 const ICON = {
   dine: <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3.5 17.5h17M5.5 17.5a6.5 6.5 0 0 1 13 0M12 11V9.2M10.6 9.2h2.8M4 20.5h16" /></svg>,
-  eat: <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7.5 3.5v6.2a1.8 1.8 0 0 0 1.8 1.8v9M11.1 3.5v6.2a1.8 1.8 0 0 1-1.8 1.8M9.3 3.5v5M16.5 20.5v-17c-1.9 1.2-2.9 3.6-2.9 6.6v3h2.9" /></svg>,
+  tour: <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3.5 7.5h3l1.5-2.5h8l1.5 2.5h3v11h-17z" /><circle cx="12" cy="12.8" r="3.4" /></svg>,
   phone: <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6.6 3.5h2.6l1.5 4-2 1.3a10.5 10.5 0 0 0 6.5 6.5l1.3-2 4 1.5v2.6a2 2 0 0 1-2.1 2A16.5 16.5 0 0 1 4.6 5.6a2 2 0 0 1 2-2.1z" /></svg>,
   house: <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12.5l8-6.5 8 6.5M6 11v8.5h12V11M10 19.5v-4.5h4v4.5" /></svg>,
 };
@@ -47,6 +47,7 @@ export function HomePage({ lang, t, room, hasOrder, onRoomService, onMyOrder, on
   const [idx, setIdx] = useState(0);
   const [toast, setToast] = useState('');
   const [contactOpen, setContactOpen] = useState(false);
+  const [tourOpen, setTourOpen] = useState(false);
   const [contacts, setContacts] = useState<Contacts>(EMPTY_CONTACTS);
 
   useEffect(() => {
@@ -73,7 +74,7 @@ export function HomePage({ lang, t, room, hasOrder, onRoomService, onMyOrder, on
 
   const soon = (label: string) => setToast(`${label} · ${t('home_soon')}`);
   const items: { no: string; label: string; icon: JSX.Element; onClick: () => void }[] = [
-    { no: '02', label: t('home_eat'), icon: ICON.eat, onClick: () => soon(t('home_eat')) },
+    { no: '02', label: t('home_tour'), icon: ICON.tour, onClick: () => setTourOpen(true) },
     { no: '03', label: t('home_contact'), icon: ICON.phone, onClick: () => setContactOpen(true) },
     { no: '04', label: t('home_house'), icon: ICON.house, onClick: () => soon(t('home_house')) },
   ];
@@ -135,6 +136,26 @@ export function HomePage({ lang, t, room, hasOrder, onRoomService, onMyOrder, on
       </nav>
 
       {toast && <div className="home-toast" role="status">{toast}</div>}
+
+      {tourOpen && (
+        <div className="tour" role="dialog" aria-modal="true" aria-label={t('home_tour')}>
+          <header className="tour-top">
+            <span className="home-mark">HOTEL MUSEO</span>
+            <button type="button" className="tour-close" onClick={() => setTourOpen(false)} aria-label={t('close')}>
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" /></svg>
+            </button>
+          </header>
+          <h2 className="tour-title">{t('home_tour')}</h2>
+          <div className="tour-list">
+            {photos.map((p, i) => (
+              <figure key={i} className="tour-item" style={{ background: p.tone }}>
+                {p.url && <img src={p.url} alt={p.caption} loading={i ? 'lazy' : 'eager'} decoding="async" />}
+                <figcaption><span>{pad2(i + 1)}</span>{p.caption}</figcaption>
+              </figure>
+            ))}
+          </div>
+        </div>
+      )}
 
       <Sheet open={contactOpen} onClose={() => setContactOpen(false)} label={t('home_contact')} closeLabel={t('close')}>
         <div className="sheet-body">
