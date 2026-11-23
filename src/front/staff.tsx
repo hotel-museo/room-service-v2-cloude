@@ -28,8 +28,77 @@ export function useFrontStaff() {
   return { list, active: list.filter((s) => s.active), error, reload: load };
 }
 
-/** 직원 설정 화면 */
-export function StaffSettings({ staff, toast }: { staff: ReturnType<typeof useFrontStaff>; toast: (m: string, bad?: boolean) => void }) {
+/** 관리자 설정: 비밀번호를 넣어야 들어갈 수 있어요. 다른 탭으로 나가면 다시 잠겨요. */
+export function AdminSettings(props: { staff: ReturnType<typeof useFrontStaff>; toast: (m: string, bad?: boolean) => void }) {
+  const [unlocked, setUnlocked] = useState(false);
+  const [pin, setPin] = useState('');
+  const [busy, setBusy] = useState(false);
+  const [bad, setBad] = useState(false);
+
+  const enter = async () => {
+    if (!pin) return;
+    setBusy(true);
+    const { data, error } = await supabase.rpc('check_front_admin_pin', { p: pin });
+    setBusy(false);
+    if (error) return props.toast('확인하지 못했어요: ' + error.message, true);
+    if (data === true) { setUnlocked(true); setPin(''); setBad(false); }
+    else { setBad(true); setPin(''); }
+  };
+
+  if (!unlocked) {
+    return (
+      <div className="fd-lock">
+        <section className="panel">
+          <h2 className="fd-h2">관리자 설정</h2>
+          <p className="meta">비밀번호를 입력해 주세요.</p>
+          <input className={`inp fd-pin${bad ? ' is-bad' : ''}`} type="password" inputMode="numeric" autoComplete="off" maxLength={8} placeholder="••••" value={pin} autoFocus
+            onChange={(e) => { setPin(e.target.value.replace(/[^0-9]/g, '')); setBad(false); }} onKeyDown={(e) => e.key === 'Enter' && void enter()} aria-label="비밀번호" />
+          {bad && <p className="fd-pin-err">비밀번호가 맞지 않아요</p>}
+          <button type="button" className="btn-green" disabled={busy || !pin} onClick={() => void enter()}>{busy ? '확인 중…' : '들어가기'}</button>
+        </section>
+      </div>
+    );
+  }
+  return (
+    <div className="fd-staff">
+      <StaffSettings {...props} />
+      <PinChange toast={props.toast} />
+    </div>
+  );
+}
+
+function PinChange({ toast }: { toast: (m: string, bad?: boolean) => void }) {
+  const [oldPin, setOld] = useState('');
+  const [newPin, setNew] = useState('');
+  const [again, setAgain] = useState('');
+  const [busy, setBusy] = useState(false);
+  const ok = /^[0-9]{4,8}$/.test(newPin) && newPin === again && !!oldPin;
+  const digits = (v: string) => v.replace(/[^0-9]/g, '');
+  const save = async () => {
+    setBusy(true);
+    const { data, error } = await supabase.rpc('change_front_admin_pin', { old_pin: oldPin, new_pin: newPin });
+    setBusy(false);
+    if (error) return toast('바꾸지 못했어요: ' + error.message, true);
+    if (data !== true) return toast('지금 비밀번호가 맞지 않아요', true);
+    toast('비밀번호를 바꿨어요');
+    setOld(''); setNew(''); setAgain('');
+  };
+  return (
+    <section className="panel">
+      <h2 className="fd-h2">비밀번호 변경</h2>
+      <div className="fd-pin-change">
+        <input className="inp" type="password" inputMode="numeric" maxLength={8} placeholder="지금 비밀번호" value={oldPin} onChange={(e) => setOld(digits(e.target.value))} aria-label="지금 비밀번호" />
+        <input className="inp" type="password" inputMode="numeric" maxLength={8} placeholder="새 비밀번호 (숫자 4~8자리)" value={newPin} onChange={(e) => setNew(digits(e.target.value))} aria-label="새 비밀번호" />
+        <input className="inp" type="password" inputMode="numeric" maxLength={8} placeholder="새 비밀번호 한 번 더" value={again} onChange={(e) => setAgain(digits(e.target.value))} aria-label="새 비밀번호 확인" />
+        <button type="button" className="btn-green" disabled={busy || !ok} onClick={() => void save()}>변경</button>
+      </div>
+      {again && newPin !== again && <p className="fd-pin-err">새 비밀번호가 서로 달라요</p>}
+    </section>
+  );
+}
+
+/** 직원 명단 관리 */
+function StaffSettings({ staff, toast }: { staff: ReturnType<typeof useFrontStaff>; toast: (m: string, bad?: boolean) => void }) {
   const [name, setName] = useState('');
   const [rank, setRank] = useState('');
   const [busy, setBusy] = useState(false);
@@ -75,7 +144,7 @@ export function StaffSettings({ staff, toast }: { staff: ReturnType<typeof useFr
   };
 
   return (
-    <div className="fd-staff">
+    <>
       <div className="fd-sum">
         <div><span>등록된 직원</span><strong>{staff.active.length}명</strong></div>
         <p className="meta">여기 등록한 직원은 <b>객실 반영 확인</b>·<b>퇴실 결제 완료</b> 때 담당자 버튼으로 나와요. 쉬는 직원은 '숨김'으로 두면 버튼에서 빠지고, 다시 켜면 돌아와요.</p>
@@ -134,14 +203,15 @@ export function StaffSettings({ staff, toast }: { staff: ReturnType<typeof useFr
           </ul>
         )}
       </section>
-    </div>
+    </>
   );
 }
 
-/** 담당자 고르기: 등록된 직원 버튼 + (필요하면) 직접 입력 */
+/** 담당자 고르기: '직원 선택'을 누르면 아래로 명단이 펼쳐져요 (명단에 없으면 직접 입력) */
 export function StaffPicker({ staff, value, onChange }: { staff: FrontStaff[]; value: string; onChange: (v: string) => void }) {
   const labels = staff.map(staffLabel);
   const [typing, setTyping] = useState(() => !!value && !labels.includes(value));
+  const [open, setOpen] = useState(false);
   if (!staff.length || typing) {
     return (
       <>
@@ -149,19 +219,32 @@ export function StaffPicker({ staff, value, onChange }: { staff: FrontStaff[]; v
         {staff.length > 0 ? (
           <button type="button" className="link fd-picker-toggle" onClick={() => { setTyping(false); onChange(''); }}>등록된 직원에서 고르기</button>
         ) : (
-          <p className="f-hint">위쪽 '직원 설정'에서 직원을 등록하면 다음부터 버튼으로 바로 고를 수 있어요.</p>
+          <p className="f-hint">위쪽 '관리자 설정'에서 직원을 등록하면 다음부터 버튼으로 바로 고를 수 있어요.</p>
         )}
       </>
     );
   }
   return (
-    <>
-      <div className="fd-picker" role="group" aria-label="담당자">
-        {labels.map((l) => (
-          <button type="button" key={l} className={value === l ? 'is-on' : ''} aria-pressed={value === l} onClick={() => onChange(l)}>{l}</button>
-        ))}
-      </div>
-      <button type="button" className="link fd-picker-toggle" onClick={() => { setTyping(true); onChange(''); }}>명단에 없는 사람 직접 입력</button>
-    </>
+    <div className="fd-select">
+      <button type="button" id="step-staff" className={`fd-select-btn${open ? ' is-open' : ''}${value ? '' : ' is-empty'}`} aria-haspopup="listbox" aria-expanded={open} onClick={() => setOpen((o) => !o)}>
+        <span>{value || '직원 선택'}</span>
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6" /></svg>
+      </button>
+      {open && (
+        <ul className="fd-select-list" role="listbox" aria-label="담당자">
+          {labels.map((l) => (
+            <li key={l}>
+              <button type="button" role="option" aria-selected={value === l} className={value === l ? 'is-on' : ''} onClick={() => { onChange(l); setOpen(false); }}>
+                {l}
+                {value === l && <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12l5 5 9-10" /></svg>}
+              </button>
+            </li>
+          ))}
+          <li>
+            <button type="button" className="fd-select-other" onClick={() => { setTyping(true); setOpen(false); onChange(''); }}>명단에 없는 사람 직접 입력</button>
+          </li>
+        </ul>
+      )}
+    </div>
   );
 }
