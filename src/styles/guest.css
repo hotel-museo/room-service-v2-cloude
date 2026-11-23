@@ -398,3 +398,4 @@ html.on-home, html.on-home body { background: #08190f; overflow: hidden; overscr
 .payopt--sm { min-height: 50px; padding: 10px 14px; margin-top: 8px; }
 .payopt--sm .payopt-title { font-size: 14px; font-weight: 600; }
 .eta-line { margin: 4px 4px 0; text-align: center; font-size: 14px; font-weight: 700; color: var(--terracotta-ink); }
+.status-note { margin: 10px 0 0; font-size: 13px; font-weight: 600; color: var(--terracotta-ink); }

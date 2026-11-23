@@ -76,6 +76,7 @@ export function StatusPage({ lang, t, order, onMenu, onNewOrder, onGone }: Props
           {row && <div className="eyebrow eyebrow--ink">{t('orderNo', { no: String(row.id).padStart(4, '0') })}</div>}
           <h1 className="status-title">{title}</h1>
           <p className="status-desc">{desc}</p>
+          {!ended && <p className="status-note">🔔 {t('st_arrival_note')}</p>}
         </section>
 
         {status === 'rejected' && (
