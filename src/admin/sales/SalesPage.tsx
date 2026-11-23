@@ -94,7 +94,20 @@ export function SalesPage() {
       .sort((a, b) => a.stage - b.stage || a.room.localeCompare(b.room, 'ko', { numeric: true }));
   }, [roomOrders]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  // 마감 점검: 보고 전에 아직 안 끝난 주문, WINGS에 안 넣은 투숙객 후불 (날짜 상관없이 전부)
+  type Pending = Pick<Order, 'id' | 'room_number' | 'guest_name' | 'created_at' | 'status'>;
+  const [check, setCheck] = useState<{ open: Pending[]; wings: Pending[] } | null>(null);
+  const runCheck = async () => {
+    setCheck(null);
+    const cols = 'id, room_number, guest_name, created_at, status';
+    const [a, w] = await Promise.all([
+      fetchAll<Pending>(() => supabase.from('orders').select(cols).in('status', ['pending', 'cooking']).order('created_at').order('id')),
+      fetchAll<Pending>(() => supabase.from('orders').select(cols).eq('payment_method', 'checkout').in('status', ['cooking', 'completed']).is('wings_posted_at', null).order('created_at').order('id')),
+    ]);
+    setCheck({ open: a.data, wings: w.data });
+  };
   const openReport = () => {
+    void runCheck();
     // 지난번 담당자가 지금 명단에 없으면 비워두고 고르게 합니다
     const labels = bottegaStaff.active.map(staffLabel);
     if (labels.length && !labels.includes(reporter)) setReporter('');
@@ -304,13 +317,32 @@ export function SalesPage() {
         <div className="modal-layer">
           <button type="button" className="modal-backdrop" aria-label="닫기" onClick={() => setPicking(false)} />
           <div className="modal" role="dialog" aria-modal="true" aria-labelledby="pick-t">
-            <h2 id="pick-t">보고 담당자</h2>
+            <h2 id="pick-t">마감 점검 · 보고 담당자</h2>
+            {!check ? (
+              <p className="meta">마감 점검 중…</p>
+            ) : check.open.length + check.wings.length === 0 ? (
+              <div className="close-ok">✓ 마감 점검 이상 없음 · 진행 중인 주문과 WINGS 입력 안 된 후불이 없습니다</div>
+            ) : (
+              <div className="close-warn">
+                <strong>보고 전에 확인해 주십시오</strong>
+                {check.open.length > 0 && (
+                  <div>· 아직 배달 완료 안 된 주문 <b>{check.open.length}건</b>: {check.open.map((o) => `${o.room_number}호(${o.status === 'cooking' ? '조리 중' : '접수 대기'})`).join(', ')}</div>
+                )}
+                {check.wings.length > 0 && (
+                  <div>· WINGS 입력 안 된 투숙객 후불 <b>{check.wings.length}건</b>: {check.wings.map((o) => `${o.room_number}호${o.guest_name ? ` ${o.guest_name}` : ''}`).join(', ')}</div>
+                )}
+                <div className="close-warn-btns">
+                  <a className="btn-outline btn-sm" href="#orders" onClick={() => setPicking(false)}>주문판으로 가기</a>
+                  <span className="meta">처리하지 않고 보고하면 이 건들은 보고에 빠지거나 정산이 늦어질 수 있습니다</span>
+                </div>
+              </div>
+            )}
             <p className="meta">보고용 이미지에 담당자로 들어갑니다.</p>
             <label className="f-label" htmlFor="step-staff">담당자 <span className="req">필수</span></label>
             <StaffPicker staff={bottegaStaff.active} value={reporter} onChange={setReporter} />
             <div className="row-btns">
               <button type="button" className="btn-outline" onClick={() => setPicking(false)}>취소</button>
-              <button type="button" className="btn-green wide" disabled={!reporter.trim()} onClick={() => void makeReport()}>이미지 만들기</button>
+              <button type="button" className="btn-green wide" disabled={!reporter.trim()} onClick={() => void makeReport()}>{check && check.open.length + check.wings.length > 0 ? '그래도 이미지 만들기' : '이미지 만들기'}</button>
             </div>
           </div>
         </div>

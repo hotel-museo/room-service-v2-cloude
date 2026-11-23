@@ -490,3 +490,10 @@ td.bar-col { display: flex; align-items: center; gap: 8px; }
 .dtag { margin-top: 8px; padding: 8px 12px; border-radius: 10px; background: var(--amber-bg); color: var(--amber); font-weight: 800; font-size: 15px; }
 .eta-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 6px 0; }
 .eta-inp { width: 72px; text-align: center; }
+
+/* 보고 전 마감 점검 */
+.close-ok { padding: 10px 12px; border-radius: 10px; background: var(--green-soft); color: var(--green); font-weight: 700; font-size: 13px; }
+.close-warn { display: flex; flex-direction: column; gap: 6px; padding: 12px 14px; border-radius: 10px; background: var(--amber-bg); color: var(--amber); font-size: 13px; line-height: 1.5; }
+.close-warn strong { font-size: 14px; }
+.close-warn-btns { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-top: 4px; }
+.close-warn-btns .btn-outline { display: inline-flex; align-items: center; text-decoration: none; height: 34px; }
