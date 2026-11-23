@@ -1,6 +1,6 @@
 import { won } from '../lib/menu';
 import type { Order } from '../lib/types';
-import { downloadCsv, itemSummary } from '../admin/sales/aggregate';
+import { itemSummary } from '../admin/sales/aggregate';
 
 /**
  * 대표님 보고용: 퇴실 결제 완료 내역 (하루 단위).
@@ -12,21 +12,6 @@ const dt = (iso?: string | null) => (iso ? new Date(iso).toLocaleString('ko-KR',
 const pad = (n: number) => '#' + String(n).padStart(4, '0');
 
 interface Group { room: string; guest: string; list: Order[]; total: number }
-
-export function downloadPaidExcel(day: string, orders: Order[]) {
-  const rows = [...orders]
-    .sort((a, b) => (a.checkout_paid_at ?? '').localeCompare(b.checkout_paid_at ?? '') || a.id - b.id)
-    .map((o) => [
-      dt(o.checkout_paid_at), o.room_number ?? '', o.guest_name ?? '', pad(o.id), dt(o.created_at), itemSummary(o), o.total_amount ?? 0,
-      dt(o.checkout_consent_at) || '기록 없음', o.wings_posted_at ? dt(o.wings_posted_at) : '', o.settle_staff ?? '', o.checkout_staff ?? '',
-      [o.settle_note, o.checkout_note].filter(Boolean).join(' / '),
-    ]);
-  const total = orders.reduce((a, o) => a + (o.total_amount ?? 0), 0);
-  rows.push(['합계', '', '', `${orders.length}건`, '', '', total, '', '', '', '', '']);
-  downloadCsv(`룸서비스_후불결제보고_${day}.csv`,
-    ['퇴실 결제 시각', '객실', '투숙객', '주문번호', '주문 시각', '메뉴', '금액', '고객 후불 동의', 'WINGS 입력', '객실 반영 확인 담당', '퇴실 결제 담당', '특이사항'],
-    rows);
-}
 
 export function printPaidReport(day: string, groups: Group[]): boolean {
   const total = groups.reduce((a, g) => a + g.total, 0);

@@ -6,7 +6,8 @@ import { audioReady, chime, unlockAudio } from '../admin/alarm';
 import { useToast } from '../admin/menu/ui';
 import { addDays, kstDayStart, kstYmd } from '../admin/sales/aggregate';
 import { printFolio } from './folio';
-import { downloadPaidExcel, printPaidReport } from './report';
+import { printPaidReport } from './report';
+import { downloadPaidXlsx } from './excel';
 
 /**
  * 프런트 GL 화면. 투숙객 후불 주문의 3단계 중 프런트 몫 2단계를 처리합니다.
@@ -37,7 +38,6 @@ function group(list: Order[], keyOf: (o: Order) => string = (o) => `${o.room_num
 }
 
 export function FrontApp() {
-  const [role, setRole] = useState('');
   const [tab, setTab] = useState<Tab>('confirm');
   const [day, setDay] = useState(() => kstYmd(new Date()));
   const [toConfirm, setToConfirm] = useState<Order[]>([]);
@@ -51,7 +51,6 @@ export function FrontApp() {
   const seen = useRef<Set<number> | null>(null);
   const toast = useToast();
 
-  useEffect(() => { void supabase.rpc('my_role').then(({ data }) => setRole((data as string) ?? 'admin')); }, []);
 
   const load = useCallback(async () => {
     const since = new Date(Date.now() - 120 * 864e5).toISOString();
@@ -149,7 +148,6 @@ export function FrontApp() {
           <button type="button" className="btn-outline btn-sound" onClick={() => { unlockAudio(); window.setTimeout(() => setSound(audioReady()), 200); }}>알림음 켜기</button>
         )}
         <span className="status-txt"><span className={`dot ${online ? 'dot--ok' : 'dot--bad'}`} />{online ? '연결됨' : '연결 끊김'}</span>
-        {role === 'admin' && <a className="link" href="../admin/">관리자 화면</a>}
         <button type="button" className="link" onClick={() => void supabase.auth.signOut()}>로그아웃</button>
       </header>
 
@@ -228,7 +226,7 @@ export function FrontApp() {
               <input className="inp inp--date" type="date" value={day} max={kstYmd(new Date())} onChange={(e) => e.target.value && setDay(e.target.value)} aria-label="결제한 날짜" />
               <span className="meta">퇴실 결제 {paidGroups.length}객실 · {won(sum(paid))}원</span>
               <span className="grow" />
-              <button type="button" className="btn-outline btn-sm" disabled={!paid.length} onClick={() => downloadPaidExcel(day, paid)}>엑셀 다운로드</button>
+              <button type="button" className="btn-outline btn-sm" disabled={!paid.length} onClick={() => void downloadPaidXlsx(day, paid).catch(() => toast.show('엑셀을 만들지 못했어요. 다시 눌러 주세요', true))}>엑셀 다운로드</button>
               <button type="button" className="btn-green btn-sm" onClick={() => { if (!printPaidReport(day, group(paid))) toast.show('팝업이 막혀 있어요. 주소창 오른쪽에서 팝업을 허용해 주세요', true); }}>대표 보고서 인쇄 · PDF</button>
             </div>
             {paidGroups.length === 0 ? (
