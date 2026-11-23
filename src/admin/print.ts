@@ -1,9 +1,7 @@
 import { won } from '../lib/menu';
+import { escapeHtml, kstTime } from '../lib/format';
 import type { Order } from '../lib/types';
 
-const esc = (s: string) => s.replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]!);
-const hhmm = (iso: string | null) =>
-  iso ? new Date(iso).toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit', hour12: false, timeZone: 'Asia/Seoul' }) : '';
 
 /**
  * 주방 영수증 (80mm 감열지 기준).
@@ -15,7 +13,7 @@ export function printTicket(o: Order) {
     .map((it) => {
       const sub = it.is_set ? (it.set_components ?? []).flatMap((c) => c.items.map((i) => i.name)) : [];
       const opts = (it.options ?? []).map((op) => op.name);
-      return `<div class="it"><b>${it.quantity}×</b> ${esc(it.name)}</div>${sub.map((n) => `<div class="sub">- ${esc(n)}</div>`).join('')}${opts.map((n) => `<div class="sub opt">+ ${esc(n)}</div>`).join('')}`;
+      return `<div class="it"><b>${it.quantity}×</b> ${escapeHtml(it.name)}</div>${sub.map((n) => `<div class="sub">- ${escapeHtml(n)}</div>`).join('')}${opts.map((n) => `<div class="sub opt">+ ${escapeHtml(n)}</div>`).join('')}`;
     })
     .join('');
   const html = `<!doctype html><html lang="ko"><head><meta charset="utf-8"><title>주방 영수증 ${o.id}</title>
@@ -32,14 +30,14 @@ hr { border: 0; border-top: 1px dashed #000; margin: 8px 0; }
 .row { display: flex; justify-content: space-between; font-size: 14px; }
 </style></head><body>
 <div class="meta">PASTA HOUSE 룸서비스</div>
-<div class="room">${esc(o.room_number ?? '')}호</div>
-<div class="meta">주문 #${String(o.id).padStart(4, '0')} · 주문 ${hhmm(o.created_at)} · 접수 ${hhmm(o.accepted_at ?? new Date().toISOString())}</div>
+<div class="room">${escapeHtml(o.room_number ?? '')}호</div>
+<div class="meta">주문 #${String(o.id).padStart(4, '0')} · 주문 ${kstTime(o.created_at)} · 접수 ${kstTime(o.accepted_at ?? new Date().toISOString())}</div>
 <div class="meta"><b>약속 ${o.estimated_minutes ?? ''}분</b></div>
 <hr>${items}<hr>
-${o.allergy_note ? `<div class="note">⚠ 알레르기: ${esc(o.allergy_note)}</div>` : ''}
-${o.request_note ? `<div class="note">요청: ${esc(o.request_note)}</div>` : ''}
+${o.allergy_note ? `<div class="note">⚠ 알레르기: ${escapeHtml(o.allergy_note)}</div>` : ''}
+${o.request_note ? `<div class="note">요청: ${escapeHtml(o.request_note)}</div>` : ''}
 <div class="row"><span>일회용 수저</span><span>${o.disposable_cutlery_qty ?? 0}개</span></div>
-<div class="row"><span>${o.payment_method === 'checkout' ? '객실 합산' : '카드 결제'}${o.guest_name ? ` (${esc(o.guest_name)})` : ''}</span><span>${won(o.total_amount ?? 0)}원</span></div>
+<div class="row"><span>${o.payment_method === 'checkout' ? '객실 합산' : '카드 결제'}${o.guest_name ? ` (${escapeHtml(o.guest_name)})` : ''}</span><span>${won(o.total_amount ?? 0)}원</span></div>
 <script>window.onload=function(){window.print();setTimeout(function(){window.close();},300);};</script>
 </body></html>`;
   const w = window.open('', '_blank', 'width=420,height=640');

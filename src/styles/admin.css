@@ -58,8 +58,6 @@ button:focus-visible, input:focus-visible, a:focus-visible { outline: 2px solid 
 .dot--bad { background: var(--red-2); }
 .clock { font-size: 24px; font-weight: 700; font-variant-numeric: tabular-nums; }
 .link { border: 0; background: transparent; color: var(--muted); font-size: 13px; text-decoration: underline; }
-.btn-sound { height: 38px; font-size: 13px; padding: 0 12px; }
-.btn-sound.is-on { border-color: var(--green); color: var(--green); }
 
 .a-banner { background: var(--green); color: #fff; display: flex; align-items: center; gap: 12px; padding: 14px 28px; font-size: 18px; font-weight: 700; }
 .banner-btn { margin-left: auto; height: 36px; padding: 0 14px; border-radius: 10px; border: 1px solid rgba(255, 255, 255, 0.5); background: transparent; color: #fff; font-weight: 700; }
@@ -332,10 +330,6 @@ td.bar-col { display: flex; align-items: center; gap: 8px; }
 .fd-ol .chip { height: 26px; font-size: 12px; }
 .fd-items { font-size: 14px; color: var(--ink-2); }
 .fd-actions { display: flex; gap: 8px; }
-.fd-methods { display: flex; flex-direction: column; gap: 8px; }
-.fd-method { display: grid; grid-template-columns: auto 1fr; align-items: center; column-gap: 10px; border: 1px solid var(--line-2); border-radius: 12px; padding: 12px 14px; font-weight: 700; cursor: pointer; }
-.fd-method small { grid-column: 2; font-weight: 400; color: var(--muted); font-size: 12px; }
-.fd-method.is-on { border-color: var(--green); background: var(--green-soft); }
 .req { font-size: 11px; font-weight: 700; color: var(--red); margin-left: 4px; }
 .panel--alert { border: 2px solid var(--amber-2); }
 .wings-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
@@ -355,7 +349,6 @@ td.bar-col { display: flex; align-items: center; gap: 8px; }
 .tool svg { width: 17px; height: 17px; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
 .tool.is-on { color: var(--green); border-color: #bfd3c7; background: var(--green-soft); cursor: default; }
 .tool.is-on[aria-pressed] { cursor: pointer; }
-.tool.is-warn { color: var(--amber); border-color: #f0d9a8; background: var(--amber-bg); }
 .clockbox { display: inline-flex; align-items: center; gap: 8px; padding: 0 4px; }
 .clockbox .clock { font-size: 22px; letter-spacing: 0.01em; }
 .offline { font-size: 12px; font-weight: 700; color: var(--red-2); }
@@ -461,9 +454,6 @@ td.bar-col { display: flex; align-items: center; gap: 8px; }
 .fd-order button { width: 26px; height: 18px; border: 1px solid var(--line); background: #fff; border-radius: 5px; font-size: 9px; color: var(--ink-2); line-height: 1; padding: 0; }
 .fd-order button:disabled { opacity: 0.3; }
 .link.danger { color: var(--red); }
-.fd-picker { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 6px; }
-.fd-picker button { height: 44px; border: 1px solid var(--line-2); border-radius: 10px; background: #fff; font-weight: 700; font-size: 14px; color: var(--ink-2); }
-.fd-picker button.is-on { background: var(--green); border-color: var(--green); color: #fff; }
 .fd-picker-toggle { align-self: flex-start; font-size: 12px; }
 .fd-select { display: flex; flex-direction: column; gap: 6px; }
 .fd-select-btn { height: 48px; display: flex; align-items: center; justify-content: space-between; padding: 0 14px; border: 1px solid var(--line-2); border-radius: 10px; background: #fff; font-size: 15px; font-weight: 700; color: var(--ink); text-align: left; }

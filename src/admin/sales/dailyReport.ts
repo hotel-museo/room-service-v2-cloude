@@ -1,4 +1,5 @@
 import { won } from '../../lib/menu';
+import { kstTime, shortItems } from '../../lib/format';
 import type { Order } from '../../lib/types';
 import { checkoutPayLabel } from '../../lib/types';
 
@@ -11,15 +12,12 @@ const PAD = 64;
 const FONT = "'Noto Sans KR', 'Malgun Gothic', sans-serif";
 const C = { green: '#123828', ink: '#16181a', sub: '#5f6662', line: '#e3e6e4', soft: '#f3f5f4', terra: '#b4532a' };
 
-const hm = (iso: string) =>
-  new Date(iso).toLocaleTimeString('ko-KR', { timeZone: 'Asia/Seoul', hour: '2-digit', minute: '2-digit', hour12: false });
 const dayLabel = (ymd: string) => {
   const d = new Date(`${ymd}T12:00:00+09:00`);
   const w = '일월화수목금토'[d.getUTCDay()];
   const [y, m, dd] = ymd.split('-');
   return `${y}년 ${Number(m)}월 ${Number(dd)}일 (${w})`;
 };
-const menuText = (o: Order) => (o.order_items ?? []).map((it) => `${it.name}${it.quantity > 1 ? ` ×${it.quantity}` : ''}`).join(', ');
 
 function wrap(ctx: CanvasRenderingContext2D, text: string, maxW: number): string[] {
   const out: string[] = [];
@@ -42,7 +40,7 @@ export async function renderDailyReport(ymd: string, orders: Order[], rejected: 
   const probe = document.createElement('canvas').getContext('2d')!;
   probe.font = `400 28px ${FONT}`;
   const menuW = W - PAD * 2 - 48;
-  const rows = list.map((o) => ({ o, lines: wrap(probe, menuText(o), menuW) }));
+  const rows = list.map((o) => ({ o, lines: wrap(probe, shortItems(o), menuW) }));
   const rowH = (n: number) => 32 + 44 + n * 40 + 30;
   const listH = rows.reduce((a, r) => a + rowH(r.lines.length), 0) || 140;
   // 거절한 주문 (사유 포함)
@@ -159,7 +157,7 @@ export async function renderDailyReport(ymd: string, orders: Order[], rejected: 
     x += ctx.measureText(guest).width + 16;
     ctx.fillStyle = C.sub;
     ctx.font = `500 24px ${FONT}`;
-    ctx.fillText(hm(o.created_at), x, y + 34);
+    ctx.fillText(kstTime(o.created_at), x, y + 34);
     // 결제방법 칩 + 금액 (오른쪽)
     ctx.textAlign = 'right';
     ctx.fillStyle = C.ink;
@@ -234,7 +232,7 @@ export async function renderDailyReport(ymd: string, orders: Order[], rejected: 
       x += ctx.measureText(guest).width + 16;
       ctx.fillStyle = C.sub;
       ctx.font = `500 24px ${FONT}`;
-      ctx.fillText(`${hm(o.created_at)}${o.rejected_at ? ` → ${hm(o.rejected_at)} 거절` : ''}`, x, y + 34);
+      ctx.fillText(`${kstTime(o.created_at)}${o.rejected_at ? ` → ${kstTime(o.rejected_at)} 거절` : ''}`, x, y + 34);
       // 금액 (청구 안 됨이라 취소선)
       ctx.textAlign = 'right';
       ctx.fillStyle = C.sub;

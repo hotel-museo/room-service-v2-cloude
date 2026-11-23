@@ -1,9 +1,7 @@
 import { won } from '../lib/menu';
+import { escapeHtml, kstDateTime } from '../lib/format';
 import type { Order } from '../lib/types';
 
-const esc = (s: string) => s.replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]!);
-const dt = (iso: string) =>
-  new Date(iso).toLocaleString('ko-KR', { timeZone: 'Asia/Seoul', month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit', hour12: false });
 
 /** 객실별 룸서비스 이용 내역서 (손님께 드리는 용, 80mm 영수증 프린터 / A4 모두 가능) */
 export function printFolio(room: string, guest: string, list: Order[]) {
@@ -11,13 +9,13 @@ export function printFolio(room: string, guest: string, list: Order[]) {
   const rows = list
     .map((o) => {
       const items = (o.order_items ?? [])
-        .map((it) => `<tr><td>${esc(it.name)} × ${it.quantity}</td><td class="r">${won(it.price * it.quantity)}</td></tr>`)
+        .map((it) => `<tr><td>${escapeHtml(it.name)} × ${it.quantity}</td><td class="r">${won(it.price * it.quantity)}</td></tr>`)
         .join('');
-      const consent = o.checkout_consent_at ? `<tr><td colspan="2" class="cs">✓ 고객 후불 동의 ${dt(o.checkout_consent_at)}${o.checkout_consent_text ? `<br>“${esc(o.checkout_consent_text)}”` : ''}</td></tr>` : '';
-      return `<tr class="h"><td colspan="2">#${String(o.id).padStart(4, '0')} · ${dt(o.created_at)}</td></tr>${items}${consent}`;
+      const consent = o.checkout_consent_at ? `<tr><td colspan="2" class="cs">✓ 고객 후불 동의 ${kstDateTime(o.checkout_consent_at)}${o.checkout_consent_text ? `<br>“${escapeHtml(o.checkout_consent_text)}”` : ''}</td></tr>` : '';
+      return `<tr class="h"><td colspan="2">#${String(o.id).padStart(4, '0')} · ${kstDateTime(o.created_at)}</td></tr>${items}${consent}`;
     })
     .join('');
-  const html = `<!doctype html><html lang="ko"><head><meta charset="utf-8"><title>룸서비스 이용 내역 ${esc(room)}호</title>
+  const html = `<!doctype html><html lang="ko"><head><meta charset="utf-8"><title>룸서비스 이용 내역 ${escapeHtml(room)}호</title>
 <style>
 @page { size: 80mm auto; margin: 4mm; }
 body { font-family: 'Noto Sans KR', sans-serif; max-width: 72mm; margin: 0; color: #000; font-size: 13px; }
@@ -34,11 +32,11 @@ tr.h td { padding-top: 8px; font-weight: 700; border-top: 1px dashed #000; }
 </style></head><body>
 <h1>HOTEL MUSEO · PASTA HOUSE</h1>
 <div class="c">룸서비스 이용 내역</div>
-<div class="room">${esc(room)}호</div>
-<div class="c">${esc(guest || '')}</div>
+<div class="room">${escapeHtml(room)}호</div>
+<div class="c">${escapeHtml(guest || '')}</div>
 <table>${rows}</table>
 <div class="tot"><span>합계</span><span>${won(total)}원</span></div>
-<div class="foot">출력 ${dt(new Date().toISOString())}</div>
+<div class="foot">출력 ${kstDateTime(new Date().toISOString())}</div>
 <script>window.onload = () => { window.print(); setTimeout(() => window.close(), 300); };</script>
 </body></html>`;
   const w = window.open('', '_blank', 'width=420,height=640');

@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { kstDateTime, orderNo, shortItems } from '../lib/format';
 import { won } from '../lib/menu';
 import { supabase } from '../lib/supabase';
 import { fetchAll } from '../lib/fetchAll';
@@ -23,9 +24,6 @@ const PAID_PRESETS: [Preset, string][] = [['today', '오늘'], ['yesterday', '�
 
 const STAFF_KEY = 'ph-front-staff';
 const readStaff = () => { try { return localStorage.getItem(STAFF_KEY) ?? ''; } catch { return ''; } };
-const pad = (n: number) => '#' + String(n).padStart(4, '0');
-const dt = (iso: string) => new Date(iso).toLocaleString('ko-KR', { timeZone: 'Asia/Seoul', month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit', hour12: false });
-const summary = (o: Order) => (o.order_items ?? []).map((it) => `${it.name}${it.quantity > 1 ? ` ×${it.quantity}` : ''}`).join(', ');
 const OLD_DAYS = 3;
 const daysSince = (iso: string) => Math.floor((kstDayStart(kstYmd(new Date())).getTime() - kstDayStart(kstYmd(new Date(iso))).getTime()) / 864e5);
 
@@ -137,11 +135,11 @@ export function FrontApp() {
       {g.list.map((o) => (
         <li key={o.id}>
           <div className="fd-ol">
-            <span className="meta">{pad(o.id)} · {dt(o.created_at)}</span>
+            <span className="meta">{orderNo(o.id)} · {kstDateTime(o.created_at)}</span>
             {showStatus && <span className={`chip${o.status === 'cooking' ? ' chip--amber' : ''}`}>{o.status === 'cooking' ? '조리 중' : '배달 완료'}</span>}
           </div>
-          <div className="fd-items">{summary(o)}</div>
-          <div className={`fd-consent${o.checkout_consent_at ? '' : ' is-missing'}`}>{o.checkout_consent_at ? `✓ 고객 후불 동의 ${dt(o.checkout_consent_at)}` : '후불 동의 기록 없음 (이전 주문)'}</div>
+          <div className="fd-items">{shortItems(o)}</div>
+          <div className={`fd-consent${o.checkout_consent_at ? '' : ' is-missing'}`}>{o.checkout_consent_at ? `✓ 고객 후불 동의 ${kstDateTime(o.checkout_consent_at)}` : '후불 동의 기록 없음 (이전 주문)'}</div>
           {o.settle_note && <div className="meta">특이사항: {o.settle_note}</div>}
           <div className="fd-ol"><span className="meta">{o.settle_staff ? `확인 ${o.settle_staff}` : o.phone ?? ''}</span><b>{won(o.total_amount ?? 0)}원</b></div>
         </li>
@@ -221,7 +219,7 @@ export function FrontApp() {
                         <div className="fd-amt">{won(g.total)}<small>원</small></div>
                       </div>
                       <div className="fd-ol">
-                        <span className="meta">주문 {g.list.length}건 · 첫 주문 {dt(g.list[0].created_at)}</span>
+                        <span className="meta">주문 {g.list.length}건 · 첫 주문 {kstDateTime(g.list[0].created_at)}</span>
                         {days > 0 && <span className="fd-days">{days}일째</span>}
                       </div>
                       {orderList(g, false)}
@@ -268,10 +266,10 @@ export function FrontApp() {
                         const o = g.list[0];
                         return (
                           <tr key={g.k}>
-                            <td>{dt(o.checkout_paid_at!)}</td>
+                            <td>{kstDateTime(o.checkout_paid_at!)}</td>
                             <td className="strong">{g.room}호</td>
                             <td>{g.guest || '–'}</td>
-                            <td><span className="meta">{g.list.map((x) => pad(x.id)).join(' ')}</span>{o.checkout_note ? <div className="meta">특이사항: {o.checkout_note}</div> : null}</td>
+                            <td><span className="meta">{g.list.map((x) => orderNo(x.id)).join(' ')}</span>{o.checkout_note ? <div className="meta">특이사항: {o.checkout_note}</div> : null}</td>
                             <td className="strong">{checkoutPayLabel(o.checkout_pay_method) || '–'}</td>
                             <td>{o.checkout_staff || '–'}</td>
                             <td className="num strong">{won(g.total)}원</td>

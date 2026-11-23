@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import { kstTime, orderNo } from '../lib/format';
 import { isSoldOut, visibleMenus, won } from '../lib/menu';
 import { supabase } from '../lib/supabase';
 import type { Order, ServiceStatus } from '../lib/types';
@@ -20,9 +21,6 @@ import { REJECT_REASONS as REJECT_PRESETS } from '../lib/rejectReasons';
 const REJECT_REASONS = REJECT_PRESETS.map((r) => r.ko);
 const SERVICE: [ServiceStatus, string][] = [['open', '영업 중'], ['busy', '바쁨'], ['preparing', '준비 중'], ['closed', '마감']];
 
-const pad = (n: number) => '#' + String(n).padStart(4, '0');
-const hhmm = (iso: string | null) =>
-  iso ? new Date(iso).toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit', hour12: false, timeZone: 'Asia/Seoul' }) : '';
 const minutesSince = (iso: string | null, now: number) => (iso ? Math.max(0, Math.floor((now - new Date(iso).getTime()) / 60000)) : 0);
 
 function itemLines(o: Order) {
@@ -138,9 +136,9 @@ export function Board() {
             <span>손님 화면</span>
           </button>
         </div>
-        <div className="clockbox" title={b.online ? `마지막 동기화 ${hhmm(b.lastSync?.toISOString() ?? null)}` : '인터넷 연결을 확인해 주세요'}>
+        <div className="clockbox" title={b.online ? `마지막 동기화 ${kstTime(b.lastSync?.toISOString() ?? null)}` : '인터넷 연결을 확인해 주세요'}>
           <span className={`dot ${b.online ? 'dot--ok' : 'dot--bad'}`} />
-          <span className="clock">{hhmm(new Date(now).toISOString())}</span>
+          <span className="clock">{kstTime(new Date(now).toISOString())}</span>
           {!b.online && <span className="offline">연결 끊김</span>}
         </div>
         <button type="button" className="logout" onClick={() => void supabase.auth.signOut()} title="로그아웃" aria-label="로그아웃">
@@ -172,7 +170,7 @@ export function Board() {
                   <div className="ocard-top">
                     <div>
                       <div className="room">{o.room_number}<span>호</span></div>
-                      <div className="meta">주문 {pad(o.id)} · {hhmm(o.created_at)}</div>
+                      <div className="meta">주문 {orderNo(o.id)} · {kstTime(o.created_at)}</div>
                     </div>
                     <span className={ageChip(age)}>{age}분 경과</span>
                   </div>
@@ -212,7 +210,7 @@ export function Board() {
                   <div className="ocard-top">
                     <div>
                       <div className="room room--md">{o.room_number}<span>호</span></div>
-                      <div className="meta">주문 {pad(o.id)} · 접수 {hhmm(o.accepted_at)}</div>
+                      <div className="meta">주문 {orderNo(o.id)} · 접수 {kstTime(o.accepted_at)}</div>
                     </div>
                     <div className="remain">
                       <span className={`remain-num tone-${tone}`}>{remain <= 0 ? `${-remain}분 지연` : `${remain}분 남음`}</span>
@@ -246,7 +244,7 @@ export function Board() {
               {finished.map((o) => (
                 <div className="done-row" key={o.id}>
                   <strong>{o.room_number}호</strong>
-                  <span className="meta">{pad(o.id)} · {hhmm(o.completed_at || o.rejected_at)}</span>
+                  <span className="meta">{orderNo(o.id)} · {kstTime(o.completed_at || o.rejected_at)}</span>
                   <span className={o.status === 'rejected' ? 'tag tag--red' : 'tag'}>{o.status === 'rejected' ? '거절' : '완료'}</span>
                 </div>
               ))}
@@ -337,7 +335,7 @@ function WingsPanel({ list, onPost }: { list: Order[]; onPost: (id: number, on: 
               <div>
                 <strong>{o.room_number}호</strong> <span>{o.guest_name || '성함 없음'}</span>
                 {daysOld(o.created_at) >= OLD_DAYS && <span className="tag tag--red">{daysOld(o.created_at)}일 지남</span>}
-                <div className="meta">{pad(o.id)} · {md(o.created_at)}</div>
+                <div className="meta">{orderNo(o.id)} · {md(o.created_at)}</div>
               </div>
               <b>{won(o.total_amount ?? 0)}원</b>
               <button type="button" className="btn-green btn-sm" onClick={() => void onPost(o.id, true)}>입력 완료</button>
@@ -351,7 +349,7 @@ function WingsPanel({ list, onPost }: { list: Order[]; onPost: (id: number, on: 
           <ul className="wings-list">
             {posted.map((o) => (
               <li key={o.id}>
-                <div><strong>{o.room_number}호</strong> <span className="meta">{pad(o.id)}</span></div>
+                <div><strong>{o.room_number}호</strong> <span className="meta">{orderNo(o.id)}</span></div>
                 <b>{won(o.total_amount ?? 0)}원</b>
                 <button type="button" className="link" onClick={() => void onPost(o.id, false)}>입력 취소</button>
               </li>

@@ -1,4 +1,5 @@
 import { CHECKOUT_PAY, checkoutPayLabel } from '../lib/types';
+import { escapeHtml, kstDateTime, orderNo } from '../lib/format';
 import { won } from '../lib/menu';
 import type { Order } from '../lib/types';
 import { itemSummary } from '../admin/sales/aggregate';
@@ -8,9 +9,6 @@ import { itemSummary } from '../admin/sales/aggregate';
  * - 엑셀(CSV): 주문 한 건이 한 줄
  * - 보고서 인쇄: A4 한 장, 객실별 합계 + 서명란 (인쇄 창에서 "PDF로 저장"도 가능)
  */
-const esc = (s: string) => s.replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]!);
-const dt = (iso?: string | null) => (iso ? new Date(iso).toLocaleString('ko-KR', { timeZone: 'Asia/Seoul', month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit', hour12: false }) : '');
-const pad = (n: number) => '#' + String(n).padStart(4, '0');
 
 interface Group { room: string; guest: string; list: Order[]; total: number }
 
@@ -22,16 +20,16 @@ export function printPaidReport(day: string, groups: Group[]): boolean {
     .map((g) => {
       const o0 = g.list[0];
       const orders = g.list
-        .map((o) => `<div class="o"><span>${pad(o.id)} · ${dt(o.created_at)}</span><span>${esc(itemSummary(o))}</span><span class="r">${won(o.total_amount ?? 0)}</span></div>
-          <div class="cs">${o.checkout_consent_at ? `✓ 고객 후불 동의 ${dt(o.checkout_consent_at)}` : '후불 동의 기록 없음'}</div>`)
+        .map((o) => `<div class="o"><span>${orderNo(o.id)} · ${kstDateTime(o.created_at)}</span><span>${escapeHtml(itemSummary(o))}</span><span class="r">${won(o.total_amount ?? 0)}</span></div>
+          <div class="cs">${o.checkout_consent_at ? `✓ 고객 후불 동의 ${kstDateTime(o.checkout_consent_at)}` : '후불 동의 기록 없음'}</div>`)
         .join('');
       const notes = [...new Set(g.list.flatMap((o) => [o.settle_note, o.checkout_note]).filter(Boolean))].join(' / ');
       return `<tr>
-        <td class="room">${esc(g.room)}호</td>
-        <td>${esc(g.guest || '–')}</td>
-        <td>${orders}${notes ? `<div class="note">특이사항: ${esc(notes)}</div>` : ''}</td>
+        <td class="room">${escapeHtml(g.room)}호</td>
+        <td>${escapeHtml(g.guest || '–')}</td>
+        <td>${orders}${notes ? `<div class="note">특이사항: ${escapeHtml(notes)}</div>` : ''}</td>
         <td class="r b">${won(g.total)}</td>
-        <td class="c">${dt(o0.checkout_paid_at)} <b>${esc(checkoutPayLabel(o0.checkout_pay_method))}</b><br><span class="m">${esc(o0.checkout_staff ?? '')}</span></td>
+        <td class="c">${kstDateTime(o0.checkout_paid_at)} <b>${escapeHtml(checkoutPayLabel(o0.checkout_pay_method))}</b><br><span class="m">${escapeHtml(o0.checkout_staff ?? '')}</span></td>
       </tr>`;
     })
     .join('');
@@ -69,7 +67,7 @@ tfoot td { font-weight: 700; border-top: 2px solid #123828; border-bottom: 0; }
 .empty { padding: 40px; text-align: center; color: #777; }
 </style></head><body>
 <div class="head">
-  <div><h1>룸서비스 투숙객 후불 결제 보고</h1><div class="sub">${esc(day)} 퇴실 결제 완료 내역${staff ? ` · 결제 담당 ${esc(staff)}` : ''}</div></div>
+  <div><h1>룸서비스 투숙객 후불 결제 보고</h1><div class="sub">${escapeHtml(day)} 퇴실 결제 완료 내역${staff ? ` · 결제 담당 ${escapeHtml(staff)}` : ''}</div></div>
   <div class="brand">HOTEL MUSEO<br>PASTA HOUSE</div>
 </div>
 <div class="sum">
