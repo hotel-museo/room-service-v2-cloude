@@ -2,7 +2,6 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { won } from '../lib/menu';
 import { supabase } from '../lib/supabase';
 import type { Order } from '../lib/types';
-import { audioReady, chime, unlockAudio } from '../admin/alarm';
 import { useToast } from '../admin/menu/ui';
 import { addDays, kstDayStart, kstYmd } from '../admin/sales/aggregate';
 import { printFolio } from './folio';
@@ -44,7 +43,6 @@ export function FrontApp() {
   const [staying, setStaying] = useState<Order[]>([]);
   const [paid, setPaid] = useState<Order[]>([]);
   const [q, setQ] = useState('');
-  const [sound, setSound] = useState(false);
   const [online, setOnline] = useState(true);
   const [fresh, setFresh] = useState<Set<number>>(new Set());
   const [acting, setActing] = useState<{ g: Group; step: Step } | null>(null);
@@ -65,13 +63,19 @@ export function FrontApp() {
     const list = (a.data ?? []) as Order[];
     if (seen.current) {
       const newOnes = list.filter((o) => !seen.current!.has(o.id));
-      if (newOnes.length) { chime(); setFresh((s) => new Set([...s, ...newOnes.map((o) => o.id)])); }
+      if (newOnes.length) { setFresh((s) => new Set([...s, ...newOnes.map((o) => o.id)])); }
     }
     seen.current = new Set([...(seen.current ?? []), ...list.map((o) => o.id)]);
     setToConfirm(list);
     setStaying((b.data ?? []) as Order[]);
     setPaid((c.data ?? []) as Order[]);
   }, [day]);
+
+  // 프런트는 소리 없이 화면으로만 알려요: 브라우저 탭 제목에 확인할 객실 수
+  const confirmCount = useMemo(() => group(toConfirm).length, [toConfirm]);
+  useEffect(() => {
+    document.title = confirmCount ? `(${confirmCount}) 객실 반영 확인 · 프런트` : '프런트 · 룸서비스 정산';
+  }, [confirmCount]);
 
   useEffect(() => {
     void load();
@@ -142,11 +146,6 @@ export function FrontApp() {
         </nav>
         <div className="grow" />
         <input className="inp inp--sm fd-search" type="search" placeholder="객실 번호 · 성함" value={q} onChange={(e) => setQ(e.target.value)} aria-label="객실 번호 또는 성함 검색" />
-        {sound ? (
-          <span className="status-txt"><span className="dot dot--ok" />알림음 켜짐</span>
-        ) : (
-          <button type="button" className="btn-outline btn-sound" onClick={() => { unlockAudio(); window.setTimeout(() => setSound(audioReady()), 200); }}>알림음 켜기</button>
-        )}
         <span className="status-txt"><span className={`dot ${online ? 'dot--ok' : 'dot--bad'}`} />{online ? '연결됨' : '연결 끊김'}</span>
         <button type="button" className="link" onClick={() => void supabase.auth.signOut()}>로그아웃</button>
       </header>
