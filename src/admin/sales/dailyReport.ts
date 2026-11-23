@@ -1,9 +1,10 @@
 import { won } from '../../lib/menu';
 import type { Order } from '../../lib/types';
+import { checkoutPayLabel } from '../../lib/types';
 
 /**
  * 대표님께 카톡으로 보낼 "룸서비스 일일 보고" 이미지 (캔버스로 직접 그림).
- * 내용: 룸서비스 건수, 총매출, 투숙객 후불·카드 결제 건수와 금액, 주문마다 시간·객실·성함·결제방법·금액·메뉴.
+ * 내용: 룸서비스 건수, 총매출, 투숙객 후불·카드 결제 건수와 금액, 거절한 객실과 사유, 주문마다 시간·객실·성함·결제방법·금액·메뉴.
  */
 const W = 1080;
 const PAD = 64;
@@ -32,7 +33,7 @@ function wrap(ctx: CanvasRenderingContext2D, text: string, maxW: number): string
   return out;
 }
 
-export async function renderDailyReport(ymd: string, orders: Order[]): Promise<Blob> {
+export async function renderDailyReport(ymd: string, orders: Order[], rejected: Order[] = []): Promise<Blob> {
   await Promise.all([document.fonts.load(`400 28px 'Noto Sans KR'`), document.fonts.load(`700 28px 'Noto Sans KR'`), document.fonts.load(`900 28px 'Noto Sans KR'`)]).catch(() => undefined);
   const list = [...orders].sort((a, b) => a.created_at.localeCompare(b.created_at));
   const total = list.reduce((a, o) => a + (o.total_amount ?? 0), 0);
@@ -44,7 +45,12 @@ export async function renderDailyReport(ymd: string, orders: Order[]): Promise<B
   const rows = list.map((o) => ({ o, lines: wrap(probe, menuText(o), menuW) }));
   const rowH = (n: number) => 32 + 44 + n * 40 + 30;
   const listH = rows.reduce((a, r) => a + rowH(r.lines.length), 0) || 140;
-  const H = 640 + 160 + listH + 220;
+  // 거절한 주문 (사유 포함)
+  const rej = [...rejected].sort((a, b) => a.created_at.localeCompare(b.created_at));
+  probe.font = `500 26px ${FONT}`;
+  const rejRows = rej.map((o) => ({ o, lines: wrap(probe, `사유: ${o.rejection_reason?.trim() || '기재 없음'}`, menuW) }));
+  const rejH = rej.length ? 110 + rejRows.reduce((a, r) => a + 32 + 44 + r.lines.length * 38 + 26, 0) : 0;
+  const H = 640 + 160 + listH + 220 + rejH;
 
   const cv = document.createElement('canvas');
   cv.width = W;
@@ -156,7 +162,8 @@ export async function renderDailyReport(ymd: string, orders: Order[]): Promise<B
     const amt = `${won(o.total_amount ?? 0)}원`;
     ctx.fillText(amt, W - PAD, y + 34);
     const amtW = ctx.measureText(amt).width;
-    const pay = o.payment_method === 'checkout' ? '투숙객 후불' : '카드';
+    const paidBy = o.payment_method === 'checkout' ? checkoutPayLabel(o.checkout_pay_method) : '';
+    const pay = o.payment_method === 'checkout' ? `투숙객 후불${paidBy ? ` · ${paidBy}` : ''}` : '카드';
     ctx.font = `700 22px ${FONT}`;
     const pw = ctx.measureText(pay).width + 28;
     const px = W - PAD - amtW - 20 - pw;
@@ -185,6 +192,60 @@ export async function renderDailyReport(ymd: string, orders: Order[]): Promise<B
   ctx.textAlign = 'right';
   ctx.fillText(`${won(total)}원`, W - PAD, y + 56);
   ctx.textAlign = 'left';
+
+  // 거절한 객실
+  if (rej.length) {
+    y += 56 + 90;
+    ctx.fillStyle = C.ink;
+    ctx.font = `900 30px ${FONT}`;
+    ctx.fillText('거절한 주문', PAD, y);
+    const t = '거절한 주문';
+    const tw = ctx.measureText(t).width;
+    ctx.fillStyle = '#b3261e';
+    ctx.font = `700 26px ${FONT}`;
+    ctx.fillText(`${rej.length}건 · 매출 제외`, PAD + tw + 16, y);
+    y += 20;
+    rejRows.forEach(({ o, lines }) => {
+      y += 32;
+      ctx.strokeStyle = C.line;
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(PAD, y - 16);
+      ctx.lineTo(W - PAD, y - 16);
+      ctx.stroke();
+      const x0 = PAD + 48;
+      ctx.fillStyle = '#b3261e';
+      ctx.beginPath();
+      ctx.arc(PAD + 12, y + 24, 7, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = C.ink;
+      ctx.font = `900 32px ${FONT}`;
+      const room = `${o.room_number ?? ''}호`;
+      ctx.fillText(room, x0, y + 34);
+      let x = x0 + ctx.measureText(room).width + 16;
+      ctx.font = `700 28px ${FONT}`;
+      const guest = o.guest_name?.trim() || '성함 없음';
+      ctx.fillText(guest, x, y + 34);
+      x += ctx.measureText(guest).width + 16;
+      ctx.fillStyle = C.sub;
+      ctx.font = `500 24px ${FONT}`;
+      ctx.fillText(`${hm(o.created_at)}${o.rejected_at ? ` → ${hm(o.rejected_at)} 거절` : ''}`, x, y + 34);
+      // 금액 (청구 안 됨이라 취소선)
+      ctx.textAlign = 'right';
+      ctx.fillStyle = C.sub;
+      ctx.font = `700 28px ${FONT}`;
+      const amt = `${won(o.total_amount ?? 0)}원`;
+      ctx.fillText(amt, W - PAD, y + 34);
+      const aw = ctx.measureText(amt).width;
+      ctx.fillRect(W - PAD - aw, y + 24, aw, 2);
+      ctx.textAlign = 'left';
+      ctx.fillStyle = '#7a2a1d';
+      ctx.font = `500 26px ${FONT}`;
+      lines.forEach((ln, k) => ctx.fillText(ln, x0, y + 44 + 38 + k * 38));
+      y += 44 + lines.length * 38 + 26;
+    });
+    y -= 56;
+  }
 
   // 실제 쓴 높이로 자르기
   const usedH = Math.ceil(y + 100);

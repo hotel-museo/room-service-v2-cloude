@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { won } from '../lib/menu';
 import { supabase } from '../lib/supabase';
-import type { Order } from '../lib/types';
+import type { Order , CheckoutPayMethod } from '../lib/types';
+import { CHECKOUT_PAY, checkoutPayLabel } from '../lib/types';
 import { useToast } from '../admin/menu/ui';
 import { addDays, kstDayStart, kstYmd } from '../admin/sales/aggregate';
 import { printFolio } from './folio';
@@ -89,15 +90,15 @@ export function FrontApp() {
   const paidGroups = useMemo(() => group(paid, (o) => `${o.checkout_paid_at}|${o.room_number}`).filter(match), [paid, q]); // eslint-disable-line react-hooks/exhaustive-deps
   const sum = (l: Order[]) => l.reduce((a, o) => a + (o.total_amount ?? 0), 0);
 
-  const save = async (g: Group, step: Step, note: string, staff: string) => {
+  const save = async (g: Group, step: Step, note: string, staff: string, method: CheckoutPayMethod | null) => {
     try { localStorage.setItem(STAFF_KEY, staff.trim()); } catch { /* 무시 */ }
     const now = new Date().toISOString();
     const ids = g.list.map((o) => o.id);
     const { error } = step === 'confirm'
       ? await supabase.from('orders').update({ settled_at: now, settle_method: 'room', settle_note: note.trim() || null, settle_staff: staff.trim() }).in('id', ids).is('settled_at', null)
-      : await supabase.from('orders').update({ checkout_paid_at: now, checkout_note: note.trim() || null, checkout_staff: staff.trim() }).in('id', ids).is('checkout_paid_at', null);
+      : await supabase.from('orders').update({ checkout_paid_at: now, checkout_pay_method: method, checkout_note: note.trim() || null, checkout_staff: staff.trim() }).in('id', ids).is('checkout_paid_at', null);
     if (error) toast.show('저장하지 못했어요: ' + error.message, true);
-    else toast.show(step === 'confirm' ? `${g.room}호 객실 반영 확인 → 퇴실 결제 대기로 옮겼어요` : `${g.room}호 퇴실 결제 완료`);
+    else toast.show(step === 'confirm' ? `${g.room}호 객실 반영 확인 → 퇴실 결제 대기로 옮겼어요` : `${g.room}호 퇴실 결제 완료 (${checkoutPayLabel(method)})`);
     setActing(null);
     void load();
   };
@@ -234,7 +235,7 @@ export function FrontApp() {
               <div className="panel">
                 <div className="tbl-wrap">
                   <table className="tbl">
-                    <thead><tr><th>결제 시각</th><th>객실</th><th>성함</th><th>주문</th><th>결제 담당</th><th className="num">금액</th><th /></tr></thead>
+                    <thead><tr><th>결제 시각</th><th>객실</th><th>성함</th><th>주문</th><th>결제 방법</th><th>결제 담당</th><th className="num">금액</th><th /></tr></thead>
                     <tbody>
                       {paidGroups.map((g) => {
                         const o = g.list[0];
@@ -244,6 +245,7 @@ export function FrontApp() {
                             <td className="strong">{g.room}호</td>
                             <td>{g.guest || '–'}</td>
                             <td><span className="meta">{g.list.map((x) => pad(x.id)).join(' ')}</span>{o.checkout_note ? <div className="meta">특이사항: {o.checkout_note}</div> : null}</td>
+                            <td className="strong">{checkoutPayLabel(o.checkout_pay_method) || '–'}</td>
                             <td>{o.checkout_staff || '–'}</td>
                             <td className="num strong">{won(g.total)}원</td>
                             <td className="num">
@@ -268,8 +270,10 @@ export function FrontApp() {
   );
 }
 
-function StepModal({ g, step, onClose, onSave }: { g: Group; step: Step; onClose: () => void; onSave: (g: Group, step: Step, note: string, staff: string) => Promise<void> }) {
+function StepModal({ g, step, onClose, onSave }: { g: Group; step: Step; onClose: () => void; onSave: (g: Group, step: Step, note: string, staff: string, method: CheckoutPayMethod | null) => Promise<void> }) {
   const [note, setNote] = useState('');
+  const [method, setMethod] = useState<CheckoutPayMethod | null>(null);
+  const needMethod = step === 'paid';
   const [staff, setStaff] = useState(readStaff);
   const [busy, setBusy] = useState(false);
   const label = step === 'confirm' ? '객실 반영 확인' : '퇴실 결제 완료';
@@ -285,12 +289,22 @@ function StepModal({ g, step, onClose, onSave }: { g: Group; step: Step; onClose
             : `주문 ${g.list.length}건 합계예요. 퇴실 때 결제를 받았으면 눌러 주세요. 영수증과 함께 대표님께 보고해 주세요.`}
         </p>
         {step === 'confirm' && g.cooking > 0 && <p className="f-hint">아직 조리 중인 주문 {g.cooking}건이 함께 있어요. 금액은 확정이라 지금 확인해도 괜찮아요.</p>}
+        {needMethod && (
+          <>
+            <div className="f-label">결제 방법 <span className="req">필수</span></div>
+            <div className="seg seg--pay" role="group" aria-label="결제 방법">
+              {CHECKOUT_PAY.map(([k, label]) => (
+                <button type="button" key={k} className={method === k ? 'is-on is-open' : ''} aria-pressed={method === k} onClick={() => setMethod(k)}>{label}</button>
+              ))}
+            </div>
+          </>
+        )}
         <label className="f-label" htmlFor="step-staff">담당자 <span className="req">필수</span></label>
         <input id="step-staff" className="inp" placeholder="처리한 직원 이름" value={staff} onChange={(e) => setStaff(e.target.value)} maxLength={30} autoFocus={!staff} />
         <input className="inp" placeholder="특이사항 (있을 때만)" value={note} onChange={(e) => setNote(e.target.value)} maxLength={200} aria-label="특이사항" />
         <div className="fd-actions">
           <button type="button" className="btn-outline" onClick={onClose}>취소</button>
-          <button type="button" className="btn-green grow" disabled={busy || !staff.trim()} onClick={async () => { setBusy(true); await onSave(g, step, note, staff); }}>{busy ? '저장 중…' : label}</button>
+          <button type="button" className="btn-green grow" disabled={busy || !staff.trim() || (needMethod && !method)} title={needMethod && !method ? '결제 방법을 골라 주세요' : ''} onClick={async () => { setBusy(true); await onSave(g, step, note, staff, needMethod ? method : null); }}>{busy ? '저장 중…' : label}</button>
         </div>
       </div>
     </div>

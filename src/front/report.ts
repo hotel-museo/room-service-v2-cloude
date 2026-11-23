@@ -1,3 +1,4 @@
+import { CHECKOUT_PAY, checkoutPayLabel } from '../lib/types';
 import { won } from '../lib/menu';
 import type { Order } from '../lib/types';
 import { itemSummary } from '../admin/sales/aggregate';
@@ -30,7 +31,7 @@ export function printPaidReport(day: string, groups: Group[]): boolean {
         <td>${esc(g.guest || '–')}</td>
         <td>${orders}${notes ? `<div class="note">특이사항: ${esc(notes)}</div>` : ''}</td>
         <td class="r b">${won(g.total)}</td>
-        <td class="c">${dt(o0.checkout_paid_at)}<br><span class="m">${esc(o0.checkout_staff ?? '')}</span></td>
+        <td class="c">${dt(o0.checkout_paid_at)} <b>${esc(checkoutPayLabel(o0.checkout_pay_method))}</b><br><span class="m">${esc(o0.checkout_staff ?? '')}</span></td>
       </tr>`;
     })
     .join('');
@@ -75,9 +76,10 @@ tfoot td { font-weight: 700; border-top: 2px solid #123828; border-bottom: 0; }
   <div><span>객실</span><strong>${groups.length}실</strong></div>
   <div><span>주문</span><strong>${count}건</strong></div>
   <div><span>결제 금액 합계</span><strong>${won(total)}원</strong></div>
+${CHECKOUT_PAY.map(([k, label]) => { const gs = groups.filter((g) => g.list[0].checkout_pay_method === k); return gs.length ? `<div><span>${label}</span><strong>${gs.length}실 · ${won(gs.reduce((a, g) => a + g.total, 0))}원</strong></div>` : ''; }).join('')}
 </div>
 ${groups.length ? `<table>
-  <thead><tr><th>객실</th><th>투숙객</th><th>주문 내역 · 고객 동의</th><th class="r">금액(원)</th><th>결제 시각 · 담당</th></tr></thead>
+  <thead><tr><th>객실</th><th>투숙객</th><th>주문 내역 · 고객 동의</th><th class="r">금액(원)</th><th>결제 시각 · 방법 · 담당</th></tr></thead>
   <tbody>${body}</tbody>
   <tfoot><tr><td colspan="3">합계</td><td class="r">${won(total)}</td><td></td></tr></tfoot>
 </table>` : '<div class="empty">이 날 퇴실 결제한 내역이 없어요</div>'}

@@ -1,4 +1,5 @@
 import type { Order } from '../lib/types';
+import { CHECKOUT_PAY, checkoutPayLabel } from '../lib/types';
 import { itemSummary } from '../admin/sales/aggregate';
 
 /**
@@ -30,6 +31,7 @@ export async function downloadPaidXlsx(day: string, orders: Order[]) {
     { header: '주문 시각', key: 'at', width: 14 },
     { header: '메뉴', key: 'menu', width: 42 },
     { header: '금액(원)', key: 'amt', width: 12 },
+    { header: '결제 방법', key: 'pay', width: 10 },
     { header: '고객 후불 동의', key: 'consent', width: 15 },
     { header: 'WINGS 입력', key: 'wings', width: 14 },
     { header: '객실 반영 확인', key: 'conf', width: 13 },
@@ -53,8 +55,9 @@ export async function downloadPaidXlsx(day: string, orders: Order[]) {
   ws.getCell('A2').font = { size: 10, color: { argb: 'FF666666' } };
 
   // 4행: 요약
-  const sum: [string, string | number, string][] = [['A4', '객실', 'B4'], ['C4', '주문', 'D4'], ['E4', '결제 합계', 'F4']];
-  const sumVals = [`${rooms}실`, `${sorted.length}건`, total];
+  const byPay = CHECKOUT_PAY.map(([k, label]) => { const l = sorted.filter((o) => o.checkout_pay_method === k); return l.length ? `${label} ${l.length}건 ${l.reduce((a, o) => a + (o.total_amount ?? 0), 0).toLocaleString('ko-KR')}원` : ''; }).filter(Boolean).join(' · ');
+  const sum: [string, string | number, string][] = [['A4', '객실', 'B4'], ['C4', '주문', 'D4'], ['E4', '결제 합계', 'F4'], ['H4', '결제 방법', 'I4']];
+  const sumVals = [`${rooms}실`, `${sorted.length}건`, total, byPay || '–'];
   sum.forEach(([lc, label, vc], i) => {
     ws.getCell(lc).value = label;
     ws.getCell(lc).font = { size: 10, color: { argb: 'FF666666' } };
@@ -88,6 +91,7 @@ export async function downloadPaidXlsx(day: string, orders: Order[]) {
       at: dt(o.created_at),
       menu: itemSummary(o),
       amt: o.total_amount ?? 0,
+      pay: checkoutPayLabel(o.checkout_pay_method),
       consent: o.checkout_consent_at ? `✓ ${dt(o.checkout_consent_at)}` : '기록 없음',
       wings: dt(o.wings_posted_at),
       conf: o.settle_staff ?? '',
@@ -97,7 +101,7 @@ export async function downloadPaidXlsx(day: string, orders: Order[]) {
     r.eachCell({ includeEmpty: true }, (cell, col) => {
       cell.border = { top: thin, bottom: thin, left: thin, right: thin };
       cell.font = { size: 10 };
-      cell.alignment = { vertical: 'middle', wrapText: col === 6 || col === 12, horizontal: [1, 2, 4, 5, 8, 9, 10, 11].includes(col) ? 'center' : col === 7 ? 'right' : 'left' };
+      cell.alignment = { vertical: 'middle', wrapText: col === 6 || col === 13, horizontal: [1, 2, 4, 5, 8, 9, 10, 11, 12].includes(col) ? 'center' : col === 7 ? 'right' : 'left' };
       if (i % 2 === 1) cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFAFBFA' } };
     });
     r.height = 22;

@@ -147,6 +147,8 @@ export interface Order {
   checkout_paid_at?: string | null;
   checkout_staff?: string | null;
   checkout_note?: string | null;
+  /** 퇴실 결제 방법 (프런트가 퇴실 결제 완료할 때 고름) */
+  checkout_pay_method?: CheckoutPayMethod | null;
   checkout_consent_at?: string | null;
   checkout_consent_text?: string | null;
   order_items: OrderItem[] | null;
@@ -159,3 +161,8 @@ export interface Order {
   disposable_cutlery_qty: number | null;
   order_token: string | null;
 }
+
+/** 투숙객 후불의 퇴실 결제 방법 */
+export type CheckoutPayMethod = 'cash' | 'card' | 'transfer';
+export const CHECKOUT_PAY: [CheckoutPayMethod, string][] = [['card', '카드'], ['cash', '현금'], ['transfer', '계좌이체']];
+export const checkoutPayLabel = (m?: string | null) => CHECKOUT_PAY.find(([k]) => k === m)?.[1] ?? '';

@@ -1,3 +1,4 @@
+import { checkoutPayLabel } from '../../lib/types';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { won } from '../../lib/menu';
 import { supabase } from '../../lib/supabase';
@@ -89,7 +90,7 @@ export function SalesPage() {
   const makeReport = async () => {
     setMaking(true);
     try {
-      const blob = await renderDailyReport(range.from, s.completed);
+      const blob = await renderDailyReport(range.from, s.completed, s.rejected);
       setReport({ blob, url: URL.createObjectURL(blob), name: `룸서비스_일일보고_${range.from}.png` });
     } catch {
       toast.show('보고 이미지를 만들지 못했어요', true);
@@ -123,7 +124,7 @@ export function SalesPage() {
   const exportOrders = () =>
     downloadCsv(`룸서비스_주문내역_${range.from}_${range.to}.csv`,
       ['주문번호', '주문일시', '객실', '상태', '결제', '투숙객', '메뉴', '금액', '요청사항', '알레르기', '후불 단계', '확인 담당', '결제 담당', '특이사항'],
-      orders.map((o) => [o.id, dt(o.created_at), o.room_number ?? '', ({ pending: '접수 대기', cooking: '조리 중', completed: '완료', rejected: '거절' } as Record<string, string>)[o.status ?? 'pending'], o.payment_method === 'checkout' ? '객실 합산' : '카드', o.guest_name ?? '', itemSummary(o), o.total_amount ?? 0, o.request_note ?? '', o.allergy_note ?? '', o.payment_method === 'checkout' ? ['WINGS 입력 전', '프런트 확인 전', '퇴실 결제 대기', '결제 완료'][stageOf(o)] : '', o.settle_staff ?? '', o.checkout_staff ?? '', [o.settle_note, o.checkout_note].filter(Boolean).join(' / ')]));
+      orders.map((o) => [o.id, dt(o.created_at), o.room_number ?? '', ({ pending: '접수 대기', cooking: '조리 중', completed: '완료', rejected: '거절' } as Record<string, string>)[o.status ?? 'pending'], o.payment_method === 'checkout' ? `객실 합산${o.checkout_pay_method ? ` → ${checkoutPayLabel(o.checkout_pay_method)}` : ''}` : '카드', o.guest_name ?? '', itemSummary(o), o.total_amount ?? 0, o.request_note ?? '', o.allergy_note ?? '', o.payment_method === 'checkout' ? ['WINGS 입력 전', '프런트 확인 전', '퇴실 결제 대기', '결제 완료'][stageOf(o)] : '', o.settle_staff ?? '', o.checkout_staff ?? '', [o.settle_note, o.checkout_note].filter(Boolean).join(' / ')]));
 
   const exportRanking = () =>
     downloadCsv(`룸서비스_메뉴순위_${range.from}_${range.to}.csv`,
@@ -264,7 +265,7 @@ export function SalesPage() {
         ) : (
           <div className="tbl-wrap">
             <table className="tbl">
-              <thead><tr><th>객실</th><th>투숙객</th><th>주문</th><th className="num">금액</th><th>단계</th><th>담당</th></tr></thead>
+              <thead><tr><th>객실</th><th>투숙객</th><th>주문</th><th className="num">금액</th><th>단계</th><th>결제 방법 · 담당</th></tr></thead>
               <tbody>
                 {roomGroups.map((g) => {
                   const o = g.list[0];
@@ -275,7 +276,7 @@ export function SalesPage() {
                       <td><div className="meta">{g.list.map((x) => `${pad(x.id)} ${dt(x.created_at)}`).join(' · ')}</div></td>
                       <td className="num strong">{won(g.total)}원</td>
                       <td>{[<span key={0} className="tag tag--red">WINGS 입력 전</span>, <span key={1} className="tag tag--amber">프런트 확인 전</span>, <span key={2} className="tag tag--amber">퇴실 결제 대기</span>, <span key={3} className="tag">결제 완료</span>][g.stage]}</td>
-                      <td className="meta">{g.stage === 3 ? o.checkout_staff : g.stage === 2 ? o.settle_staff : ''}{(g.stage === 3 ? o.checkout_note : o.settle_note) ? ` · ${g.stage === 3 ? o.checkout_note : o.settle_note}` : ''}</td>
+                      <td className="meta">{g.stage === 3 && o.checkout_pay_method ? <b className="dim">{checkoutPayLabel(o.checkout_pay_method)} · </b> : null}{g.stage === 3 ? o.checkout_staff : g.stage === 2 ? o.settle_staff : ''}{(g.stage === 3 ? o.checkout_note : o.settle_note) ? ` · ${g.stage === 3 ? o.checkout_note : o.settle_note}` : ''}</td>
                     </tr>
                   );
                 })}
